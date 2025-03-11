@@ -22,8 +22,7 @@
   "homepage": "https://github.com/Apollo-Guide/apolloguide#readme",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mysql2": "^3.13.0"
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
