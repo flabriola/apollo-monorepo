@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #0071e3;
+  --primary-hover: #0077ed;
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --secondary: #86868b;
+  --border: #d2d2d7;
+  --success: #34c759;
+  --error: #ff3b30;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-hover transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply border border-border px-6 py-2 rounded-full hover:bg-gray-50 transition-colors;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-border p-6;
+  }
+}
