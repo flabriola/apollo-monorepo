@@ -1,0 +1,41 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Dependencies
+yarn.lock
+package-lock.json
+
+# Testing
+coverage/
+
+# Misc
+.cache/
+.tmp/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
