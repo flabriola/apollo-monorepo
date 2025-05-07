@@ -8,6 +8,11 @@ app.get('/', (req, res) => {
     res.send('Apollo Guide Backend is Live with Nodemon!');
 });
 
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'Hello from Apollo Guide backend!' });
+  });
+  
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
