@@ -31,6 +31,11 @@ db.connect((err) => {
   }
 });
 
+app.get('/', (req, res) => {
+    res.send('Apollo Guide backend is live');
+  });
+  
+
 // Optional API to fetch data
 app.get('/api/restaurants', (req, res) => {
   db.query('SELECT * FROM restaurant', (err, results) => {
