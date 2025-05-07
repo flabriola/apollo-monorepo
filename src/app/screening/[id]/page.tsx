@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface MenuItem {
@@ -22,6 +22,11 @@ export default function ScreeningPage({ params }: { params: { id: string } }) {
     lastUpdated: params.id === '1' ? '2024-03-20' : 
                  params.id === '2' ? '2024-04-15' : '2024-05-01'
   });
+
+  useEffect(() => {
+    console.log("TTTTT");
+    alert("TTTTT");
+  }, []);
   
   const [menuItems, setMenuItems] = useState<MenuItem[]>([
     {
