@@ -51,7 +51,6 @@ const ScreeningPage = () => {
     { id: '', name: '', description: '', active: '', pdf: '' }
   ]);
   const [showMenuSqlBox, setShowMenuSqlBox] = useState(true);
-  
   const [highlightedMenuSql, setHighlightedMenuSql] = useState('');
 
   // Section 3: Dish (multiple entries) with pagination
