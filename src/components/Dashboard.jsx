@@ -23,7 +23,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#f5f5f7', height: '100vh' }}>
     <div className="dashboard">
       <div className="dashboard-header">
         <h1 id='screenings-title'>Screenings</h1>
