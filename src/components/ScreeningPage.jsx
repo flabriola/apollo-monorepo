@@ -64,6 +64,7 @@ const ScreeningPage = () => {
   const [dishErrorsByMenu, setDishErrorsByMenu] = useState({
     0: [{ id: '', name: '', description: '', price: '', category: '', active: '' }]
   });
+  
   const [showDishSqlBox, setShowDishSqlBox] = useState(true);
   const [highlightedDishSql, setHighlightedDishSql] = useState('');
   const [currentDishIndex, setCurrentDishIndex] = useState(0);
