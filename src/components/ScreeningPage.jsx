@@ -95,11 +95,16 @@ const ScreeningPage = () => {
     "0-0": ""
   });
 
+  // Initialize original screening state
+  const [originalScreening, setOriginalScreening] = useState(null);
+  const [isScreeningDirty, setIsScreeningDirty] = useState(false);
+
   // Initialize from screening data if it exists
   useEffect(() => {
     if (initialScreening?.json) {
       // Copy the screening data to our local state
       setScreening(initialScreening.json);
+      setOriginalScreening(initialScreening.json); // Store the original
       
       // Set restaurant info
       if (initialScreening.json.restaurant) {
@@ -165,6 +170,13 @@ const ScreeningPage = () => {
       // --- END FIX ---
     }
   }, [initialScreening]);
+
+  // Track if screening has changed from original
+  useEffect(() => {
+    if (!originalScreening) return;
+    // Deep compare using JSON.stringify (sufficient for this use case)
+    setIsScreeningDirty(JSON.stringify(screening) !== JSON.stringify(originalScreening));
+  }, [screening, originalScreening]);
 
   // Filter ingredients based on search term
   useEffect(() => {
@@ -992,6 +1004,11 @@ const ScreeningPage = () => {
     return ingredients.sort((a, b) => a.id - b.id);
   };
 
+  // Save handler
+  const handleSave = () => {
+    console.log('Screening object:', screening);
+  };
+
   return (
     <div className="screening-page">
       {/* Secondary Header */}
@@ -1006,7 +1023,7 @@ const ScreeningPage = () => {
             <button className="action-button">
               View
             </button>
-            <button className="action-button">
+            <button className="action-button" disabled={!isScreeningDirty} onClick={handleSave}>
               Save
             </button>
           </div>
