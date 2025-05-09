@@ -168,6 +168,18 @@ const ScreeningPage = () => {
       });
       setDishIdsByDishKey(dishIdMap);
       // --- END FIX ---
+    } else {
+      // If no screening is passed in, set originalScreening to an empty object
+      setOriginalScreening({
+        restaurant: {
+          name: '',
+          address: '',
+          phone: ''
+        },
+        menus: {},
+        dishes: {},
+        ingredients: {}
+      });
     }
   }, [initialScreening]);
 
@@ -1008,6 +1020,20 @@ const ScreeningPage = () => {
   const handleSave = () => {
     console.log('Screening object:', screening);
   };
+
+  // Warn user before leaving if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (isScreeningDirty) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isScreeningDirty]);
 
   return (
     <div className="screening-page">
