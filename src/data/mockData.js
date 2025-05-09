@@ -10,87 +10,180 @@ export const screenings = [
         address: "123 Main St, New York, NY 10001",
         phone: "212-555-1234"
       },
-      menus: [
-        {
-          restaurant_id: 1,
-          name: "Menu 1",
+      menus: {
+        // key of each object used to refer to each dish inside the menu
+        1 : {
+          restaurant_id: 100013, // field in form
+          name: "Lunch",
           description: "Menu 1 description",
           active: true
+        },
+        2 : {
+          restaurant_id: 100013, // same for all menus
+          name: "Dinner",
+          description: "Menu 2 description",
+          active: true
         }
-      ],
-      dishes: [
-        {
-          menu_id: 1,
+      },
+      dishes: {
+        // key of each object used to refer to each ingredient inside the dish
+        1: {
+          menu: 1, // menu it belongs to (for pagination/grouping)
+          menu_id: 200034, // this field should still be an input field, not used for pagination
           name: "Dish 1",
           description: "Dish 1 description",
           price: 10.00,
           category: "Appetizer",
           active: true
         },
-        {
-          menu_id: 1,
+        2: {
+          menu: 1,
+          menu_id: 200034,
           name: "Dish 2",
           description: "Dish 2 description",
           price: 15.00,
           category: "Main",
           active: true
         },
-        {
-          menu_id: 1,
+        3: {
+          menu: 1,
+          menu_id: 200034,
           name: "Dish 3",
           description: "Dish 3 description",
           price: 20.00,
           category: "Dessert",
           active: true
-        }
-      ],
-      ingredients: [
-        {
-          dish_id: 1,
+        },
+        4: {
+          menu: 2, // different menu than the above 3
+          menu_id: 200026,
+          name: "Dish 4",
+          description: "Dish 4 description",
+          price: 25.00,
+          category: "Dessert",
+          active: true
+        },
+        5: {
+          menu: 2,
+          menu_id: 200026,
+          name: "Dish 5",
+          description: "Dish 5 description",
+          price: 30.00,
+        },
+      },
+      ingredients: {
+        1: {
+          dish: 1, // dish it belongs to (for pagination/grouping)
+          dish_id: 30001, // this field should still be an input field, not used for pagination, however only asked on top of the list as it's the same for all in that specific diish (as is)
           ingredient_id: 1,
           private: false,
           description: "Ingredient 1 description"
         },
-        {
-          dish_id: 1,
+        2: {
+          dish: 1,
+          dish_id: 30001,
           ingredient_id: 2,
           private: true,
           description: "Ingredient 2 description"
         },
-        {
-          dish_id: 1,
+        3: {
+          dish: 1,
+          dish_id: 30001,
           ingredient_id: 3,
           private: false,
           description: "Ingredient 3 description"
         },
-        {
-          dish_id: 2,
-          ingredient_id: 4,
+        4: {
+          dish: 2,
+          dish_id: 30002,
+          ingredient_id: 2,
           private: false,
           description: "Ingredient 4 description"
+        },
+        5: {
+          dish: 2,
+          dish_id: 30002,
+          ingredient_id: 6,
+          private: false,
+          description: "Ingredient 5 description"
+        },
+        6: {
+          dish: 2,
+          dish_id: 30002,
+          ingredient_id: 1,
+          private: false,
+          description: "Ingredient 6 description"
+        },
+        7: {
+          dish: 3,
+          dish_id: 30003,
+          ingredient_id: 6,
+          private: false,
+          description: "Ingredient 7 description"
+        },
+        8: {
+          dish: 3,
+          dish_id: 30003,
+          ingredient_id: 8,
+          private: false,
+          description: "Ingredient 8 description"
+        },
+        9: {
+          dish: 4,
+          dish_id: 30008,
+          ingredient_id: 1,
+          private: false,
+          description: "Ingredient 9 description"
+        },
+        10: {
+          dish: 4,
+          dish_id: 30008,
+          ingredient_id: 1,
+          private: false,
+          description: "Ingredient 10 description"
+        },
+        11: {
+          dish: 5,
+          dish_id: 30009,
+          ingredient_id: 1,
+          private: false,
+          description: "Ingredient 11 description"
+        },
+        12 : {
+          dish: 5, 
+          dish_id: 30009,
+          ingredient_id: 2,
+          private: false,
+          description: "Ingredient 12 description"
         }
-      ]
+      }
     }
-  },
-  {
-    id: 2,
-    title: "Sushi Master",
-    lastModified: "2024-03-19T09:15:00",
-    owner: "Sarah Johnson"
-  },
-  {
-    id: 3,
-    title: "Burger Palace",
-    lastModified: "2024-03-18T16:45:00",
-    owner: "Mike Brown"
-  },
-  {
-    id: 4,
-    title: "Taste of India",
-    lastModified: "2024-03-17T11:20:00",
-    owner: "Emma Wilson"
   }
 ]; 
+
+// Pagination organization of above screening
+// menu.1
+//  dishes.1
+//    ingredients.1
+//    ingredients.2
+//    ingredients.3
+//  dishes.2
+//    ingredients.4
+//    ingredients.5
+//    ingredients.6
+//  dishes.3
+//    ingredients.7
+//    ingredients.8
+
+// menu.2
+//  dishes.4
+//    ingredients.9
+//    ingredients.10
+//  dishes.5
+//    ingredients.11
+//    ingredients.12
+
+
 
 export const ingredients = [
   {

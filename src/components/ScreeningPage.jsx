@@ -23,6 +23,18 @@ const ScreeningPage = () => {
   const location = useLocation();
   const initialScreening = location.state?.screening;
 
+  // Initialize screening state
+  const [screening, setScreening] = useState({
+    restaurant: {
+      name: '',
+      address: '',
+      phone: ''
+    },
+    menus: {},
+    dishes: {},
+    ingredients: {}
+  });
+
   // Initialize form state with data from the screening or defaults
   const [restaurantInfo, setRestaurantInfo] = useState({
     name: '',
@@ -44,12 +56,6 @@ const ScreeningPage = () => {
   // Section 2: Menu (multiple entries)
   const [menuRestaurantId, setMenuRestaurantId] = useState('');
   const [menuRestaurantIdError, setMenuRestaurantIdError] = useState('');
-  const [menus, setMenus] = useState([
-    { id: '', name: '', description: '', active: true, pdf: '' }
-  ]);
-  const [menuErrors, setMenuErrors] = useState([
-    { id: '', name: '', description: '', active: '', pdf: '' }
-  ]);
   const [showMenuSqlBox, setShowMenuSqlBox] = useState(true);
   const [highlightedMenuSql, setHighlightedMenuSql] = useState('');
 
@@ -67,7 +73,7 @@ const ScreeningPage = () => {
   
   const [showDishSqlBox, setShowDishSqlBox] = useState(true);
   const [highlightedDishSql, setHighlightedDishSql] = useState('');
-  const [currentDishIndex, setCurrentDishIndex] = useState(0);
+  const [currentDishId, setCurrentDishId] = useState(null);
 
   // Section 4: Ingredients associated with dishes
   const [ingredientsByDish, setIngredientsByDish] = useState({
@@ -81,8 +87,8 @@ const ScreeningPage = () => {
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState('');
   const [filteredIngredients, setFilteredIngredients] = useState(mockIngredients);
 
-  // Add current menu index state
-  const [currentMenuIndex, setCurrentMenuIndex] = useState(0);
+  // Instead, track the current menu ID and dish ID
+  const [currentMenuId, setCurrentMenuId] = useState(null);
 
   // Change the single dishIdForIngredients state to a map of IDs by dish key
   const [dishIdsByDishKey, setDishIdsByDishKey] = useState({
@@ -91,14 +97,72 @@ const ScreeningPage = () => {
 
   // Initialize from screening data if it exists
   useEffect(() => {
-    if (initialScreening) {
-      // In a real app, you'd extract restaurant info from the screening
-      // For now, we'll just use mock data if available
-      setRestaurantInfo({
-        name: initialScreening.title.split(' - ')[0] || '',
-        address: '123 Main St',  // Mock data
-        phone: '555-123-4567'    // Mock data
+    if (initialScreening?.json) {
+      // Copy the screening data to our local state
+      setScreening(initialScreening.json);
+      
+      // Set restaurant info
+      if (initialScreening.json.restaurant) {
+        setRestaurantInfo({
+          name: initialScreening.json.restaurant.name || '',
+          address: initialScreening.json.restaurant.address || '',
+          phone: initialScreening.json.restaurant.phone || ''
+        });
+      }
+      
+      // Update menuRestaurantId if we have menus
+      const menuIds = Object.keys(initialScreening.json.menus || {});
+      if (menuIds.length > 0) {
+        const firstMenuId = parseInt(menuIds[0]);
+        const firstMenu = initialScreening.json.menus[firstMenuId];
+        if (firstMenu?.restaurant_id) {
+          setMenuRestaurantId(firstMenu.restaurant_id.toString());
+        }
+      }
+
+      // Set current menu ID to the first menu
+      if (menuIds.length > 0) {
+        const firstMenuId = parseInt(menuIds[0]);
+        setCurrentMenuId(firstMenuId);
+        
+        // Find dishes for this menu
+        const dishesForMenu = [];
+        Object.keys(initialScreening.json.dishes || {}).forEach(dishKey => {
+          if (initialScreening.json.dishes[dishKey].menu === firstMenuId) {
+            dishesForMenu.push(parseInt(dishKey));
+          }
+        });
+        
+        // Set current dish ID to the first dish of this menu
+        if (dishesForMenu.length > 0) {
+          setCurrentDishId(dishesForMenu[0]);
+        }
+      }
+
+      // --- FIX: Populate menuIdsByMenuIndex from loaded dishes ---
+      const menuIdMap = {};
+      Object.values(initialScreening.json.dishes || {}).forEach(dish => {
+        if (dish.menu !== undefined && dish.menu_id) {
+          // Only set if not already set (first dish's menu_id wins)
+          if (!menuIdMap[dish.menu]) {
+            menuIdMap[dish.menu] = dish.menu_id;
+          }
+        }
       });
+      setMenuIdsByMenuIndex(menuIdMap);
+      // --- END FIX ---
+
+      // --- FIX: Populate dishIdsByDishKey from loaded ingredients ---
+      const dishIdMap = {};
+      Object.values(initialScreening.json.ingredients || {}).forEach(ingredient => {
+        if (ingredient.dish !== undefined && ingredient.dish_id) {
+          if (!dishIdMap[ingredient.dish]) {
+            dishIdMap[ingredient.dish] = ingredient.dish_id;
+          }
+        }
+      });
+      setDishIdsByDishKey(dishIdMap);
+      // --- END FIX ---
     }
   }, [initialScreening]);
 
@@ -124,18 +188,17 @@ const ScreeningPage = () => {
     }
   }, [showSqlBox, restaurantInfo]);
 
-  // Generate SQL query with the current values
-  const generateSqlQuery = () => {
-    return `INSERT INTO restaurant (name, address, phone) \nVALUES \n    ('${restaurantInfo.name}', '${restaurantInfo.address}', '${restaurantInfo.phone}')\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    address = VALUES(address), \n    phone = VALUES(phone);`;
-  };
-
-  // Handle input changes
+  // Update handle input changes for restaurant
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setRestaurantInfo(prev => ({
-      ...prev,
+    const updatedRestaurantInfo = {
+      ...restaurantInfo,
       [name]: value
-    }));
+    };
+    
+    // Update both the restaurant info state and the screening state
+    setRestaurantInfo(updatedRestaurantInfo);
+    updateRestaurantInfo(updatedRestaurantInfo);
 
     // Validate the input
     validateField(name, value);
@@ -203,11 +266,24 @@ const ScreeningPage = () => {
 
   // Update addMenu function to initialize dish ID for the menu's first dish
   const addMenu = () => {
-    const newMenuIndex = menus.length;
+    const newMenuIndex = Object.keys(screening.menus || {}).length;
     const newDishKey = `${newMenuIndex}-0`;
     
-    setMenus([...menus, { id: '', name: '', description: '', active: true, pdf: '' }]);
-    setMenuErrors([...menuErrors, { id: '', name: '', description: '', active: '', pdf: '' }]);
+    // Use the current restaurant ID for the new menu
+    const restaurant_id = menuRestaurantId || '';
+    
+    setScreening(prev => ({
+      ...prev,
+      menus: {
+        ...prev.menus,
+        [newMenuIndex]: {
+          restaurant_id: restaurant_id,
+          name: '',
+          description: '',
+          active: true
+        }
+      }
+    }));
     
     // Initialize first dish for the new menu
     setDishesByMenu({
@@ -243,17 +319,27 @@ const ScreeningPage = () => {
       [newDishKey]: ''
     });
     
-    setCurrentMenuIndex(newMenuIndex);
-    setCurrentDishIndex(0); // Reset to first dish of the new menu
+    // Set the current menu to the new menu and first dish
+    setCurrentMenuId(newMenuIndex);
+    setCurrentDishId(0); // Reset to first dish of the new menu
+    
+    // Add a new dish to the screening state
+    addNewDish(newMenuIndex);
   };
 
-  // Handle menu input changes
-  const handleMenuInputChange = (idx, e) => {
+  // Update handle menu input changes
+  const handleMenuInputChange = (menuId, e) => {
     const { name, value, type, checked } = e.target;
-    const newMenus = [...menus];
-    newMenus[idx][name] = type === 'checkbox' ? checked : value;
-    setMenus(newMenus);
-    validateMenuField(idx, name, newMenus[idx][name]);
+    const menuUpdate = {
+      [name]: type === 'checkbox' ? checked : value
+    };
+    
+    // Also update restaurant_id if we're changing it
+    if (name === 'restaurant_id') {
+      setMenuRestaurantId(value);
+    }
+    
+    updateMenu(menuId, menuUpdate);
   };
 
   // Validate a menu field
@@ -266,9 +352,9 @@ const ScreeningPage = () => {
       if (value && value.length > 512) error = 'Max 512 characters';
     }
     // No validation for description (TEXT) or active (checkbox)
-    const newErrors = [...menuErrors];
+    const newErrors = { ...dishErrorsByMenu };
     newErrors[idx][field] = error;
-    setMenuErrors(newErrors);
+    setDishErrorsByMenu(newErrors);
     return !error;
   };
 
@@ -285,7 +371,8 @@ const ScreeningPage = () => {
     } else {
       setMenuRestaurantIdError('');
     }
-    menus.forEach((menu, idx) => {
+    Object.keys(screening.menus || {}).forEach((menuId, idx) => {
+      const menu = screening.menus[menuId];
       Object.keys(menu).forEach(field => {
         if (!validateMenuField(idx, field, menu[field])) valid = false;
       });
@@ -293,13 +380,22 @@ const ScreeningPage = () => {
     return valid;
   };
 
-  // Generate SQL for menus
+  // Update SQL generation functions
+  const generateSqlQuery = () => {
+    return `INSERT INTO restaurant (name, address, phone) \nVALUES \n    ('${restaurantInfo.name}', '${restaurantInfo.address}', '${restaurantInfo.phone}')\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    address = VALUES(address), \n    phone = VALUES(phone);`;
+  };
+
   const generateMenuSql = () => {
     const rid = menuRestaurantId;
+    const menus = getMenusArray();
+    
     const values = menus.map(menu =>
-      `    (${rid}, '${menu.name.replace(/'/g, "''")}', '${menu.description.replace(/'/g, "''")}', ${menu.active ? 1 : 0}, '${menu.pdf.replace(/'/g, "''")}')`
+      `    (${rid}, '${menu.name?.replace(/'/g, "''")}', '${menu.description?.replace(/'/g, "''")}', ${menu.active ? 1 : 0}, '${menu.pdf?.replace(/'/g, "''") || ''}')`
     ).join(',\n');
-    return `INSERT INTO menu (restaurant_id, name, description, active, pdf_url) \nVALUES\n${values}\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    description = VALUES(description), \n    active = VALUES(active), \n    pdf_url = VALUES(pdf_url);`;
+    
+    return values.length > 0
+      ? `INSERT INTO menu (restaurant_id, name, description, active, pdf_url) \nVALUES\n${values}\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    description = VALUES(description), \n    active = VALUES(active), \n    pdf_url = VALUES(pdf_url);`
+      : '-- No menus added';
   };
 
   // Highlight SQL for menus
@@ -309,7 +405,7 @@ const ScreeningPage = () => {
       const html = Prism.highlight(raw, Prism.languages.sql, 'sql');
       setHighlightedMenuSql(html);
     }
-  }, [showMenuSqlBox, menus, menuRestaurantId]);
+  }, [showMenuSqlBox, screening.menus, menuRestaurantId]);
 
   // Toggle menu SQL box
   const toggleMenuSqlBox = () => {
@@ -319,64 +415,33 @@ const ScreeningPage = () => {
 
   // Update addDish function to initialize the dish ID for the new dish
   const addDish = () => {
-    const currentMenuDishes = dishesByMenu[currentMenuIndex] || [];
-    const newDishIndex = currentMenuDishes.length;
-    const newDishKey = `${currentMenuIndex}-${newDishIndex}`;
+    if (!currentMenuId) return;
     
-    setDishesByMenu({
-      ...dishesByMenu,
-      [currentMenuIndex]: [
-        ...currentMenuDishes,
-        { id: '', name: '', description: '', price: '', category: '', active: true }
-      ]
-    });
+    // Get the menu_id from the menuIdsByMenuIndex to ensure consistency
+    const menu_id = menuIdsByMenuIndex[currentMenuId] || '';
     
-    const currentMenuDishErrors = dishErrorsByMenu[currentMenuIndex] || [];
-    setDishErrorsByMenu({
-      ...dishErrorsByMenu,
-      [currentMenuIndex]: [
-        ...currentMenuDishErrors,
-        { id: '', name: '', description: '', price: '', category: '', active: '' }
-      ]
-    });
-    
-    // Initialize ingredients for the new dish
-    setIngredientsByDish({
-      ...ingredientsByDish,
-      [newDishKey]: [{ ingredient_id: '', private: false, description: '' }]
-    });
-    
-    setIngredientErrorsByDish({
-      ...ingredientErrorsByDish,
-      [newDishKey]: [{ ingredient_id: '', private: '', description: '' }]
-    });
-    
-    // Initialize dish ID for the new dish
-    setDishIdsByDishKey({
-      ...dishIdsByDishKey,
-      [newDishKey]: ''
-    });
-    
-    // Navigate to the newly added dish
-    setCurrentDishIndex(newDishIndex);
+    // Add a new dish to the current menu in the main screening state
+    addNewDish(currentMenuId);
   };
 
-  // Update handleDishInputChange to handle dishes by menu
-  const handleDishInputChange = (menuIdx, dishIdx, e) => {
+  // Update handle dish input changes
+  const handleDishInputChange = (dishId, e) => {
     const { name, value, type, checked } = e.target;
-    
-    const currentMenuDishes = [...(dishesByMenu[menuIdx] || [])];
-    currentMenuDishes[dishIdx] = {
-      ...currentMenuDishes[dishIdx],
+    const dishUpdate = {
       [name]: type === 'checkbox' ? checked : value
     };
     
-    setDishesByMenu({
-      ...dishesByMenu,
-      [menuIdx]: currentMenuDishes
-    });
+    // Also update menu_id if we're changing it
+    if (name === 'menu_id') {
+      const dish = screening.dishes[dishId];
+      const menuId = dish.menu;
+      setMenuIdsByMenuIndex({
+        ...menuIdsByMenuIndex,
+        [menuId]: value
+      });
+    }
     
-    validateDishField(menuIdx, dishIdx, name, currentMenuDishes[dishIdx][name]);
+    updateDish(dishId, dishUpdate);
   };
 
   // Update validateDishField to handle dishes by menu
@@ -397,7 +462,7 @@ const ScreeningPage = () => {
       // No validation for description (TEXT) or active (checkbox)
     }
     
-    const currentMenuDishErrors = [...(dishErrorsByMenu[menuIdx] || [])];
+    const currentMenuDishErrors = { ...dishErrorsByMenu[menuIdx] };
     currentMenuDishErrors[dishIdx] = {
       ...currentMenuDishErrors[dishIdx],
       [field]: error
@@ -416,7 +481,7 @@ const ScreeningPage = () => {
     let valid = true;
     
     // Validate menu_id for the current menu
-    const currentMenuId = menuIdsByMenuIndex[currentMenuIndex] || '';
+    const currentMenuId = menuIdsByMenuIndex[currentMenuId] || '';
     
     if (!currentMenuId) {
       setMenuIdForDishesError('Menu ID is required');
@@ -428,11 +493,11 @@ const ScreeningPage = () => {
       setMenuIdForDishesError('');
     }
     
-    const currentMenuDishes = dishesByMenu[currentMenuIndex] || [];
+    const currentMenuDishes = dishesByMenu[currentMenuId] || [];
     currentMenuDishes.forEach((dish, idx) => {
       Object.keys(dish).forEach(field => {
         if (field !== 'description' && field !== 'category') { // These can be empty
-          if (!validateDishField(currentMenuIndex, idx, field, dish[field])) valid = false;
+          if (!validateDishField(currentMenuId, idx, field, dish[field])) valid = false;
         }
       });
     });
@@ -444,16 +509,17 @@ const ScreeningPage = () => {
   const generateDishSql = () => {
     let allValues = [];
     
-    // Loop through all menu indices in dishesByMenu
-    Object.keys(dishesByMenu).forEach(menuIdx => {
-      const menuId = menuIdsByMenuIndex[menuIdx] || '';
-      const dishes = dishesByMenu[menuIdx] || [];
+    // Loop through all dishes
+    Object.keys(screening.dishes || {}).forEach(dishId => {
+      const dish = screening.dishes[dishId];
+      const menuId = dish.menu;
+      // Get menu_id from the consistent mapping
+      const menu_id = menuIdsByMenuIndex[menuId] || '';
       
-      if (menuId && dishes.length > 0) {
-        const menuDishValues = dishes.map(dish =>
-          `    (${menuId}, '${dish.name.replace(/'/g, "''")}', '${dish.description.replace(/'/g, "''")}', ${dish.price || 0}, '${dish.category.replace(/'/g, "''")}', ${dish.active ? 1 : 0})`
-        );
-        allValues = [...allValues, ...menuDishValues];
+      if (menu_id && dish.name) {
+        const dishValue = 
+          `    (${menu_id}, '${dish.name.replace(/'/g, "''")}', '${dish.description?.replace(/'/g, "''")}', ${dish.price || 0}, '${dish.category?.replace(/'/g, "''")}', ${dish.active ? 1 : 0})`;
+        allValues.push(dishValue);
       }
     });
     
@@ -464,69 +530,70 @@ const ScreeningPage = () => {
 
   // Update dish navigation functions
   const nextDish = () => {
-    const currentMenuDishes = dishesByMenu[currentMenuIndex] || [];
-    if (currentDishIndex < currentMenuDishes.length - 1) {
-      setCurrentDishIndex(currentDishIndex + 1);
+    // Get all dishes for the current menu, sorted by ID
+    const dishesForMenu = [];
+    Object.keys(screening.dishes || {}).forEach(dishKey => {
+      if (screening.dishes[dishKey].menu === currentMenuId) {
+        dishesForMenu.push(parseInt(dishKey));
+      }
+    });
+    
+    dishesForMenu.sort((a, b) => a - b);
+    
+    const currentIndex = dishesForMenu.indexOf(currentDishId);
+    if (currentIndex < dishesForMenu.length - 1) {
+      const nextDishId = dishesForMenu[currentIndex + 1];
+      setCurrentDishId(nextDishId);
     }
   };
 
   const prevDish = () => {
-    if (currentDishIndex > 0) {
-      setCurrentDishIndex(currentDishIndex - 1);
+    // Get all dishes for the current menu, sorted by ID
+    const dishesForMenu = [];
+    Object.keys(screening.dishes || {}).forEach(dishKey => {
+      if (screening.dishes[dishKey].menu === currentMenuId) {
+        dishesForMenu.push(parseInt(dishKey));
+      }
+    });
+    
+    dishesForMenu.sort((a, b) => a - b);
+    
+    const currentIndex = dishesForMenu.indexOf(currentDishId);
+    if (currentIndex > 0) {
+      const prevDishId = dishesForMenu[currentIndex - 1];
+      setCurrentDishId(prevDishId);
     }
   };
 
-  const goToDish = (index) => {
-    const currentMenuDishes = dishesByMenu[currentMenuIndex] || [];
-    if (index >= 0 && index < currentMenuDishes.length) {
-      setCurrentDishIndex(index);
+  const goToDish = (dishId) => {
+    if (screening.dishes && screening.dishes[dishId]) {
+      setCurrentDishId(dishId);
     }
   };
 
-  // Update addIngredientEntry function to not include dish_id property
+  // Update addIngredientEntry function to properly add ingredients to the screening state
   const addIngredientEntry = () => {
-    const dishKey = `${currentMenuIndex}-${currentDishIndex}`;
-    const currentIngredients = ingredientsByDish[dishKey] || [];
-    const currentErrors = ingredientErrorsByDish[dishKey] || [];
-
-    setIngredientsByDish({
-      ...ingredientsByDish,
-      [dishKey]: [
-        ...currentIngredients,
-        { ingredient_id: '', private: false, description: '' }
-      ]
-    });
-
-    setIngredientErrorsByDish({
-      ...ingredientErrorsByDish,
-      [dishKey]: [
-        ...currentErrors,
-        { ingredient_id: '', private: '', description: '' }
-      ]
-    });
+    if (!currentDishId) return;
+    
+    // Get the dish_id from the dishIdsByDishKey mapping for consistency
+    const dish_id = dishIdsByDishKey[currentDishId] || '';
+    
+    // Add a new ingredient to the current dish in the main screening state
+    addNewIngredient(currentDishId);
   };
 
-  // Update handleIngredientInputChange to not handle dish_id field since we're using dishIdsByDishKey
-  const handleIngredientInputChange = (idx, e) => {
+  // Update handle ingredient input changes
+  const handleIngredientInputChange = (ingredientId, e) => {
     const { name, value, type, checked } = e.target;
     
-    // Skip if trying to update dish_id directly from an ingredient entry
+    // Skip if trying to update dish_id directly
     if (name === 'dish_id') return;
     
-    const dishKey = `${currentMenuIndex}-${currentDishIndex}`;
-    const currentIngredients = [...(ingredientsByDish[dishKey] || [])];
-
-    currentIngredients[idx] = {
-      ...currentIngredients[idx],
+    const ingredientUpdate = {
       [name]: type === 'checkbox' ? checked : value
     };
-
-    setIngredientsByDish({
-      ...ingredientsByDish,
-      [dishKey]: currentIngredients
-    });
-
-    validateIngredientField(dishKey, idx, name, currentIngredients[idx][name]);
+    
+    updateIngredient(ingredientId, ingredientUpdate);
   };
 
   // Update validateIngredientField to skip dish_id validation
@@ -560,7 +627,7 @@ const ScreeningPage = () => {
     let valid = true;
     
     // Validate dish_id for the current dish
-    const currentDishKey = `${currentMenuIndex}-${currentDishIndex}`;
+    const currentDishKey = `${currentMenuId}-${currentDishId}`;
     const currentDishId = dishIdsByDishKey[currentDishKey] || '';
     
     if (!currentDishId) {
@@ -571,7 +638,7 @@ const ScreeningPage = () => {
       valid = false;
     }
     
-    const dishKey = `${currentMenuIndex}-${currentDishIndex}`;
+    const dishKey = `${currentMenuId}-${currentDishId}`;
     const currentIngredients = ingredientsByDish[dishKey] || [];
 
     currentIngredients.forEach((entry, idx) => {
@@ -589,17 +656,17 @@ const ScreeningPage = () => {
   const generateIngredientSql = () => {
     let allValues = [];
     
-    // Loop through all dish keys in ingredientsByDish
-    Object.keys(ingredientsByDish).forEach(dishKey => {
-      const [menuIdx, dishIdx] = dishKey.split('-');
-      const dishId = dishIdsByDishKey[dishKey] || '';
-      const ingredients = ingredientsByDish[dishKey] || [];
+    // Loop through all ingredients
+    Object.keys(screening.ingredients || {}).forEach(ingredientId => {
+      const ingredient = screening.ingredients[ingredientId];
+      const dishId = ingredient.dish;
+      // Get dish_id from the consistent mapping
+      const dish_id = dishIdsByDishKey[dishId] || '';
       
-      if (dishId && ingredients.length > 0) {
-        const dishValues = ingredients.map(entry =>
-          `    (${dishId}, ${entry.ingredient_id}, ${entry.private ? 1 : 0}, '${entry.description?.replace(/'/g, "''") || ''}')`
-        );
-        allValues = [...allValues, ...dishValues];
+      if (dish_id && ingredient.ingredient_id) {
+        const ingredientValue = 
+          `    (${dish_id}, ${ingredient.ingredient_id}, ${ingredient.private ? 1 : 0}, '${ingredient.description?.replace(/'/g, "''") || ''}')`;
+        allValues.push(ingredientValue);
       }
     });
     
@@ -615,7 +682,7 @@ const ScreeningPage = () => {
       const html = Prism.highlight(raw, Prism.languages.sql, 'sql');
       setHighlightedIngredientSql(html);
     }
-  }, [showIngredientSqlBox, ingredientsByDish, currentMenuIndex, currentDishIndex, dishesByMenu, dishIdsByDishKey]);
+  }, [showIngredientSqlBox, screening.ingredients, ingredientsByDish, currentMenuId, currentDishId, dishesByMenu, dishIdsByDishKey]);
 
   // Toggle ingredient SQL box
   const toggleIngredientSqlBox = () => {
@@ -623,22 +690,73 @@ const ScreeningPage = () => {
     setShowIngredientSqlBox(!showIngredientSqlBox);
   };
 
-  // Add these functions for menu navigation
+  // Update navigation functions for menus
   const nextMenu = () => {
-    if (currentMenuIndex < menus.length - 1) {
-      setCurrentMenuIndex(currentMenuIndex + 1);
+    const menuIds = Object.keys(screening.menus || {})
+      .map(id => parseInt(id))
+      .sort((a, b) => a - b);
+    
+    const currentIndex = menuIds.indexOf(currentMenuId);
+    if (currentIndex < menuIds.length - 1) {
+      const nextMenuId = menuIds[currentIndex + 1];
+      setCurrentMenuId(nextMenuId);
+      
+      // Also update current dish to the first dish of this menu
+      const dishesForMenu = [];
+      Object.keys(screening.dishes || {}).forEach(dishKey => {
+        if (screening.dishes[dishKey].menu === nextMenuId) {
+          dishesForMenu.push(parseInt(dishKey));
+        }
+      });
+      
+      if (dishesForMenu.length > 0) {
+        const firstDishId = dishesForMenu[0];
+        setCurrentDishId(firstDishId);
+      }
     }
   };
 
   const prevMenu = () => {
-    if (currentMenuIndex > 0) {
-      setCurrentMenuIndex(currentMenuIndex - 1);
+    const menuIds = Object.keys(screening.menus || {})
+      .map(id => parseInt(id))
+      .sort((a, b) => a - b);
+    
+    const currentIndex = menuIds.indexOf(currentMenuId);
+    if (currentIndex > 0) {
+      const prevMenuId = menuIds[currentIndex - 1];
+      setCurrentMenuId(prevMenuId);
+      
+      // Also update current dish to the first dish of this menu
+      const dishesForMenu = [];
+      Object.keys(screening.dishes || {}).forEach(dishKey => {
+        if (screening.dishes[dishKey].menu === prevMenuId) {
+          dishesForMenu.push(parseInt(dishKey));
+        }
+      });
+      
+      if (dishesForMenu.length > 0) {
+        const firstDishId = dishesForMenu[0];
+        setCurrentDishId(firstDishId);
+      }
     }
   };
 
-  const goToMenu = (index) => {
-    if (index >= 0 && index < menus.length) {
-      setCurrentMenuIndex(index);
+  const goToMenu = (menuId) => {
+    if (screening.menus && screening.menus[menuId]) {
+      setCurrentMenuId(menuId);
+      
+      // Also update current dish to the first dish of this menu
+      const dishesForMenu = [];
+      Object.keys(screening.dishes || {}).forEach(dishKey => {
+        if (screening.dishes[dishKey].menu === menuId) {
+          dishesForMenu.push(parseInt(dishKey));
+        }
+      });
+      
+      if (dishesForMenu.length > 0) {
+        const firstDishId = dishesForMenu[0];
+        setCurrentDishId(firstDishId);
+      }
     }
   };
 
@@ -649,12 +767,219 @@ const ScreeningPage = () => {
       const html = Prism.highlight(raw, Prism.languages.sql, 'sql');
       setHighlightedDishSql(html);
     }
-  }, [showDishSqlBox, dishesByMenu, currentMenuIndex, menuIdsByMenuIndex]);
+  }, [showDishSqlBox, screening.dishes, menuIdsByMenuIndex]);
 
   // Toggle dish SQL box
   const toggleDishSqlBox = () => {
     if (!showDishSqlBox) validateAllDishes();
     setShowDishSqlBox(!showDishSqlBox);
+  };
+
+  // Add functions to help with object/array conversion
+  const getMenusArray = () => {
+    const menuKeys = Object.keys(screening.menus || {});
+    return menuKeys.map(key => ({
+      id: key,
+      ...screening.menus[key],
+    }));
+  };
+
+  const getDishesForMenu = (menuId) => {
+    const dishes = [];
+    Object.keys(screening.dishes || {}).forEach(dishKey => {
+      if (screening.dishes[dishKey].menu === menuId) {
+        dishes.push({
+          id: dishKey,
+          ...screening.dishes[dishKey]
+        });
+      }
+    });
+    return dishes;
+  };
+
+  const getIngredientsForDish = (dishId) => {
+    const ingredients = [];
+    Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
+      if (screening.ingredients[ingredientKey].dish === dishId) {
+        ingredients.push({
+          id: parseInt(ingredientKey),
+          ...screening.ingredients[ingredientKey]
+        });
+      }
+    });
+    return ingredients;
+  };
+
+  // Add functions to update the screening object
+  const updateRestaurantInfo = (updatedInfo) => {
+    setScreening(prev => ({
+      ...prev,
+      restaurant: {
+        ...prev.restaurant,
+        ...updatedInfo
+      }
+    }));
+    setRestaurantInfo(updatedInfo);
+  };
+
+  const updateMenu = (menuId, updatedMenu) => {
+    setScreening(prev => ({
+      ...prev,
+      menus: {
+        ...prev.menus,
+        [menuId]: {
+          ...prev.menus[menuId],
+          ...updatedMenu
+        }
+      }
+    }));
+  };
+
+  const updateDish = (dishId, updatedDish) => {
+    setScreening(prev => ({
+      ...prev,
+      dishes: {
+        ...prev.dishes,
+        [dishId]: {
+          ...prev.dishes[dishId],
+          ...updatedDish
+        }
+      }
+    }));
+  };
+
+  const updateIngredient = (ingredientId, updatedIngredient) => {
+    setScreening(prev => ({
+      ...prev,
+      ingredients: {
+        ...prev.ingredients,
+        [ingredientId]: {
+          ...prev.ingredients[ingredientId],
+          ...updatedIngredient
+        }
+      }
+    }));
+  };
+
+  // Add functions for adding new items
+  const addNewMenu = () => {
+    // Generate a new key (max key + 1)
+    const menuKeys = Object.keys(screening.menus || {}).map(k => parseInt(k, 10));
+    const newMenuKey = menuKeys.length > 0 ? Math.max(...menuKeys) + 1 : 1;
+    
+    const newMenu = {
+      restaurant_id: menuRestaurantId || '',
+      name: '',
+      description: '',
+      active: true
+    };
+    
+    setScreening(prev => ({
+      ...prev,
+      menus: {
+        ...prev.menus,
+        [newMenuKey]: newMenu
+      }
+    }));
+    
+    // Set the current menu ID to the new menu
+    setCurrentMenuId(newMenuKey);
+    
+    // Add a first dish for this menu
+    addNewDish(newMenuKey);
+  };
+
+  const addNewDish = (menuId) => {
+    // Generate a new key (max key + 1)
+    const dishKeys = Object.keys(screening.dishes || {}).map(k => parseInt(k, 10));
+    const newDishKey = dishKeys.length > 0 ? Math.max(...dishKeys) + 1 : 1;
+    
+    // Get the menu_id from menuIdsByMenuIndex to ensure consistent menu_id
+    const menu_id = menuIdsByMenuIndex[menuId] || '';
+    
+    const newDish = {
+      menu: menuId,
+      menu_id: menu_id,
+      name: '',
+      description: '',
+      price: '',
+      category: '',
+      active: true
+    };
+    
+    setScreening(prev => ({
+      ...prev,
+      dishes: {
+        ...prev.dishes,
+        [newDishKey]: newDish
+      }
+    }));
+    
+    // Set the current dish ID to the new dish
+    setCurrentDishId(newDishKey);
+    
+    // Add a first ingredient for this dish
+    addNewIngredient(newDishKey);
+  };
+
+  const addNewIngredient = (dishId) => {
+    // Generate a new key (max key + 1)
+    const ingredientKeys = Object.keys(screening.ingredients || {}).map(k => parseInt(k, 10));
+    const newIngredientKey = ingredientKeys.length > 0 ? Math.max(...ingredientKeys) + 1 : 1;
+    
+    // Get the dish_id from dishIdsByDishKey to ensure consistent dish_id
+    const dish_id = dishIdsByDishKey[dishId] || '';
+    
+    const newIngredient = {
+      dish: dishId,
+      dish_id: dish_id,
+      ingredient_id: '',
+      private: false,
+      description: ''
+    };
+    
+    setScreening(prev => ({
+      ...prev,
+      ingredients: {
+        ...prev.ingredients,
+        [newIngredientKey]: newIngredient
+      }
+    }));
+  };
+
+  // Use these helper functions to get current data
+  const getCurrentMenu = () => {
+    return screening.menus?.[currentMenuId] || {};
+  };
+
+  const getCurrentMenuDishes = () => {
+    const dishes = [];
+    Object.keys(screening.dishes || {}).forEach(dishKey => {
+      if (screening.dishes[dishKey].menu === currentMenuId) {
+        dishes.push({
+          id: parseInt(dishKey),
+          ...screening.dishes[dishKey]
+        });
+      }
+    });
+    return dishes.sort((a, b) => a.id - b.id);
+  };
+
+  const getCurrentDish = () => {
+    return screening.dishes?.[currentDishId] || {};
+  };
+
+  const getCurrentDishIngredients = () => {
+    const ingredients = [];
+    Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
+      if (screening.ingredients[ingredientKey].dish === currentDishId) {
+        ingredients.push({
+          id: parseInt(ingredientKey),
+          ...screening.ingredients[ingredientKey]
+        });
+      }
+    });
+    return ingredients.sort((a, b) => a.id - b.id);
   };
 
   return (
@@ -749,37 +1074,45 @@ const ScreeningPage = () => {
                 <label>Restaurant ID</label>
                 <input
                   type="number"
-                  name="menu_restaurant_id"
+                  name="restaurant_id"
                   value={menuRestaurantId}
-                  onChange={e => setMenuRestaurantId(e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    setMenuRestaurantId(value);
+                    
+                    // Also update the current menu
+                    if (currentMenuId) {
+                      updateMenu(currentMenuId, { restaurant_id: value });
+                    }
+                  }}
                   min={1}
                   required
                 />
                 {menuRestaurantIdError && <div className="error-message">{menuRestaurantIdError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
               </div>
+              
               {/* Display only the current menu */}
-              {menus.length > 0 && (
+              {currentMenuId && (
                 <div className="menu-entry">
                   <div className="form-group">
                     <label>Name</label>
                     <input
                       type="text"
                       name="name"
-                      value={menus[currentMenuIndex].name}
-                      onChange={e => handleMenuInputChange(currentMenuIndex, e)}
+                      value={getCurrentMenu().name || ''}
+                      onChange={e => handleMenuInputChange(currentMenuId, e)}
                       maxLength={255}
                       required
                     />
-                    {menuErrors[currentMenuIndex]?.name && <div className="error-message">{menuErrors[currentMenuIndex].name}</div>}
                     <div className="field-constraint">VARCHAR(255) NOT NULL</div>
                   </div>
                   <div className="form-group">
                     <label>Description</label>
                     <textarea
                       name="description"
-                      value={menus[currentMenuIndex].description}
-                      onChange={e => handleMenuInputChange(currentMenuIndex, e)}
+                      value={getCurrentMenu().description || ''}
+                      onChange={e => handleMenuInputChange(currentMenuId, e)}
                     />
                     <div className="field-constraint">TEXT</div>
                   </div>
@@ -790,12 +1123,12 @@ const ScreeningPage = () => {
                         <input
                           type="checkbox"
                           name="active"
-                          checked={menus[currentMenuIndex].active}
-                          onChange={e => handleMenuInputChange(currentMenuIndex, e)}
+                          checked={getCurrentMenu().active || false}
+                          onChange={e => handleMenuInputChange(currentMenuId, e)}
                         />
                         <span className="slider"></span>
                       </label>
-                      <span className="toggle-label">{menus[currentMenuIndex].active ? 'Yes' : 'No'}</span>
+                      <span className="toggle-label">{getCurrentMenu().active ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="field-constraint">BOOLEAN NOT NULL</div>
                   </div>
@@ -804,16 +1137,16 @@ const ScreeningPage = () => {
                     <input
                       type="text"
                       name="pdf"
-                      value={menus[currentMenuIndex].pdf}
-                      onChange={e => handleMenuInputChange(currentMenuIndex, e)}
+                      value={getCurrentMenu().pdf || ''}
+                      onChange={e => handleMenuInputChange(currentMenuId, e)}
                       maxLength={512}
                     />
-                    {menuErrors[currentMenuIndex]?.pdf && <div className="error-message">{menuErrors[currentMenuIndex].pdf}</div>}
                     <div className="field-constraint">VARCHAR(512)</div>
                   </div>
                 </div>
               )}
             </div>
+            
             {showMenuSqlBox && (
               <div className="code-box">
                 <div className="code-box-header">
@@ -834,7 +1167,7 @@ const ScreeningPage = () => {
         </div>
         {/* Menu section actions */}
         <div className="section-actions">
-          <button className="sql-button" type="button" onClick={addMenu}>+ Add Menu</button>
+          <button className="sql-button" type="button" onClick={addNewMenu}>+ Add Menu</button>
           <button className="sql-button" type="button" onClick={toggleMenuSqlBox} style={{ marginLeft: '1rem' }}>
             {showMenuSqlBox ? 'Hide SQL' : 'Show SQL'}
           </button>
@@ -844,25 +1177,25 @@ const ScreeningPage = () => {
           <button
             className="pagination-arrow"
             onClick={prevMenu}
-            disabled={currentMenuIndex === 0}
+            disabled={!currentMenuId || Object.keys(screening.menus || {}).length <= 1}
             aria-label="Previous menu"
           >
             &larr;
           </button>
           <div className="pagination-dots">
-            {menus.map((menu, idx) => (
+            {Object.keys(screening.menus || {}).map((menuId) => (
               <button
-                key={idx}
-                className={`pagination-dot ${idx === currentMenuIndex ? 'active' : ''}`}
-                onClick={() => goToMenu(idx)}
-                aria-label={`Go to menu ${idx + 1}`}
+                key={menuId}
+                className={`pagination-dot ${parseInt(menuId) === currentMenuId ? 'active' : ''}`}
+                onClick={() => goToMenu(parseInt(menuId))}
+                aria-label={`Go to menu ${menuId}`}
                 type="button"
                 style={{ position: 'relative' }}
               >
                 <span className="pagination-tooltip">
-                  {(menu.name && menu.name.length > 20)
-                    ? menu.name.slice(0, 20) + '...'
-                    : (menu.name || `Menu ${idx + 1}`)}
+                  {(screening.menus[menuId].name && screening.menus[menuId].name.length > 20)
+                    ? screening.menus[menuId].name.slice(0, 20) + '...'
+                    : (screening.menus[menuId].name || `Menu ${menuId}`)}
                 </span>
               </button>
             ))}
@@ -870,7 +1203,7 @@ const ScreeningPage = () => {
           <button
             className="pagination-arrow"
             onClick={nextMenu}
-            disabled={currentMenuIndex === menus.length - 1}
+            disabled={!currentMenuId || Object.keys(screening.menus || {}).length <= 1}
             aria-label="Next menu"
           >
             &rarr;
@@ -882,7 +1215,7 @@ const ScreeningPage = () => {
 
         {/* Section 3: Dish with pagination */}
         <div className="section-header">
-          <h2>Dishes for {menus[currentMenuIndex]?.name || `Menu ${currentMenuIndex + 1}`}</h2>
+          <h2>Dishes for {getCurrentMenu().name || `Menu ${currentMenuId}`}</h2>
         </div>
         <div className="section">
           <div className="section-content" id={showDishSqlBox ? 'code-box-out' : ''}>
@@ -892,13 +1225,23 @@ const ScreeningPage = () => {
                 <label>Menu ID</label>
                 <input
                   type="number"
-                  name="menu_id_for_dishes"
-                  value={menuIdsByMenuIndex[currentMenuIndex] || ''}
+                  name="menu_id"
+                  value={getCurrentDish().menu_id || menuIdsByMenuIndex[currentMenuId] || ''}
                   onChange={e => {
                     const value = e.target.value;
+                    
+                    // Update the menuIdsByMenuIndex
                     setMenuIdsByMenuIndex({
                       ...menuIdsByMenuIndex,
-                      [currentMenuIndex]: value
+                      [currentMenuId]: value
+                    });
+                    
+                    // Update menu_id for ALL dishes in this menu
+                    Object.keys(screening.dishes || {}).forEach(dishKey => {
+                      const dish = screening.dishes[dishKey];
+                      if (dish.menu === currentMenuId) {
+                        updateDish(dishKey, { menu_id: value });
+                      }
                     });
                   }}
                   min={1}
@@ -907,30 +1250,28 @@ const ScreeningPage = () => {
                 {menuIdForDishesError && <div className="error-message">{menuIdForDishesError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
               </div>
+              
               {/* Current dish (paginated) */}
-              {dishesByMenu[currentMenuIndex]?.length > 0 && (
+              {currentDishId && (
                 <div className="menu-entry">
                   <div className="form-group">
                     <label>Name</label>
                     <input
                       type="text"
                       name="name"
-                      value={dishesByMenu[currentMenuIndex][currentDishIndex]?.name || ''}
-                      onChange={e => handleDishInputChange(currentMenuIndex, currentDishIndex, e)}
+                      value={getCurrentDish().name || ''}
+                      onChange={e => handleDishInputChange(currentDishId, e)}
                       maxLength={255}
                       required
                     />
-                    {dishErrorsByMenu[currentMenuIndex]?.[currentDishIndex]?.name && (
-                      <div className="error-message">{dishErrorsByMenu[currentMenuIndex][currentDishIndex].name}</div>
-                    )}
                     <div className="field-constraint">VARCHAR(255) NOT NULL</div>
                   </div>
                   <div className="form-group">
                     <label>Description</label>
                     <textarea
                       name="description"
-                      value={dishesByMenu[currentMenuIndex][currentDishIndex]?.description || ''}
-                      onChange={e => handleDishInputChange(currentMenuIndex, currentDishIndex, e)}
+                      value={getCurrentDish().description || ''}
+                      onChange={e => handleDishInputChange(currentDishId, e)}
                     />
                     <div className="field-constraint">TEXT</div>
                   </div>
@@ -939,14 +1280,11 @@ const ScreeningPage = () => {
                     <input
                       type="text"
                       name="price"
-                      value={dishesByMenu[currentMenuIndex][currentDishIndex]?.price || ''}
-                      onChange={e => handleDishInputChange(currentMenuIndex, currentDishIndex, e)}
+                      value={getCurrentDish().price || ''}
+                      onChange={e => handleDishInputChange(currentDishId, e)}
                       placeholder="0.00"
                       required
                     />
-                    {dishErrorsByMenu[currentMenuIndex]?.[currentDishIndex]?.price && (
-                      <div className="error-message">{dishErrorsByMenu[currentMenuIndex][currentDishIndex].price}</div>
-                    )}
                     <div className="field-constraint">DECIMAL(10,2) NOT NULL</div>
                   </div>
                   <div className="form-group">
@@ -954,13 +1292,10 @@ const ScreeningPage = () => {
                     <input
                       type="text"
                       name="category"
-                      value={dishesByMenu[currentMenuIndex][currentDishIndex]?.category || ''}
-                      onChange={e => handleDishInputChange(currentMenuIndex, currentDishIndex, e)}
+                      value={getCurrentDish().category || ''}
+                      onChange={e => handleDishInputChange(currentDishId, e)}
                       maxLength={100}
                     />
-                    {dishErrorsByMenu[currentMenuIndex]?.[currentDishIndex]?.category && (
-                      <div className="error-message">{dishErrorsByMenu[currentMenuIndex][currentDishIndex].category}</div>
-                    )}
                     <div className="field-constraint">VARCHAR(100)</div>
                   </div>
                   <div className="form-group">
@@ -970,18 +1305,19 @@ const ScreeningPage = () => {
                         <input
                           type="checkbox"
                           name="active"
-                          checked={dishesByMenu[currentMenuIndex][currentDishIndex]?.active || false}
-                          onChange={e => handleDishInputChange(currentMenuIndex, currentDishIndex, e)}
+                          checked={getCurrentDish().active || false}
+                          onChange={e => handleDishInputChange(currentDishId, e)}
                         />
                         <span className="slider"></span>
                       </label>
-                      <span className="toggle-label">{dishesByMenu[currentMenuIndex][currentDishIndex]?.active ? 'Yes' : 'No'}</span>
+                      <span className="toggle-label">{getCurrentDish().active ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="field-constraint">BOOLEAN NOT NULL</div>
                   </div>
                 </div>
               )}
             </div>
+            
             {/* Dish SQL Box */}
             {showDishSqlBox && (
               <div className="code-box">
@@ -1003,7 +1339,7 @@ const ScreeningPage = () => {
         </div>
         {/* Dish section actions */}
         <div className="section-actions">
-          <button className="sql-button" type="button" onClick={addDish}>+ Add Dish</button>
+          <button className="sql-button" type="button" onClick={() => currentMenuId && addNewDish(currentMenuId)}>+ Add Dish</button>
           <button className="sql-button" type="button" onClick={toggleDishSqlBox} style={{ marginLeft: '1rem' }}>
             {showDishSqlBox ? 'Hide SQL' : 'Show SQL'}
           </button>
@@ -1012,25 +1348,25 @@ const ScreeningPage = () => {
           <button
             className="pagination-arrow"
             onClick={prevDish}
-            disabled={currentDishIndex === 0}
+            disabled={!currentDishId || getCurrentMenuDishes().length <= 1}
             aria-label="Previous dish"
           >
             &larr;
           </button>
           <div className="pagination-dots">
-            {(dishesByMenu[currentMenuIndex] || []).map((dish, idx) => (
+            {getCurrentMenuDishes().map((dish) => (
               <button
-                key={idx}
-                className={`pagination-dot ${idx === currentDishIndex ? 'active' : ''}`}
-                onClick={() => goToDish(idx)}
-                aria-label={`Go to dish ${idx + 1}`}
+                key={dish.id}
+                className={`pagination-dot ${dish.id === currentDishId ? 'active' : ''}`}
+                onClick={() => goToDish(dish.id)}
+                aria-label={`Go to dish ${dish.id}`}
                 type="button"
                 style={{ position: 'relative' }}
               >
                 <span className="pagination-tooltip">
                   {(dish.name && dish.name.length > 20)
                     ? dish.name.slice(0, 20) + '...'
-                    : (dish.name || `Dish ${idx + 1}`)}
+                    : (dish.name || `Dish ${dish.id}`)}
                 </span>
               </button>
             ))}
@@ -1038,7 +1374,7 @@ const ScreeningPage = () => {
           <button
             className="pagination-arrow"
             onClick={nextDish}
-            disabled={currentDishIndex === (dishesByMenu[currentMenuIndex] || []).length - 1}
+            disabled={!currentDishId || getCurrentMenuDishes().length <= 1}
             aria-label="Next dish"
           >
             &rarr;
@@ -1047,7 +1383,7 @@ const ScreeningPage = () => {
         {/* Ingredients for current dish */}
         <div className="ingredients-section">
           <div className="section-header">
-            <h3>Ingredients for {dishesByMenu[currentMenuIndex]?.[currentDishIndex]?.name || `Dish ${currentDishIndex + 1}`}</h3>
+            <h3>Ingredients for {getCurrentDish().name || `Dish ${currentDishId}`}</h3>
           </div>
           <div className="section">
             <div className="section-content" id={showIngredientSqlBox ? 'code-box-out' : ''}>
@@ -1058,12 +1394,22 @@ const ScreeningPage = () => {
                   <input
                     type="number"
                     name="dish_id_for_ingredients"
-                    value={dishIdsByDishKey[`${currentMenuIndex}-${currentDishIndex}`] || ''}
+                    value={dishIdsByDishKey[currentDishId] || ''}
                     onChange={e => {
                       const value = e.target.value;
+                      
+                      // Update the dishIdsByDishKey mapping
                       setDishIdsByDishKey({
                         ...dishIdsByDishKey,
-                        [`${currentMenuIndex}-${currentDishIndex}`]: value
+                        [currentDishId]: value
+                      });
+                      
+                      // Update dish_id for ALL ingredients of this dish
+                      Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
+                        const ingredient = screening.ingredients[ingredientKey];
+                        if (ingredient.dish === currentDishId) {
+                          updateIngredient(ingredientKey, { dish_id: value });
+                        }
                       });
                     }}
                     min={1}
@@ -1071,8 +1417,10 @@ const ScreeningPage = () => {
                   />
                   <div className="field-constraint">INT NOT NULL</div>
                 </div>
-                {(ingredientsByDish[`${currentMenuIndex}-${currentDishIndex}`] || []).map((entry, idx) => (
-                  <div className="menu-entry ingredient-entry" key={idx}>
+                
+                {/* Ingredients for current dish */}
+                {getCurrentDishIngredients().map((ingredient, idx) => (
+                  <div className="menu-entry ingredient-entry" key={ingredient.id}>
                     <div className="form-group">
                       <label>Ingredient</label>
                       <div className="ingredient-select-container">
@@ -1085,24 +1433,19 @@ const ScreeningPage = () => {
                         />
                         <select
                           name="ingredient_id"
-                          value={entry.ingredient_id}
-                          onChange={e => handleIngredientInputChange(idx, e)}
+                          value={ingredient.ingredient_id || ''}
+                          onChange={e => handleIngredientInputChange(ingredient.id, e)}
                           required
                           className="ingredient-select"
                         >
                           <option value="">Select an ingredient</option>
-                          {filteredIngredients.map(ingredient => (
-                            <option key={ingredient.id} value={ingredient.id}>
-                              {ingredient.name} - {ingredient.description}
+                          {filteredIngredients.map(option => (
+                            <option key={option.id} value={option.id}>
+                              {option.name} - {option.description}
                             </option>
                           ))}
                         </select>
                       </div>
-                      {ingredientErrorsByDish[`${currentMenuIndex}-${currentDishIndex}`]?.[idx]?.ingredient_id && (
-                        <div className="error-message">
-                          {ingredientErrorsByDish[`${currentMenuIndex}-${currentDishIndex}`][idx].ingredient_id}
-                        </div>
-                      )}
                       <div className="field-constraint">INT NOT NULL</div>
                     </div>
                     <div className="form-group">
@@ -1112,12 +1455,12 @@ const ScreeningPage = () => {
                           <input
                             type="checkbox"
                             name="private"
-                            checked={entry.private}
-                            onChange={e => handleIngredientInputChange(idx, e)}
+                            checked={ingredient.private || false}
+                            onChange={e => handleIngredientInputChange(ingredient.id, e)}
                           />
                           <span className="slider"></span>
                         </label>
-                        <span className="toggle-label">{entry.private ? 'Yes' : 'No'}</span>
+                        <span className="toggle-label">{ingredient.private ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="field-constraint">BOOLEAN NOT NULL</div>
                     </div>
@@ -1125,8 +1468,8 @@ const ScreeningPage = () => {
                       <label>Description</label>
                       <textarea
                         name="description"
-                        value={entry.description}
-                        onChange={e => handleIngredientInputChange(idx, e)}
+                        value={ingredient.description || ''}
+                        onChange={e => handleIngredientInputChange(ingredient.id, e)}
                       />
                       <div className="field-constraint">TEXT</div>
                     </div>
@@ -1134,16 +1477,19 @@ const ScreeningPage = () => {
                       type="button"
                       className="remove-ingredient-under-button"
                       onClick={() => {
-                        const dishKey = `${currentMenuIndex}-${currentDishIndex}`;
-                        const ingredientName = entry.ingredient_id
-                          ? (filteredIngredients.find(i => i.id == entry.ingredient_id)?.name || 'this ingredient')
+                        const ingredientName = ingredient.ingredient_id
+                          ? (filteredIngredients.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
                           : 'this ingredient';
+                          
                         if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
-                          const updated = [...(ingredientsByDish[dishKey] || [])];
-                          updated.splice(idx, 1);
-                          setIngredientsByDish({
-                            ...ingredientsByDish,
-                            [dishKey]: updated
+                          // Remove the ingredient from the screening data
+                          setScreening(prev => {
+                            const newIngredients = { ...prev.ingredients };
+                            delete newIngredients[ingredient.id];
+                            return {
+                              ...prev,
+                              ingredients: newIngredients
+                            };
                           });
                         }
                       }}
@@ -1154,7 +1500,8 @@ const ScreeningPage = () => {
                   </div>
                 ))}
               </div>
-              {/* Ingredients SQL Box - now to the side */}
+              
+              {/* Ingredients SQL Box */}
               {showIngredientSqlBox && (
                 <div className="code-box">
                   <div className="code-box-header">
@@ -1173,29 +1520,14 @@ const ScreeningPage = () => {
               )}
             </div>
           </div>
+          
           {/* Ingredients section actions */}
           <div className="section-actions">
-            <button className="sql-button add-ingredient-button" type="button" onClick={() => {
-              const dishKey = `${currentMenuIndex}-${currentDishIndex}`;
-              const currentIngredients = ingredientsByDish[dishKey] || [];
-              const currentErrors = ingredientErrorsByDish[dishKey] || [];
-              
-              setIngredientsByDish({
-                ...ingredientsByDish,
-                [dishKey]: [
-                  ...currentIngredients,
-                  { ingredient_id: '', private: false, description: '' }
-                ]
-              });
-              
-              setIngredientErrorsByDish({
-                ...ingredientErrorsByDish,
-                [dishKey]: [
-                  ...currentErrors,
-                  { ingredient_id: '', private: '', description: '' }
-                ]
-              });
-            }}>
+            <button 
+              className="sql-button add-ingredient-button" 
+              type="button" 
+              onClick={addIngredientEntry}
+            >
               + Add Ingredient
             </button>
             <button className="sql-button" type="button" onClick={toggleIngredientSqlBox} style={{ marginLeft: '1rem' }}>
