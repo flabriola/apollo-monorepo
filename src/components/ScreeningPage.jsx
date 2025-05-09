@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import '../styles/ScreeningPage.css';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-sql';
@@ -21,6 +21,7 @@ const mockIngredients = [
 
 const ScreeningPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialScreening = location.state?.screening;
 
   // Initialize screening state
@@ -70,7 +71,7 @@ const ScreeningPage = () => {
   const [dishErrorsByMenu, setDishErrorsByMenu] = useState({
     0: [{ id: '', name: '', description: '', price: '', category: '', active: '' }]
   });
-  
+
   const [showDishSqlBox, setShowDishSqlBox] = useState(true);
   const [highlightedDishSql, setHighlightedDishSql] = useState('');
   const [currentDishId, setCurrentDishId] = useState(null);
@@ -105,7 +106,7 @@ const ScreeningPage = () => {
       // Copy the screening data to our local state
       setScreening(initialScreening.json);
       setOriginalScreening(initialScreening.json); // Store the original
-      
+
       // Set restaurant info
       if (initialScreening.json.restaurant) {
         setRestaurantInfo({
@@ -114,7 +115,7 @@ const ScreeningPage = () => {
           phone: initialScreening.json.restaurant.phone || ''
         });
       }
-      
+
       // Update menuRestaurantId if we have menus
       const menuIds = Object.keys(initialScreening.json.menus || {});
       if (menuIds.length > 0) {
@@ -129,7 +130,7 @@ const ScreeningPage = () => {
       if (menuIds.length > 0) {
         const firstMenuId = parseInt(menuIds[0]);
         setCurrentMenuId(firstMenuId);
-        
+
         // Find dishes for this menu
         const dishesForMenu = [];
         Object.keys(initialScreening.json.dishes || {}).forEach(dishKey => {
@@ -137,7 +138,7 @@ const ScreeningPage = () => {
             dishesForMenu.push(parseInt(dishKey));
           }
         });
-        
+
         // Set current dish ID to the first dish of this menu
         if (dishesForMenu.length > 0) {
           setCurrentDishId(dishesForMenu[0]);
@@ -219,7 +220,7 @@ const ScreeningPage = () => {
       ...restaurantInfo,
       [name]: value
     };
-    
+
     // Update both the restaurant info state and the screening state
     setRestaurantInfo(updatedRestaurantInfo);
     updateRestaurantInfo(updatedRestaurantInfo);
@@ -292,10 +293,10 @@ const ScreeningPage = () => {
   const addMenu = () => {
     const newMenuIndex = Object.keys(screening.menus || {}).length;
     const newDishKey = `${newMenuIndex}-0`;
-    
+
     // Use the current restaurant ID for the new menu
     const restaurant_id = menuRestaurantId || '';
-    
+
     setScreening(prev => ({
       ...prev,
       menus: {
@@ -308,45 +309,45 @@ const ScreeningPage = () => {
         }
       }
     }));
-    
+
     // Initialize first dish for the new menu
     setDishesByMenu({
       ...dishesByMenu,
       [newMenuIndex]: [{ id: '', name: '', description: '', price: '', category: '', active: true }]
     });
-    
+
     setDishErrorsByMenu({
       ...dishErrorsByMenu,
       [newMenuIndex]: [{ id: '', name: '', description: '', price: '', category: '', active: '' }]
     });
-    
+
     // Initialize ingredients for the new menu's first dish
     setIngredientsByDish({
       ...ingredientsByDish,
       [newDishKey]: [{ ingredient_id: '', private: false, description: '' }]
     });
-    
+
     setIngredientErrorsByDish({
       ...ingredientErrorsByDish,
       [newDishKey]: [{ ingredient_id: '', private: '', description: '' }]
     });
-    
+
     // Initialize menu ID for the new menu
     setMenuIdsByMenuIndex({
       ...menuIdsByMenuIndex,
       [newMenuIndex]: ''
     });
-    
+
     // Initialize dish ID for the new menu's first dish
     setDishIdsByDishKey({
       ...dishIdsByDishKey,
       [newDishKey]: ''
     });
-    
+
     // Set the current menu to the new menu and first dish
     setCurrentMenuId(newMenuIndex);
     setCurrentDishId(0); // Reset to first dish of the new menu
-    
+
     // Add a new dish to the screening state
     addNewDish(newMenuIndex);
   };
@@ -357,12 +358,12 @@ const ScreeningPage = () => {
     const menuUpdate = {
       [name]: type === 'checkbox' ? checked : value
     };
-    
+
     // Also update restaurant_id if we're changing it
     if (name === 'restaurant_id') {
       setMenuRestaurantId(value);
     }
-    
+
     updateMenu(menuId, menuUpdate);
   };
 
@@ -412,11 +413,11 @@ const ScreeningPage = () => {
   const generateMenuSql = () => {
     const rid = menuRestaurantId;
     const menus = getMenusArray();
-    
+
     const values = menus.map(menu =>
       `    (${rid}, '${menu.name?.replace(/'/g, "''")}', '${menu.description?.replace(/'/g, "''")}', ${menu.active ? 1 : 0}, '${menu.pdf?.replace(/'/g, "''") || ''}')`
     ).join(',\n');
-    
+
     return values.length > 0
       ? `INSERT INTO menu (restaurant_id, name, description, active, pdf_url) \nVALUES\n${values}\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    description = VALUES(description), \n    active = VALUES(active), \n    pdf_url = VALUES(pdf_url);`
       : '-- No menus added';
@@ -440,10 +441,10 @@ const ScreeningPage = () => {
   // Update addDish function to initialize the dish ID for the new dish
   const addDish = () => {
     if (!currentMenuId) return;
-    
+
     // Get the menu_id from the menuIdsByMenuIndex to ensure consistency
     const menu_id = menuIdsByMenuIndex[currentMenuId] || '';
-    
+
     // Add a new dish to the current menu in the main screening state
     addNewDish(currentMenuId);
   };
@@ -454,7 +455,7 @@ const ScreeningPage = () => {
     const dishUpdate = {
       [name]: type === 'checkbox' ? checked : value
     };
-    
+
     // Also update menu_id if we're changing it
     if (name === 'menu_id') {
       const dish = screening.dishes[dishId];
@@ -464,7 +465,7 @@ const ScreeningPage = () => {
         [menuId]: value
       });
     }
-    
+
     updateDish(dishId, dishUpdate);
   };
 
@@ -485,28 +486,28 @@ const ScreeningPage = () => {
         break;
       // No validation for description (TEXT) or active (checkbox)
     }
-    
+
     const currentMenuDishErrors = { ...dishErrorsByMenu[menuIdx] };
     currentMenuDishErrors[dishIdx] = {
       ...currentMenuDishErrors[dishIdx],
       [field]: error
     };
-    
+
     setDishErrorsByMenu({
       ...dishErrorsByMenu,
       [menuIdx]: currentMenuDishErrors
     });
-    
+
     return !error;
   };
 
   // Update validateAllDishes to use the menu ID from the map
   const validateAllDishes = () => {
     let valid = true;
-    
+
     // Validate menu_id for the current menu
     const menuIdForCurrentMenu = menuIdsByMenuIndex[currentMenuId] || '';
-    
+
     if (!menuIdForCurrentMenu) {
       setMenuIdForDishesError('Menu ID is required');
       valid = false;
@@ -516,7 +517,7 @@ const ScreeningPage = () => {
     } else {
       setMenuIdForDishesError('');
     }
-    
+
     const currentMenuDishes = dishesByMenu[currentMenuId] || [];
     currentMenuDishes.forEach((dish, idx) => {
       Object.keys(dish).forEach(field => {
@@ -525,30 +526,30 @@ const ScreeningPage = () => {
         }
       });
     });
-    
+
     return valid;
   };
 
   // Update the dish SQL generation to include ALL dishes across all menus
   const generateDishSql = () => {
     let allValues = [];
-    
+
     // Loop through all dishes
     Object.keys(screening.dishes || {}).forEach(dishId => {
       const dish = screening.dishes[dishId];
       const menuId = dish.menu;
       // Get menu_id from the consistent mapping, use default value of 1
       const menu_id = menuIdsByMenuIndex[menuId] || '1';
-      
+
       // Include all dishes with placeholder values for empty fields
       const name = dish.name || `Dish ${dishId}`;
       const price = dish.price || '0';
-      
-      const dishValue = 
+
+      const dishValue =
         `    (${menu_id}, '${name.replace(/'/g, "''")}', '${dish.description?.replace(/'/g, "''") || ''}', ${price}, '${dish.category?.replace(/'/g, "''") || ''}', ${dish.active ? 1 : 0})`;
       allValues.push(dishValue);
     });
-    
+
     return allValues.length > 0
       ? `INSERT INTO dish (menu_id, name, description, price, category, active) \nVALUES\n${allValues.join(',\n')}\nON DUPLICATE KEY UPDATE \n    name = VALUES(name), \n    description = VALUES(description), \n    price = VALUES(price), \n    category = VALUES(category), \n    active = VALUES(active);`
       : '-- No dishes added to any menu';
@@ -563,9 +564,9 @@ const ScreeningPage = () => {
         dishesForMenu.push(parseInt(dishKey));
       }
     });
-    
+
     dishesForMenu.sort((a, b) => a - b);
-    
+
     const currentIndex = dishesForMenu.indexOf(currentDishId);
     if (currentIndex < dishesForMenu.length - 1) {
       const nextDishId = dishesForMenu[currentIndex + 1];
@@ -581,9 +582,9 @@ const ScreeningPage = () => {
         dishesForMenu.push(parseInt(dishKey));
       }
     });
-    
+
     dishesForMenu.sort((a, b) => a - b);
-    
+
     const currentIndex = dishesForMenu.indexOf(currentDishId);
     if (currentIndex > 0) {
       const prevDishId = dishesForMenu[currentIndex - 1];
@@ -600,10 +601,10 @@ const ScreeningPage = () => {
   // Update addIngredientEntry function to properly add ingredients to the screening state
   const addIngredientEntry = () => {
     if (!currentDishId) return;
-    
+
     // Get the dish_id from the dishIdsByDishKey mapping for consistency
     const dish_id = dishIdsByDishKey[currentDishId] || '';
-    
+
     // Add a new ingredient to the current dish in the main screening state
     addNewIngredient(currentDishId);
   };
@@ -611,14 +612,14 @@ const ScreeningPage = () => {
   // Update handle ingredient input changes
   const handleIngredientInputChange = (ingredientId, e) => {
     const { name, value, type, checked } = e.target;
-    
+
     // Skip if trying to update dish_id directly
     if (name === 'dish_id') return;
-    
+
     const ingredientUpdate = {
       [name]: type === 'checkbox' ? checked : value
     };
-    
+
     updateIngredient(ingredientId, ingredientUpdate);
   };
 
@@ -651,10 +652,10 @@ const ScreeningPage = () => {
   // Update validateAllIngredients to use the dish ID from the map
   const validateAllIngredients = () => {
     let valid = true;
-    
+
     // Validate dish_id for the current dish
     const dishIdForCurrentDish = dishIdsByDishKey[currentDishId] || '';
-    
+
     if (!dishIdForCurrentDish) {
       // Could add error state for dish ID if needed
       valid = false;
@@ -662,7 +663,7 @@ const ScreeningPage = () => {
       // Could add error state for dish ID if needed
       valid = false;
     }
-    
+
     const dishKey = `${currentMenuId}-${currentDishId}`;
     const currentIngredients = ingredientsByDish[dishKey] || [];
 
@@ -680,22 +681,22 @@ const ScreeningPage = () => {
   // Update the ingredient SQL generation to include ALL ingredients across dishes
   const generateIngredientSql = () => {
     let allValues = [];
-    
+
     // Loop through all ingredients
     Object.keys(screening.ingredients || {}).forEach(ingredientId => {
       const ingredient = screening.ingredients[ingredientId];
       const dishId = ingredient.dish;
       // Get dish_id from the consistent mapping
       const dish_id = dishIdsByDishKey[dishId] || '1';  // Use default value of 1
-      
+
       // Include all ingredients with placeholder values for empty fields
       const ingredient_id = ingredient.ingredient_id || '1';  // Use default value of 1
-      
-      const ingredientValue = 
+
+      const ingredientValue =
         `    (${dish_id}, ${ingredient_id}, ${ingredient.private ? 1 : 0}, '${ingredient.description?.replace(/'/g, "''") || ''}')`;
       allValues.push(ingredientValue);
     });
-    
+
     return allValues.length > 0
       ? `INSERT INTO dish_ingredient (dish_id, ingredient_id, private, description) \nVALUES\n${allValues.join(',\n')}\nON DUPLICATE KEY UPDATE \n    private = VALUES(private), \n    description = VALUES(description);`
       : '-- No ingredients selected for any dish';
@@ -725,12 +726,12 @@ const ScreeningPage = () => {
     const menuIds = Object.keys(screening.menus || {})
       .map(id => parseInt(id))
       .sort((a, b) => a - b);
-    
+
     const currentIndex = menuIds.indexOf(currentMenuId);
     if (currentIndex < menuIds.length - 1) {
       const nextMenuId = menuIds[currentIndex + 1];
       setCurrentMenuId(nextMenuId);
-      
+
       // Also update current dish to the first dish of this menu
       const dishesForMenu = [];
       Object.keys(screening.dishes || {}).forEach(dishKey => {
@@ -738,7 +739,7 @@ const ScreeningPage = () => {
           dishesForMenu.push(parseInt(dishKey));
         }
       });
-      
+
       if (dishesForMenu.length > 0) {
         const firstDishId = dishesForMenu[0];
         setCurrentDishId(firstDishId);
@@ -750,12 +751,12 @@ const ScreeningPage = () => {
     const menuIds = Object.keys(screening.menus || {})
       .map(id => parseInt(id))
       .sort((a, b) => a - b);
-    
+
     const currentIndex = menuIds.indexOf(currentMenuId);
     if (currentIndex > 0) {
       const prevMenuId = menuIds[currentIndex - 1];
       setCurrentMenuId(prevMenuId);
-      
+
       // Also update current dish to the first dish of this menu
       const dishesForMenu = [];
       Object.keys(screening.dishes || {}).forEach(dishKey => {
@@ -763,7 +764,7 @@ const ScreeningPage = () => {
           dishesForMenu.push(parseInt(dishKey));
         }
       });
-      
+
       if (dishesForMenu.length > 0) {
         const firstDishId = dishesForMenu[0];
         setCurrentDishId(firstDishId);
@@ -774,7 +775,7 @@ const ScreeningPage = () => {
   const goToMenu = (menuId) => {
     if (screening.menus && screening.menus[menuId]) {
       setCurrentMenuId(menuId);
-      
+
       // Also update current dish to the first dish of this menu
       const dishesForMenu = [];
       Object.keys(screening.dishes || {}).forEach(dishKey => {
@@ -782,7 +783,7 @@ const ScreeningPage = () => {
           dishesForMenu.push(parseInt(dishKey));
         }
       });
-      
+
       if (dishesForMenu.length > 0) {
         const firstDishId = dishesForMenu[0];
         setCurrentDishId(firstDishId);
@@ -900,14 +901,14 @@ const ScreeningPage = () => {
     // Generate a new key (max key + 1)
     const menuKeys = Object.keys(screening.menus || {}).map(k => parseInt(k, 10));
     const newMenuKey = menuKeys.length > 0 ? Math.max(...menuKeys) + 1 : 1;
-    
+
     const newMenu = {
       restaurant_id: menuRestaurantId || '',
       name: '',
       description: '',
       active: true
     };
-    
+
     setScreening(prev => ({
       ...prev,
       menus: {
@@ -915,10 +916,10 @@ const ScreeningPage = () => {
         [newMenuKey]: newMenu
       }
     }));
-    
+
     // Set the current menu ID to the new menu
     setCurrentMenuId(newMenuKey);
-    
+
     // Add a first dish for this menu
     addNewDish(newMenuKey);
   };
@@ -927,10 +928,10 @@ const ScreeningPage = () => {
     // Generate a new key (max key + 1)
     const dishKeys = Object.keys(screening.dishes || {}).map(k => parseInt(k, 10));
     const newDishKey = dishKeys.length > 0 ? Math.max(...dishKeys) + 1 : 1;
-    
+
     // Get the menu_id from menuIdsByMenuIndex to ensure consistent menu_id
     const menu_id = menuIdsByMenuIndex[menuId] || '';
-    
+
     const newDish = {
       menu: menuId,
       menu_id: menu_id,
@@ -940,7 +941,7 @@ const ScreeningPage = () => {
       category: '',
       active: true
     };
-    
+
     setScreening(prev => ({
       ...prev,
       dishes: {
@@ -948,10 +949,10 @@ const ScreeningPage = () => {
         [newDishKey]: newDish
       }
     }));
-    
+
     // Set the current dish ID to the new dish
     setCurrentDishId(newDishKey);
-    
+
     // Add a first ingredient for this dish
     addNewIngredient(newDishKey);
   };
@@ -960,10 +961,10 @@ const ScreeningPage = () => {
     // Generate a new key (max key + 1)
     const ingredientKeys = Object.keys(screening.ingredients || {}).map(k => parseInt(k, 10));
     const newIngredientKey = ingredientKeys.length > 0 ? Math.max(...ingredientKeys) + 1 : 1;
-    
+
     // Get the dish_id from dishIdsByDishKey to ensure consistent dish_id
     const dish_id = dishIdsByDishKey[dishId] || '';
-    
+
     const newIngredient = {
       dish: dishId,
       dish_id: dish_id,
@@ -971,7 +972,7 @@ const ScreeningPage = () => {
       private: false,
       description: ''
     };
-    
+
     setScreening(prev => ({
       ...prev,
       ingredients: {
@@ -1035,23 +1036,53 @@ const ScreeningPage = () => {
     };
   }, [isScreeningDirty]);
 
+  const [showAllSql, setShowAllSql] = useState(false);
+
   return (
     <div className="screening-page">
       {/* Secondary Header */}
-      <div className="secondary-header">
-        <div className="secondary-header-content">
-          <div className="left-actions">
-            <button className="return-button">
-              ←&nbsp;&nbsp;&nbsp;Dashboard
-            </button>
+      <div className="secondary-header-container">
+        <div className="secondary-header">
+          <div className="secondary-header-content">
+            <div className="left-actions">
+              <button className="return-button" onClick={() => {
+                if (isScreeningDirty) {
+                  const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave without saving?');
+                  if (!confirmLeave) return;
+                }
+                navigate('/dashboard');
+              }}>
+                ←&nbsp;&nbsp;&nbsp;Dashboard
+              </button>
+            </div>
+            <div className="right-actions">
+              <button className="action-button" onClick={() => setShowAllSql(v => !v)}>
+                View
+              </button>
+              <button className="action-button" disabled={!isScreeningDirty} onClick={handleSave}>
+                Save
+              </button>
+            </div>
           </div>
-          <div className="right-actions">
-            <button className="action-button">
-              View
-            </button>
-            <button className="action-button" disabled={!isScreeningDirty} onClick={handleSave}>
-              Save
-            </button>
+        </div>
+        <div className={`all-sql-row${showAllSql ? ' expanded' : ''}`}>
+          <div className="all-sql-scroll">
+            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
+              <div className="code-box-header"><span className="code-box-label">Restaurant SQL</span></div>
+              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedSql }} />
+            </div>
+            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
+              <div className="code-box-header"><span className="code-box-label">Menu SQL</span></div>
+              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
+            </div>
+            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
+              <div className="code-box-header"><span className="code-box-label">Dish SQL</span></div>
+              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
+            </div>
+            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
+              <div className="code-box-header"><span className="code-box-label">Ingredient SQL</span></div>
+              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
+            </div>
           </div>
         </div>
       </div>
@@ -1150,7 +1181,7 @@ const ScreeningPage = () => {
                   onChange={e => {
                     const value = e.target.value;
                     setMenuRestaurantId(value);
-                    
+
                     // Also update the current menu
                     if (currentMenuId) {
                       updateMenu(currentMenuId, { restaurant_id: value });
@@ -1162,7 +1193,7 @@ const ScreeningPage = () => {
                 {menuRestaurantIdError && <div className="error-message">{menuRestaurantIdError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
               </div>
-              
+
               {/* Display only the current menu */}
               {currentMenuId && (
                 <div className="menu-entry">
@@ -1217,7 +1248,7 @@ const ScreeningPage = () => {
                 </div>
               )}
             </div>
-            
+
             {showMenuSqlBox && (
               <div className="code-box">
                 <div className="code-box-header">
@@ -1300,13 +1331,13 @@ const ScreeningPage = () => {
                   value={getCurrentDish().menu_id || menuIdsByMenuIndex[currentMenuId] || ''}
                   onChange={e => {
                     const value = e.target.value;
-                    
+
                     // Update the menuIdsByMenuIndex
                     setMenuIdsByMenuIndex({
                       ...menuIdsByMenuIndex,
                       [currentMenuId]: value
                     });
-                    
+
                     // Update menu_id for ALL dishes in this menu
                     Object.keys(screening.dishes || {}).forEach(dishKey => {
                       const dish = screening.dishes[dishKey];
@@ -1321,7 +1352,7 @@ const ScreeningPage = () => {
                 {menuIdForDishesError && <div className="error-message">{menuIdForDishesError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
               </div>
-              
+
               {/* Current dish (paginated) */}
               {currentDishId && (
                 <div className="menu-entry">
@@ -1388,7 +1419,7 @@ const ScreeningPage = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Dish SQL Box */}
             {showDishSqlBox && (
               <div className="code-box">
@@ -1468,13 +1499,13 @@ const ScreeningPage = () => {
                     value={dishIdsByDishKey[currentDishId] || ''}
                     onChange={e => {
                       const value = e.target.value;
-                      
+
                       // Update the dishIdsByDishKey mapping
                       setDishIdsByDishKey({
                         ...dishIdsByDishKey,
                         [currentDishId]: value
                       });
-                      
+
                       // Update dish_id for ALL ingredients of this dish
                       Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
                         const ingredient = screening.ingredients[ingredientKey];
@@ -1488,7 +1519,7 @@ const ScreeningPage = () => {
                   />
                   <div className="field-constraint">INT NOT NULL</div>
                 </div>
-                
+
                 {/* Ingredients for current dish */}
                 {getCurrentDishIngredients().map((ingredient, idx) => (
                   <div className="menu-entry ingredient-entry" key={ingredient.id}>
@@ -1551,7 +1582,7 @@ const ScreeningPage = () => {
                         const ingredientName = ingredient.ingredient_id
                           ? (filteredIngredients.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
                           : 'this ingredient';
-                          
+
                         if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
                           // Remove the ingredient from the screening data
                           setScreening(prev => {
@@ -1571,7 +1602,7 @@ const ScreeningPage = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Ingredients SQL Box */}
               {showIngredientSqlBox && (
                 <div className="code-box">
@@ -1591,12 +1622,12 @@ const ScreeningPage = () => {
               )}
             </div>
           </div>
-          
+
           {/* Ingredients section actions */}
           <div className="section-actions">
-            <button 
-              className="sql-button add-ingredient-button" 
-              type="button" 
+            <button
+              className="sql-button add-ingredient-button"
+              type="button"
               onClick={addIngredientEntry}
             >
               + Add Ingredient

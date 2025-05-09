@@ -11,7 +11,7 @@ function App() {
       <div className="app">
         <Header />
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/screening" element={<ScreeningPage />} />
         </Routes>
       </div>
