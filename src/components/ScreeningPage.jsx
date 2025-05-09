@@ -481,12 +481,12 @@ const ScreeningPage = () => {
     let valid = true;
     
     // Validate menu_id for the current menu
-    const currentMenuId = menuIdsByMenuIndex[currentMenuId] || '';
+    const menuIdForCurrentMenu = menuIdsByMenuIndex[currentMenuId] || '';
     
-    if (!currentMenuId) {
+    if (!menuIdForCurrentMenu) {
       setMenuIdForDishesError('Menu ID is required');
       valid = false;
-    } else if (!/^\d+$/.test(currentMenuId)) {
+    } else if (!/^\d+$/.test(menuIdForCurrentMenu)) {
       setMenuIdForDishesError('Must be an integer');
       valid = false;
     } else {
@@ -513,14 +513,16 @@ const ScreeningPage = () => {
     Object.keys(screening.dishes || {}).forEach(dishId => {
       const dish = screening.dishes[dishId];
       const menuId = dish.menu;
-      // Get menu_id from the consistent mapping
-      const menu_id = menuIdsByMenuIndex[menuId] || '';
+      // Get menu_id from the consistent mapping, use default value of 1
+      const menu_id = menuIdsByMenuIndex[menuId] || '1';
       
-      if (menu_id && dish.name) {
-        const dishValue = 
-          `    (${menu_id}, '${dish.name.replace(/'/g, "''")}', '${dish.description?.replace(/'/g, "''")}', ${dish.price || 0}, '${dish.category?.replace(/'/g, "''")}', ${dish.active ? 1 : 0})`;
-        allValues.push(dishValue);
-      }
+      // Include all dishes with placeholder values for empty fields
+      const name = dish.name || `Dish ${dishId}`;
+      const price = dish.price || '0';
+      
+      const dishValue = 
+        `    (${menu_id}, '${name.replace(/'/g, "''")}', '${dish.description?.replace(/'/g, "''") || ''}', ${price}, '${dish.category?.replace(/'/g, "''") || ''}', ${dish.active ? 1 : 0})`;
+      allValues.push(dishValue);
     });
     
     return allValues.length > 0
@@ -627,13 +629,12 @@ const ScreeningPage = () => {
     let valid = true;
     
     // Validate dish_id for the current dish
-    const currentDishKey = `${currentMenuId}-${currentDishId}`;
-    const currentDishId = dishIdsByDishKey[currentDishKey] || '';
+    const dishIdForCurrentDish = dishIdsByDishKey[currentDishId] || '';
     
-    if (!currentDishId) {
+    if (!dishIdForCurrentDish) {
       // Could add error state for dish ID if needed
       valid = false;
-    } else if (!/^\d+$/.test(currentDishId)) {
+    } else if (!/^\d+$/.test(dishIdForCurrentDish)) {
       // Could add error state for dish ID if needed
       valid = false;
     }
@@ -661,13 +662,14 @@ const ScreeningPage = () => {
       const ingredient = screening.ingredients[ingredientId];
       const dishId = ingredient.dish;
       // Get dish_id from the consistent mapping
-      const dish_id = dishIdsByDishKey[dishId] || '';
+      const dish_id = dishIdsByDishKey[dishId] || '1';  // Use default value of 1
       
-      if (dish_id && ingredient.ingredient_id) {
-        const ingredientValue = 
-          `    (${dish_id}, ${ingredient.ingredient_id}, ${ingredient.private ? 1 : 0}, '${ingredient.description?.replace(/'/g, "''") || ''}')`;
-        allValues.push(ingredientValue);
-      }
+      // Include all ingredients with placeholder values for empty fields
+      const ingredient_id = ingredient.ingredient_id || '1';  // Use default value of 1
+      
+      const ingredientValue = 
+        `    (${dish_id}, ${ingredient_id}, ${ingredient.private ? 1 : 0}, '${ingredient.description?.replace(/'/g, "''") || ''}')`;
+      allValues.push(ingredientValue);
     });
     
     return allValues.length > 0
@@ -686,7 +688,11 @@ const ScreeningPage = () => {
 
   // Toggle ingredient SQL box
   const toggleIngredientSqlBox = () => {
-    if (!showIngredientSqlBox) validateAllIngredients();
+    if (!showIngredientSqlBox) {
+      // Run validation but don't block the toggle action
+      validateAllIngredients();
+    }
+    // Always toggle visibility
     setShowIngredientSqlBox(!showIngredientSqlBox);
   };
 
@@ -771,7 +777,11 @@ const ScreeningPage = () => {
 
   // Toggle dish SQL box
   const toggleDishSqlBox = () => {
-    if (!showDishSqlBox) validateAllDishes();
+    if (!showDishSqlBox) {
+      // Run validation but don't block the toggle action
+      validateAllDishes();
+    }
+    // Always toggle visibility
     setShowDishSqlBox(!showDishSqlBox);
   };
 
@@ -984,6 +994,24 @@ const ScreeningPage = () => {
 
   return (
     <div className="screening-page">
+      {/* Secondary Header */}
+      <div className="secondary-header">
+        <div className="secondary-header-content">
+          <div className="left-actions">
+            <button className="return-button">
+              ←&nbsp;&nbsp;&nbsp;Dashboard
+            </button>
+          </div>
+          <div className="right-actions">
+            <button className="action-button">
+              View
+            </button>
+            <button className="action-button">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
       <div className="screening-page-content">
         <div className="section-header">
           <h2>Restaurant Information</h2>

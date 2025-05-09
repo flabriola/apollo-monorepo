@@ -19,7 +19,7 @@
 }
 
 .header-links a{
-  color: black;
+  color: #666;
   font-weight: 400;
   text-decoration: none;
   font-size: 0.8rem;
@@ -46,6 +46,5 @@
 } 
 
 .header-logo {
-  width: 35px;
-  height: 35px;
+  height: 40px;
 }
