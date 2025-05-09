@@ -1041,7 +1041,7 @@ const ScreeningPage = () => {
   return (
     <div className="screening-page">
       {/* Secondary Header */}
-      <div className="secondary-header-container">
+      <div className={`secondary-header-container${showAllSql ? ' no-border' : ''}`}>
         <div className="secondary-header">
           <div className="secondary-header-content">
             <div className="left-actions">
@@ -1086,7 +1086,7 @@ const ScreeningPage = () => {
           </div>
         </div>
       </div>
-      <div className="screening-page-content">
+      <div className={`screening-page-content${showAllSql ? ' blur' : ''}`}>
         <div className="section-header">
           <h2>Restaurant Information</h2>
         </div>
