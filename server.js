@@ -4,13 +4,12 @@ const mysql = require('mysql2');
 
 const cors = require('cors');
 
+const app = express();
 // Amplify domain
 app.use(cors({
   origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', 
 }));
 
-
-const app = express();
 const PORT = process.env.PORT || 80;
 
 // DB connection
