@@ -12,7 +12,7 @@ function App() {
 
   useEffect(() => {
     console.log('MMMMMM');
-    fetch('http://apollo-guide-backend-env.eba-t3phmm4a.eu-north-1.elasticbeanstalk.com/api/restaurants')
+    fetch(`${import.meta.env.VITE_API_URL}/api/restaurants`)
     .then(res => res.json())
     .then(data => console.log(data))
     .catch(err => console.error(err));
