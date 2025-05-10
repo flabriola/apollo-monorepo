@@ -6,8 +6,8 @@ frontend:
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
         - export NVM_DIR="$HOME/.nvm"
         - 'if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; fi'
-        - nvm install 20
-        - nvm use 20
+        - nvm install 22
+        - nvm use 22
         - node -v
         - rm -rf node_modules package-lock.json
         - npm install --include=optional
