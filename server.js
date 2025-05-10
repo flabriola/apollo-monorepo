@@ -2,6 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 
+const cors = require('cors');
+
+// Amplify domain
+app.use(cors({
+  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', // replace with your actual Amplify domain
+}));
+
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -16,16 +24,16 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('❌ Failed to connect to DB:', err.stack);
+    console.error('Failed to connect to DB:', err.stack);
   } else {
-    console.log('✅ Connected to RDS DB');
+    console.log('Connected to RDS DB');
     
     // Fetch and print all restaurants to the console
     db.query('SELECT * FROM restaurant', (err, results) => {
       if (err) {
-        console.error('❌ Error fetching restaurants:', err.message);
+        console.error('Error fetching restaurants:', err.message);
       } else {
-        console.log('📦 Restaurant Data:', results);
+        console.log('Restaurant Data:', results);
       }
     });
   }
@@ -45,5 +53,5 @@ app.get('/api/restaurants', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
