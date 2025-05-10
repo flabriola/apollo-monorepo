@@ -10,7 +10,7 @@ app.use(cors({
   origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', 
 }));
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT;
 
 // DB connection
 const db = mysql.createConnection({
