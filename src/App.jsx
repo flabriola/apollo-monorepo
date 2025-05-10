@@ -6,6 +6,19 @@ import ScreeningPage from './components/ScreeningPage';
 import './App.css';
 
 function App() {
+
+  const [restaurants, setRestaurants] = useState([]);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/restaurants`)
+      .then(res => res.json())
+      .then(data => {
+        console.log(data); // for debugging
+        setRestaurants(data.restaurants);
+      })
+      .catch(err => console.error('Error fetching:', err));
+  }, []);
+  
   return (
     <Router>
       <div className="app">
