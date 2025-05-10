@@ -1,18 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
-
 const cors = require('cors');
 
 const app = express();
-// Amplify domain
+
 app.use(cors({
-  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', 
+  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
 }));
 
 const PORT = process.env.PORT;
 
-// DB connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -23,31 +21,23 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('Failed to connect to DB:', err.stack);
+    console.error('❌ DB connection error:', err.stack);
   } else {
-    console.log('Connected to RDS DB');
-    
-    // Fetch and print all restaurants to the console
-    db.query('SELECT * FROM restaurant', (err, results) => {
-      if (err) {
-        console.error('Error fetching restaurants:', err.message);
-      } else {
-        console.log('Restaurant Data:', results);
-      }
-    });
+    console.log('✅ Connected to DB');
   }
 });
 
 app.get('/', (req, res) => {
-    res.send('Apollo Guide backend is live');
-  });
-  
+  res.send('Apollo Guide backend is live');
+});
 
-// Optional API to fetch data
 app.get('/api/restaurants', (req, res) => {
-  db.query('SELECT * FROM restaurant', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ restaurants: results });
+  db.query('SELECT * FROM restaurant LIMIT 1', (err, results) => {
+    if (err) {
+      console.error('DB query failed:', err.message);
+      return res.status(500).json({ error: 'DB query failed' });
+    }
+    res.json({ status: 'success', data: results });
   });
 });
 
