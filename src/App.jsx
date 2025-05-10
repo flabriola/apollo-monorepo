@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ScreeningPage from './components/ScreeningPage';
 import './App.css';
+import { useState, useEffect } from 'react';
 
 function App() {
 
@@ -18,7 +19,7 @@ function App() {
       })
       .catch(err => console.error('Error fetching:', err));
   }, []);
-  
+
   return (
     <Router>
       <div className="app">
