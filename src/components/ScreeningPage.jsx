@@ -1067,21 +1067,49 @@ const ScreeningPage = () => {
         </div>
         <div className={`all-sql-row${showAllSql ? ' expanded' : ''}`}>
           <div className="all-sql-scroll">
-            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
-              <div className="code-box-header"><span className="code-box-label">Restaurant SQL</span></div>
-              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedSql }} />
+            <div className="code-box-secondary-header">
+              <div className="code-box-header">
+                <span className="code-box-label">sql</span>
+                <div className="code-box-actions">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
             </div>
-            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
-              <div className="code-box-header"><span className="code-box-label">Menu SQL</span></div>
-              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
+            <div className="code-box-secondary-header">
+              <div className="code-box-header">
+                <span className="code-box-label">sql</span>
+                <div className="code-box-actions">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
             </div>
-            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
-              <div className="code-box-header"><span className="code-box-label">Dish SQL</span></div>
-              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
+            <div className="code-box-secondary-header">
+              <div className="code-box-header">
+                <span className="code-box-label">sql</span>
+                <div className="code-box-actions">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
             </div>
-            <div className="code-box all-sql-box" style={{ minWidth: 340, maxWidth: 500, height: 260 }}>
-              <div className="code-box-header"><span className="code-box-label">Ingredient SQL</span></div>
-              <pre className="sql-query language-sql" style={{ height: 180, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
+            <div className="code-box-secondary-header">
+              <div className="code-box-header">
+                <span className="code-box-label">sql</span>
+                <div className="code-box-actions">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
             </div>
           </div>
         </div>

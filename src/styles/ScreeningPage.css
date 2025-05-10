@@ -619,6 +619,15 @@
   height: 260px;
 }
 
+.code-box-secondary-header {
+  background: #fcfcfc;
+  border: 1px solid #ededed;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  padding: 0;
+  box-shadow: none;
+}
+
 .secondary-header-content {
   width: 100%;
   max-width: 1200px;
