@@ -9,7 +9,8 @@ frontend:
         - nvm install 20
         - nvm use 20
         - node -v
-        - npm ci --include=optional
+        - rm -rf node_modules package-lock.json
+        - npm install --include=optional
     build:
       commands:
         - npm run build
