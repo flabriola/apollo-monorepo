@@ -1,6 +1,7 @@
 export const screenings = [
   {
     id: 1,
+    user_id: 1108,
     title: "Joe's Pizza",
     lastModified: "2024-03-20T14:30:00",
     owner: "John Smith",
