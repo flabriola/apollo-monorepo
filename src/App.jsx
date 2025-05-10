@@ -11,13 +11,12 @@ function App() {
   const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/restaurants`)
-      .then(res => res.json())
-      .then(data => {
-        console.log(data); // for debugging
-        setRestaurants(data.restaurants);
-      })
-      .catch(err => console.error('Error fetching:', err));
+    console.log('MMMMMM');
+    fetch('http://apollo-guide-backend-env.eba-t3phmm4a.eu-north-1.elasticbeanstalk.com/api/restaurants')
+    .then(res => res.json())
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
+  
   }, []);
 
   return (
@@ -25,6 +24,7 @@ function App() {
       <div className="app">
         <Header />
         <Routes>
+          <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/screening" element={<ScreeningPage />} />
         </Routes>
