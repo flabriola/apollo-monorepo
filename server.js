@@ -6,12 +6,12 @@ const cors = require('cors');
 
 // Amplify domain
 app.use(cors({
-  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', // replace with your actual Amplify domain
+  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com/', 
 }));
 
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 80;
 
 // DB connection
 const db = mysql.createConnection({
