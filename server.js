@@ -52,7 +52,7 @@ app.get('/api/screenings/:userId', (req, res) => {
       s.title,
       s.last_modified AS lastModified,
       CONCAT(s.first_name, ' ', s.last_name) AS owner,
-      JSON_UNQUOTE(JSON_EXTRACT(s.json_data, '$')) AS json
+      s.json_data AS json
     FROM screenings s
     WHERE s.user_id = ?
     ORDER BY s.last_modified DESC
@@ -65,6 +65,7 @@ app.get('/api/screenings/:userId', (req, res) => {
     res.json(results);
   });
 });
+
 
 // Insert a new screening
 app.post('/api/screenings', (req, res) => {
