@@ -5,9 +5,24 @@ const cors = require('cors');
 
 const app = express();
 
+// app.use(cors({
+//   origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
+// }));
+
+const allowedOrigins = [
+  'http://localhost:5173', // Vite default
+  'https://your-amplify-app-url',
+];
+
 app.use(cors({
-  origin: 'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
 }));
+
 
 const PORT = process.env.PORT;
 
