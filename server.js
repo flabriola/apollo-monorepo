@@ -71,8 +71,8 @@ app.get('/api/screenings/:userId', (req, res) => {
 app.post('/api/screenings', (req, res) => {
   const { user_id, title, json_data, first_name, last_name } = req.body;
   const query = `
-    INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
-    VALUES (?, ?, ?, ?, ?)
+      INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
+      VALUES (?, ?, CAST(? AS JSON), ?, ?)
   `;
   db.query(query, [user_id, title, JSON.stringify(json_data), first_name, last_name], (err, result) => {
     if (err) {
@@ -88,9 +88,12 @@ app.put('/api/screenings/:id', (req, res) => {
   const screeningId = req.params.id;
   const { title, json_data } = req.body;
   const query = `
-    UPDATE screenings
-    SET title = ?, json_data = ?, last_modified = CURRENT_TIMESTAMP
-    WHERE id = ?
+      UPDATE screenings
+      SET 
+        title = ?,
+        json_data = CAST(? AS JSON),
+        last_modified = CURRENT_TIMESTAMP
+      WHERE id = ?;
   `;
   db.query(query, [title, JSON.stringify(json_data), screeningId], (err) => {
     if (err) {
