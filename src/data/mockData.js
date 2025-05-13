@@ -1,10 +1,10 @@
 export const screenings = [
   {
     id: 1,
-    user_id: 1108,
+    user_id: '10bc095c-b071-707d-0748-8f5ee5811517',
     title: "Joe's Pizza",
     lastModified: "2024-03-20T14:30:00",
-    owner: "John Smith",
+    owner: "John Smith", // compination of first and last name
     json: {
       restaurant: {
         name: "Joe's Pizza",

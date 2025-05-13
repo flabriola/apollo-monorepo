@@ -22,6 +22,7 @@ const mockIngredients = [
 const ScreeningPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // set it to the screening data and parse
   const initialScreening = location.state?.screening;
 
   // Initialize screening state
@@ -1019,7 +1020,49 @@ const ScreeningPage = () => {
 
   // Save handler
   const handleSave = () => {
-    console.log('Screening object:', screening);
+    // Get screening ID from initialScreening or return if none (new screening)
+    const screeningId = initialScreening?.id;
+    if (!screeningId) {
+      console.error('Cannot save: No screening ID');
+      return;
+    }
+
+    // Prepare data to send
+    const data = {
+      title: initialScreening.title || 'Untitled Screening', // Use existing title or default
+      json_data: screening // This is the current state with all changes
+    };
+
+    // Make API request
+    const API_URL = `${import.meta.env.VITE_API_URL}/screenings/${screeningId}`;
+    
+    fetch(API_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log('Screening saved successfully:', result);
+        
+        // Update originalScreening to match current screening (no longer dirty)
+        setOriginalScreening(screening);
+        setIsScreeningDirty(false);
+        
+        // Optionally show success message
+        alert('Screening saved successfully!');
+      })
+      .catch(error => {
+        console.error('Error saving screening:', error);
+        alert('Failed to save screening. Please try again.');
+      });
   };
 
   // Warn user before leaving if there are unsaved changes

@@ -17,19 +17,12 @@ Amplify.configure(awsExports);
 function App() {
   const [user, setUser] = useState(null);
   const [userAttributes, setUserAttributes] = useState(null);
+  const [screeningData, setScreeningData] = useState(null);
 
-  // fetch restaurant data once
-  useEffect(() => {
-    const API_URL = `${import.meta.env.VITE_API_URL}/restaurants`;
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((data) => console.log('Restaurant data:', data))
-      .catch((err) => console.error('API Error:', err));
-  }, []);
-
-  // fetch attributes when user is set
+  // fetch functions upon user login
   useEffect(() => {
     if (!user) return;
+
     const loadAttributes = async () => {
       try {
         const attributes = await fetchUserAttributes();
@@ -39,7 +32,22 @@ function App() {
         setUserAttributes(null);
       }
     };
+
+    const loadScreeningData = async () => {
+      try {
+        const API_URL = `${import.meta.env.VITE_API_URL}/screenings/${user.username}`;
+        fetch(API_URL)
+          .then((res) => res.json())
+          .then((data) => setScreeningData(data))
+          .catch((err) => console.error('API Error:', err));
+      } catch (err) {
+        console.error('Failed to fetch screening data', err);
+        setScreeningData(null);
+      }
+    };
+
     loadAttributes();
+    loadScreeningData();
   }, [user]);
 
   return (
@@ -65,8 +73,8 @@ function App() {
             <div className="app">
               <Header signOut={signOut} user={authUser} userAttributes={userAttributes} />
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/" element={<Dashboard screeningData={screeningData} />} />
+                <Route path="/dashboard" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/screening" element={<ScreeningPage />} />
               </Routes>
             </div>
