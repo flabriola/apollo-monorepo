@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/restaurants', (req, res) => {
-  db.query('SELECT * FROM restaurant LIMIT 1', (err, results) => {
+  db.query('SELECT * FROM restaurant', (err, results) => {
     if (err) {
       console.error('DB query failed:', err.message);
       return res.status(500).json({ error: 'DB query failed' });
