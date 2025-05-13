@@ -6,5 +6,14 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist'
+  },
+  optimizeDeps: {
+    include: ['react-router-dom'],
+    esbuildOptions: {
+      target: 'es2020'
+    }
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router-dom']
   }
 })

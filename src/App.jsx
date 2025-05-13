@@ -5,6 +5,12 @@ import Dashboard from './components/Dashboard';
 import ScreeningPage from './components/ScreeningPage';
 import './App.css';
 import { useState, useEffect } from 'react';
+import { Amplify } from 'aws-amplify';
+import awsExports from './aws-exports';
+import { Authenticator } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
+
+Amplify.configure(awsExports);
 
 function App() {
 
@@ -12,24 +18,31 @@ function App() {
 
   useEffect(() => {
     console.log('MMMMMM');
-    fetch(`${import.meta.env.VITE_API_URL}/api/restaurants`)
-    .then(res => res.json())
-    .then(data => console.log(data))
-    .catch(err => console.error(err));
-  
+    const API_URL = `${import.meta.env.VITE_API_URL}/restaurants`;
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.error('Error:', err));
+
+
   }, []);
 
   return (
-    <Router>
-      <div className="app">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/screening" element={<ScreeningPage />} />
-        </Routes>
-      </div>
-    </Router>
+    <Authenticator>
+      {({ signOut, user }) => (
+        <Router>
+          <div className="app">
+            <Header signOut={signOut} user={user} />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/screening" element={<ScreeningPage />} />
+            </Routes>
+          </div>
+        </Router>
+      )}
+    </Authenticator>
   );
 }
 
