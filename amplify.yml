@@ -11,6 +11,8 @@ frontend:
         - node -v
         - rm -rf node_modules package-lock.json
         - npm install --include=optional
+        - npm ci
+        - npx amplify pull --yes --envName dev
     build:
       commands:
         - npm run build
