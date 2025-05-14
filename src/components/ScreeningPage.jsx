@@ -19,9 +19,10 @@ const mockIngredients = [
   { id: 10, name: 'Mushroom', description: 'Cremini mushrooms' },
 ];
 
-const ScreeningPage = ({ user, userAttributes }) => {
+const ScreeningPage = ({ user, userAttributes, ingredients }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const ingredientList = ingredients ? Object.values(ingredients) : mockIngredients;
   // set it to the screening data and parse
   const initialScreening = location.state?.screening;
 
@@ -87,7 +88,7 @@ const ScreeningPage = ({ user, userAttributes }) => {
   const [showIngredientSqlBox, setShowIngredientSqlBox] = useState(false);
   const [highlightedIngredientSql, setHighlightedIngredientSql] = useState('');
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState('');
-  const [filteredIngredients, setFilteredIngredients] = useState(mockIngredients);
+  const [filteredIngredients, setFilteredIngredients] = useState(ingredientList);
 
   // Instead, track the current menu ID and dish ID
   const [currentMenuId, setCurrentMenuId] = useState(null);
@@ -195,13 +196,13 @@ const ScreeningPage = ({ user, userAttributes }) => {
   // Filter ingredients based on search term
   useEffect(() => {
     if (ingredientSearchTerm) {
-      const filtered = mockIngredients.filter(ingredient =>
+      const filtered = ingredientList.filter(ingredient =>
         ingredient.name.toLowerCase().includes(ingredientSearchTerm.toLowerCase()) ||
         ingredient.description.toLowerCase().includes(ingredientSearchTerm.toLowerCase())
       );
       setFilteredIngredients(filtered);
     } else {
-      setFilteredIngredients(mockIngredients);
+      setFilteredIngredients(ingredientList);
     }
   }, [ingredientSearchTerm]);
 

@@ -18,6 +18,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [userAttributes, setUserAttributes] = useState(null);
   const [screeningData, setScreeningData] = useState(null);
+  const [ingredients, setIngredients] = useState(null);
 
   // fetch functions upon user login
   useEffect(() => {
@@ -46,8 +47,22 @@ function App() {
       }
     };
 
+    const loadIngredientData = async () => {
+      try {
+        const API_URL = `${import.meta.env.VITE_API_URL}/ingredients`;
+        fetch(API_URL)
+          .then((res) => res.json())
+          .then((data) => setIngredients(data))
+          .catch((err) => console.error('API Error:', err));
+      } catch (err) {
+        console.error('Failed to fetch ingredient data', err);
+        setIngredients(null);
+      }
+    };
+
     loadAttributes();
     loadScreeningData();
+    loadIngredientData();
   }, [user]);
 
   return (
@@ -75,7 +90,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/dashboard" element={<Dashboard screeningData={screeningData} />} />
-                <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} />} />
+                <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} ingredients={ingredients} />} />
               </Routes>
             </div>
           </Router>
