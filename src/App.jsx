@@ -75,7 +75,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/dashboard" element={<Dashboard screeningData={screeningData} />} />
-                <Route path="/screening" element={<ScreeningPage />} />
+                <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} />} />
               </Routes>
             </div>
           </Router>

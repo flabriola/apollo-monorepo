@@ -19,7 +19,7 @@ const mockIngredients = [
   { id: 10, name: 'Mushroom', description: 'Cremini mushrooms' },
 ];
 
-const ScreeningPage = () => {
+const ScreeningPage = ({ user, userAttributes }) => {
   const location = useLocation();
   const navigate = useNavigate();
   // set it to the screening data and parse
@@ -52,13 +52,13 @@ const ScreeningPage = () => {
   });
 
   // Section expansion state
-  const [showSqlBox, setShowSqlBox] = useState(true);
+  const [showSqlBox, setShowSqlBox] = useState(false);
   const [highlightedSql, setHighlightedSql] = useState('');
 
   // Section 2: Menu (multiple entries)
   const [menuRestaurantId, setMenuRestaurantId] = useState('');
   const [menuRestaurantIdError, setMenuRestaurantIdError] = useState('');
-  const [showMenuSqlBox, setShowMenuSqlBox] = useState(true);
+  const [showMenuSqlBox, setShowMenuSqlBox] = useState(false);
   const [highlightedMenuSql, setHighlightedMenuSql] = useState('');
 
   // Section 3: Dish (multiple entries) with pagination
@@ -73,7 +73,7 @@ const ScreeningPage = () => {
     0: [{ id: '', name: '', description: '', price: '', category: '', active: '' }]
   });
 
-  const [showDishSqlBox, setShowDishSqlBox] = useState(true);
+  const [showDishSqlBox, setShowDishSqlBox] = useState(false);
   const [highlightedDishSql, setHighlightedDishSql] = useState('');
   const [currentDishId, setCurrentDishId] = useState(null);
 
@@ -84,7 +84,7 @@ const ScreeningPage = () => {
   const [ingredientErrorsByDish, setIngredientErrorsByDish] = useState({
     [`0-0`]: [{ ingredient_id: '', private: '', description: '' }]
   });
-  const [showIngredientSqlBox, setShowIngredientSqlBox] = useState(true);
+  const [showIngredientSqlBox, setShowIngredientSqlBox] = useState(false);
   const [highlightedIngredientSql, setHighlightedIngredientSql] = useState('');
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState('');
   const [filteredIngredients, setFilteredIngredients] = useState(mockIngredients);
@@ -1085,7 +1085,7 @@ const ScreeningPage = () => {
   };
 
   // Save handler
-  const handleSave = () => {
+  const handleSave = async () => {
     // Perform comprehensive validation before saving
     const isValid = validateBeforeSave();
     
@@ -1094,52 +1094,99 @@ const ScreeningPage = () => {
       return;
     }
 
-    // Get screening ID from initialScreening or return if none (new screening)
-    const screeningId = initialScreening?.id;
-    if (!screeningId) {
-      console.error('Cannot save: No screening ID');
-      return;
-    }
-
     // Get restaurant name for the title
     const restaurantName = screening.restaurant.name || restaurantInfo.name;
+    const screeningTitle = restaurantName || 'Untitled Screening';
     
-    // Prepare data to send
-    const data = {
-      title: restaurantName || initialScreening.title || 'Untitled Screening', // Use restaurant name as title
-      json_data: screening // This is the current state with all changes
-    };
+    try {
+      // Determine if this is a new screening or an update
+      if (initialScreening?.id) {
+        // This is an existing screening - UPDATE
+        
+        // Prepare data to send for update
+        const updateData = {
+          title: screeningTitle,
+          json_data: screening // This is the current state with all changes
+        };
 
-    // Make API request
-    const API_URL = `${import.meta.env.VITE_API_URL}/screenings/${screeningId}`;
-    
-    fetch(API_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then(response => {
+        // Make API request to update
+        const UPDATE_URL = `${import.meta.env.VITE_API_URL}/screenings/${initialScreening.id}`;
+        
+        const response = await fetch(UPDATE_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        });
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then(result => {
-        console.log('Screening saved successfully:', result);
+
+        const result = await response.json();
+        console.log('Screening updated successfully:', result);
         
         // Update originalScreening to match current screening (no longer dirty)
         setOriginalScreening(screening);
         setIsScreeningDirty(false);
         
-        // Optionally show success message
-        alert('Screening saved successfully!');
-      })
-      .catch(error => {
-        console.error('Error saving screening:', error);
-        alert('Failed to save screening. Please try again.');
-      });
+        alert('Screening updated successfully!');
+      } else {
+        // This is a new screening - CREATE
+        
+        // Ensure we have the user information
+        if (!user || !user.username) {
+          throw new Error('User information is missing. Please try again or log out and back in.');
+        }
+        
+        // Prepare data for creating a new screening
+        const createData = {
+          user_id: user.username,
+          title: screeningTitle,
+          json_data: screening,
+          first_name: userAttributes?.name || '',
+          last_name: userAttributes?.family_name || ''
+        };
+        
+        // Make API request to create
+        const CREATE_URL = `${import.meta.env.VITE_API_URL}/screenings`;
+        
+        const response = await fetch(CREATE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(createData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('New screening created successfully:', result);
+        
+        // Update the component to reflect that this is now an existing screening
+        const newScreeningData = {
+          id: result.id,
+          json: screening,
+          title: screeningTitle
+        };
+        
+        // Update state to treat this as an existing screening from now on
+        setOriginalScreening(screening);
+        setIsScreeningDirty(false);
+        
+        alert('New screening created successfully!');
+        
+        // Navigate to the dashboard to see the new screening
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error saving screening:', error);
+      alert(`Failed to save screening: ${error.message}`);
+    }
   };
 
   // Comprehensive validation function that checks all areas before saving
@@ -1305,8 +1352,12 @@ const ScreeningPage = () => {
               <button className="action-button" onClick={() => setShowAllSql(v => !v)}>
                 View
               </button>
-              <button className="action-button" disabled={!isScreeningDirty} onClick={handleSave}>
-                Save
+              <button 
+                className="action-button" 
+                disabled={initialScreening ? !isScreeningDirty : false}
+                onClick={handleSave}
+              >
+                {initialScreening ? 'Save' : 'Create'}
               </button>
             </div>
           </div>
