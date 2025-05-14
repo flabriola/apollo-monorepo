@@ -24,11 +24,6 @@ const Dashboard = ({ screeningData }) => {
   // make list of screening data which is an object 0 = first screening, 1 = second screening, etc.
   const screenings = screeningData ? Object.values(screeningData) : [];
 
-  // parse the json field
-  screenings.forEach((screening) => {
-    screening.json = JSON.parse(JSON.stringify(screening.json));
-  });
-
   return (
     <div style={{ height: '100vh' }}>
       <div className="dashboard">

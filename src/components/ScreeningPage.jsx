@@ -366,6 +366,13 @@ const ScreeningPage = () => {
     }
 
     updateMenu(menuId, menuUpdate);
+    
+    // Validate field immediately
+    if (name === 'name') {
+      validateMenuField(menuId, name, value);
+    } else if (name === 'pdf') {
+      validateMenuField(menuId, name, value);
+    }
   };
 
   // Validate a menu field
@@ -378,7 +385,20 @@ const ScreeningPage = () => {
       if (value && value.length > 512) error = 'Max 512 characters';
     }
     // No validation for description (TEXT) or active (checkbox)
+    
+    // Create dishErrorsByMenu[idx] if it doesn't exist
+    if (!dishErrorsByMenu[idx]) {
+      setDishErrorsByMenu(prev => ({
+        ...prev,
+        [idx]: {}
+      }));
+      return !error; // Return early since we can't update the state in the same cycle
+    }
+    
     const newErrors = { ...dishErrorsByMenu };
+    if (!newErrors[idx]) {
+      newErrors[idx] = {};
+    }
     newErrors[idx][field] = error;
     setDishErrorsByMenu(newErrors);
     return !error;
@@ -468,6 +488,12 @@ const ScreeningPage = () => {
     }
 
     updateDish(dishId, dishUpdate);
+    
+    // Validate field immediately
+    if (name === 'name' || name === 'price' || name === 'category') {
+      const menuId = screening.dishes[dishId].menu;
+      validateDishField(menuId, dishId, name, value);
+    }
   };
 
   // Update validateDishField to handle dishes by menu
@@ -488,7 +514,22 @@ const ScreeningPage = () => {
       // No validation for description (TEXT) or active (checkbox)
     }
 
+    // Create dishErrorsByMenu[menuIdx] if it doesn't exist
+    if (!dishErrorsByMenu[menuIdx]) {
+      setDishErrorsByMenu(prev => ({
+        ...prev,
+        [menuIdx]: {}
+      }));
+      return !error; // Return early since we can't update the state in the same cycle
+    }
+
     const currentMenuDishErrors = { ...dishErrorsByMenu[menuIdx] };
+    
+    // Create currentMenuDishErrors[dishIdx] if it doesn't exist
+    if (!currentMenuDishErrors[dishIdx]) {
+      currentMenuDishErrors[dishIdx] = {};
+    }
+    
     currentMenuDishErrors[dishIdx] = {
       ...currentMenuDishErrors[dishIdx],
       [field]: error
@@ -622,6 +663,16 @@ const ScreeningPage = () => {
     };
 
     updateIngredient(ingredientId, ingredientUpdate);
+    
+    // Validate field immediately
+    if (name === 'ingredient_id') {
+      const ingredient = screening.ingredients[ingredientId];
+      const dishKey = ingredient.dish;
+      const ingredientIdx = getCurrentDishIngredients().findIndex(ing => ing.id === ingredientId);
+      if (ingredientIdx !== -1) {
+        validateIngredientField(`${currentMenuId}-${dishKey}`, ingredientIdx, name, value);
+      }
+    }
   };
 
   // Update validateIngredientField to skip dish_id validation
@@ -636,7 +687,22 @@ const ScreeningPage = () => {
       // No validation for private (checkbox) or description (TEXT)
     }
 
+    // Create ingredientErrorsByDish[dishKey] if it doesn't exist
+    if (!ingredientErrorsByDish[dishKey]) {
+      setIngredientErrorsByDish(prev => ({
+        ...prev,
+        [dishKey]: []
+      }));
+      return !error; // Return early since we can't update the state in the same cycle
+    }
+
     const currentErrors = [...(ingredientErrorsByDish[dishKey] || [])];
+    
+    // Create currentErrors[ingredientIdx] if it doesn't exist
+    if (!currentErrors[ingredientIdx]) {
+      currentErrors[ingredientIdx] = {};
+    }
+    
     currentErrors[ingredientIdx] = {
       ...currentErrors[ingredientIdx],
       [field]: error
@@ -1020,6 +1086,14 @@ const ScreeningPage = () => {
 
   // Save handler
   const handleSave = () => {
+    // Perform comprehensive validation before saving
+    const isValid = validateBeforeSave();
+    
+    if (!isValid) {
+      alert("Please fix the validation errors before saving.");
+      return;
+    }
+
     // Get screening ID from initialScreening or return if none (new screening)
     const screeningId = initialScreening?.id;
     if (!screeningId) {
@@ -1027,9 +1101,12 @@ const ScreeningPage = () => {
       return;
     }
 
+    // Get restaurant name for the title
+    const restaurantName = screening.restaurant.name || restaurantInfo.name;
+    
     // Prepare data to send
     const data = {
-      title: initialScreening.title || 'Untitled Screening', // Use existing title or default
+      title: restaurantName || initialScreening.title || 'Untitled Screening', // Use restaurant name as title
       json_data: screening // This is the current state with all changes
     };
 
@@ -1063,6 +1140,132 @@ const ScreeningPage = () => {
         console.error('Error saving screening:', error);
         alert('Failed to save screening. Please try again.');
       });
+  };
+
+  // Comprehensive validation function that checks all areas before saving
+  const validateBeforeSave = () => {
+    let isValid = true;
+    let errorFields = [];
+
+    // 1. Validate Restaurant Information
+    const restaurantValid = validateForm();
+    if (!restaurantValid) {
+      isValid = false;
+      errorFields.push("Restaurant Information");
+
+      // Force display of error messages for restaurant fields
+      Object.keys(restaurantInfo).forEach(fieldName => {
+        validateField(fieldName, restaurantInfo[fieldName]);
+      });
+    }
+
+    // 2. Validate Menus
+    if (Object.keys(screening.menus || {}).length > 0) {
+      const menusValid = validateAllMenus();
+      if (!menusValid) {
+        isValid = false;
+        errorFields.push("Menus");
+      }
+    }
+
+    // 3. Validate Dishes (for all menus)
+    let dishesValid = true;
+    Object.keys(screening.menus || {}).forEach(menuId => {
+      // Temporarily set currentMenuId to validate each menu's dishes
+      const originalMenuId = currentMenuId;
+      setCurrentMenuId(parseInt(menuId));
+      
+      const menuDishesValid = validateAllDishes();
+      if (!menuDishesValid) {
+        dishesValid = false;
+      }
+      
+      // Restore original currentMenuId
+      setCurrentMenuId(originalMenuId);
+    });
+    
+    if (!dishesValid) {
+      isValid = false;
+      errorFields.push("Dishes");
+    }
+
+    // 4. Validate Ingredients (for all dishes)
+    let ingredientsValid = true;
+    Object.keys(screening.dishes || {}).forEach(dishId => {
+      // Temporarily set currentDishId to validate each dish's ingredients
+      const originalDishId = currentDishId;
+      setCurrentDishId(parseInt(dishId));
+      
+      const dishIngredientsValid = validateAllIngredients();
+      if (!dishIngredientsValid) {
+        ingredientsValid = false;
+      }
+      
+      // Restore original currentDishId
+      setCurrentDishId(originalDishId);
+    });
+    
+    if (!ingredientsValid) {
+      isValid = false;
+      errorFields.push("Ingredients");
+    }
+
+    // 5. Check for empty required fields in all parts of the screening object
+    
+    // Check restaurant fields (NOT NULL constraints)
+    if (!screening.restaurant.name || !screening.restaurant.address || !screening.restaurant.phone) {
+      isValid = false;
+      if (!errorFields.includes("Restaurant Information")) {
+        errorFields.push("Restaurant Information");
+      }
+    }
+    
+    // Check menus (NOT NULL constraints)
+    Object.keys(screening.menus || {}).forEach(menuId => {
+      const menu = screening.menus[menuId];
+      if (!menu.restaurant_id || !menu.name) {
+        isValid = false;
+        if (!errorFields.includes("Menus")) {
+          errorFields.push("Menus");
+        }
+      }
+    });
+    
+    // Check dishes (NOT NULL constraints)
+    Object.keys(screening.dishes || {}).forEach(dishId => {
+      const dish = screening.dishes[dishId];
+      if (!dish.menu_id || !dish.name || dish.price === undefined || dish.price === '') {
+        isValid = false;
+        if (!errorFields.includes("Dishes")) {
+          errorFields.push("Dishes");
+        }
+      }
+      // Check price is a valid number
+      if (dish.price !== undefined && dish.price !== '' && !/^\d+(\.\d{1,2})?$/.test(dish.price)) {
+        isValid = false;
+        if (!errorFields.includes("Dishes")) {
+          errorFields.push("Dishes (invalid price format)");
+        }
+      }
+    });
+    
+    // Check ingredients (NOT NULL constraints)
+    Object.keys(screening.ingredients || {}).forEach(ingredientId => {
+      const ingredient = screening.ingredients[ingredientId];
+      if (!ingredient.dish_id || !ingredient.ingredient_id) {
+        isValid = false;
+        if (!errorFields.includes("Ingredients")) {
+          errorFields.push("Ingredients");
+        }
+      }
+    });
+
+    // If not valid, log the error fields
+    if (!isValid) {
+      console.error("Validation failed for:", errorFields);
+    }
+
+    return isValid;
   };
 
   // Warn user before leaving if there are unsaved changes
@@ -1257,9 +1460,19 @@ const ScreeningPage = () => {
                     if (currentMenuId) {
                       updateMenu(currentMenuId, { restaurant_id: value });
                     }
+                    
+                    // Validate immediately
+                    if (!value) {
+                      setMenuRestaurantIdError('Restaurant ID is required');
+                    } else if (!/^\d+$/.test(value)) {
+                      setMenuRestaurantIdError('Must be an integer');
+                    } else {
+                      setMenuRestaurantIdError('');
+                    }
                   }}
                   min={1}
                   required
+                  className={menuRestaurantIdError ? 'input-error' : ''}
                 />
                 {menuRestaurantIdError && <div className="error-message">{menuRestaurantIdError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
@@ -1277,7 +1490,9 @@ const ScreeningPage = () => {
                       onChange={e => handleMenuInputChange(currentMenuId, e)}
                       maxLength={255}
                       required
+                      className={!getCurrentMenu().name ? 'input-error' : ''}
                     />
+                    {!getCurrentMenu().name && <div className="error-message">Name is required</div>}
                     <div className="field-constraint">VARCHAR(255) NOT NULL</div>
                   </div>
                   <div className="form-group">
@@ -1286,7 +1501,9 @@ const ScreeningPage = () => {
                       name="description"
                       value={getCurrentMenu().description || ''}
                       onChange={e => handleMenuInputChange(currentMenuId, e)}
+                      className={dishErrorsByMenu[currentMenuId]?.description ? 'input-error' : ''}
                     />
+                    {dishErrorsByMenu[currentMenuId]?.description && <div className="error-message">{dishErrorsByMenu[currentMenuId].description}</div>}
                     <div className="field-constraint">TEXT</div>
                   </div>
                   <div className="form-group">
@@ -1303,6 +1520,7 @@ const ScreeningPage = () => {
                       </label>
                       <span className="toggle-label">{getCurrentMenu().active ? 'Yes' : 'No'}</span>
                     </div>
+                    {dishErrorsByMenu[currentMenuId]?.active && <div className="error-message">{dishErrorsByMenu[currentMenuId].active}</div>}
                     <div className="field-constraint">BOOLEAN NOT NULL</div>
                   </div>
                   <div className="form-group">
@@ -1313,7 +1531,9 @@ const ScreeningPage = () => {
                       value={getCurrentMenu().pdf || ''}
                       onChange={e => handleMenuInputChange(currentMenuId, e)}
                       maxLength={512}
+                      className={dishErrorsByMenu[currentMenuId]?.pdf ? 'input-error' : ''}
                     />
+                    {dishErrorsByMenu[currentMenuId]?.pdf && <div className="error-message">{dishErrorsByDish[currentMenuId].pdf}</div>}
                     <div className="field-constraint">VARCHAR(512)</div>
                   </div>
                 </div>
@@ -1416,9 +1636,19 @@ const ScreeningPage = () => {
                         updateDish(dishKey, { menu_id: value });
                       }
                     });
+                    
+                    // Validate immediately
+                    if (!value) {
+                      setMenuIdForDishesError('Menu ID is required');
+                    } else if (!/^\d+$/.test(value)) {
+                      setMenuIdForDishesError('Must be an integer');
+                    } else {
+                      setMenuIdForDishesError('');
+                    }
                   }}
                   min={1}
                   required
+                  className={menuIdForDishesError ? 'input-error' : ''}
                 />
                 {menuIdForDishesError && <div className="error-message">{menuIdForDishesError}</div>}
                 <div className="field-constraint">INT NOT NULL</div>
@@ -1436,7 +1666,9 @@ const ScreeningPage = () => {
                       onChange={e => handleDishInputChange(currentDishId, e)}
                       maxLength={255}
                       required
+                      className={!getCurrentDish().name ? 'input-error' : ''}
                     />
+                    {!getCurrentDish().name && <div className="error-message">Name is required</div>}
                     <div className="field-constraint">VARCHAR(255) NOT NULL</div>
                   </div>
                   <div className="form-group">
@@ -1445,7 +1677,9 @@ const ScreeningPage = () => {
                       name="description"
                       value={getCurrentDish().description || ''}
                       onChange={e => handleDishInputChange(currentDishId, e)}
+                      className={dishErrorsByMenu[currentMenuId]?.[currentDishId]?.description ? 'input-error' : ''}
                     />
+                    {dishErrorsByMenu[currentMenuId]?.[currentDishId]?.description && <div className="error-message">{dishErrorsByMenu[currentMenuId][currentDishId].description}</div>}
                     <div className="field-constraint">TEXT</div>
                   </div>
                   <div className="form-group">
@@ -1455,9 +1689,38 @@ const ScreeningPage = () => {
                       name="price"
                       value={getCurrentDish().price || ''}
                       onChange={e => handleDishInputChange(currentDishId, e)}
+                      onKeyPress={e => {
+                        // Allow only digits and one decimal point with max 2 decimal places
+                        const keyCode = e.charCode;
+                        const currentValue = e.target.value;
+                        
+                        // Allow digits (0-9)
+                        if (keyCode >= 48 && keyCode <= 57) {
+                          // Check if we're trying to add a digit after the decimal point
+                          if (currentValue.includes('.')) {
+                            const parts = currentValue.split('.');
+                            // If we already have 2 decimal places, prevent adding more
+                            if (parts[1] && parts[1].length >= 2) {
+                              e.preventDefault();
+                              return;
+                            }
+                          }
+                          return;
+                        }
+                        
+                        // Allow decimal point (.) only if it doesn't already exist in the value
+                        if (keyCode === 46 && !currentValue.includes('.')) {
+                          return;
+                        }
+                        
+                        // Block all other characters
+                        e.preventDefault();
+                      }}
                       placeholder="0.00"
                       required
+                      className={!getCurrentDish().price ? 'input-error' : ''}
                     />
+                    {!getCurrentDish().price && <div className="error-message">Price is required</div>}
                     <div className="field-constraint">DECIMAL(10,2) NOT NULL</div>
                   </div>
                   <div className="form-group">
@@ -1468,7 +1731,9 @@ const ScreeningPage = () => {
                       value={getCurrentDish().category || ''}
                       onChange={e => handleDishInputChange(currentDishId, e)}
                       maxLength={100}
+                      className={dishErrorsByMenu[currentMenuId]?.[currentDishId]?.category ? 'input-error' : ''}
                     />
+                    {dishErrorsByMenu[currentMenuId]?.[currentDishId]?.category && <div className="error-message">{dishErrorsByMenu[currentMenuId][currentDishId].category}</div>}
                     <div className="field-constraint">VARCHAR(100)</div>
                   </div>
                   <div className="form-group">
@@ -1485,6 +1750,7 @@ const ScreeningPage = () => {
                       </label>
                       <span className="toggle-label">{getCurrentDish().active ? 'Yes' : 'No'}</span>
                     </div>
+                    {dishErrorsByMenu[currentMenuId]?.[currentDishId]?.active && <div className="error-message">{dishErrorsByMenu[currentMenuId][currentDishId].active}</div>}
                     <div className="field-constraint">BOOLEAN NOT NULL</div>
                   </div>
                 </div>
@@ -1609,7 +1875,7 @@ const ScreeningPage = () => {
                           value={ingredient.ingredient_id || ''}
                           onChange={e => handleIngredientInputChange(ingredient.id, e)}
                           required
-                          className="ingredient-select"
+                          className={`ingredient-select ${!ingredient.ingredient_id ? 'input-error' : ''}`}
                         >
                           <option value="">Select an ingredient</option>
                           {filteredIngredients.map(option => (
@@ -1619,6 +1885,11 @@ const ScreeningPage = () => {
                           ))}
                         </select>
                       </div>
+                      {!ingredient.ingredient_id && (
+                        <div className="error-message">
+                          Ingredient ID is required
+                        </div>
+                      )}
                       <div className="field-constraint">INT NOT NULL</div>
                     </div>
                     <div className="form-group">
@@ -1635,6 +1906,11 @@ const ScreeningPage = () => {
                         </label>
                         <span className="toggle-label">{ingredient.private ? 'Yes' : 'No'}</span>
                       </div>
+                      {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.private && (
+                        <div className="error-message">
+                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].private}
+                        </div>
+                      )}
                       <div className="field-constraint">BOOLEAN NOT NULL</div>
                     </div>
                     <div className="form-group">
@@ -1643,7 +1919,13 @@ const ScreeningPage = () => {
                         name="description"
                         value={ingredient.description || ''}
                         onChange={e => handleIngredientInputChange(ingredient.id, e)}
+                        className={ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description ? 'input-error' : ''}
                       />
+                      {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description && (
+                        <div className="error-message">
+                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].description}
+                        </div>
+                      )}
                       <div className="field-constraint">TEXT</div>
                     </div>
                     <button
