@@ -32,9 +32,9 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('❌ DB connection error:', err.stack);
+    console.error('DB connection error:', err.stack);
   } else {
-    console.log('✅ Connected to DB');
+    console.log('Connected to DB');
   }
 });
 
@@ -59,7 +59,7 @@ app.get('/api/screenings/:userId', (req, res) => {
   `;
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('❌ Failed to fetch screenings:', err.message);
+      console.error('Failed to fetch screenings:', err.message);
       return res.status(500).json({ error: 'Database error' });
     }
     res.json(results);
@@ -76,7 +76,7 @@ app.post('/api/screenings', (req, res) => {
   `;
   db.query(query, [user_id, title, JSON.stringify(json_data), first_name, last_name], (err, result) => {
     if (err) {
-      console.error('❌ Failed to insert screening:', err.message);
+      console.error('Failed to insert screening:', err.message);
       return res.status(500).json({ error: 'Database error' });
     }
     res.status(201).json({ id: result.insertId });
@@ -97,7 +97,7 @@ app.put('/api/screenings/:id', (req, res) => {
   `;
   db.query(query, [title, JSON.stringify(json_data), screeningId], (err) => {
     if (err) {
-      console.error('❌ Failed to update screening:', err.message);
+      console.error('Failed to update screening:', err.message);
       return res.status(500).json({ error: 'Database error' });
     }
     res.status(200).json({ status: 'updated' });
@@ -105,5 +105,38 @@ app.put('/api/screenings/:id', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+});
+
+const db2 = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_MAIN_NAME,
+  port: process.env.DB_PORT || 3306,
+});
+
+db2.connect((err) => {
+  if (err) {
+    console.error('DB connection error:', err.stack);
+  } else {
+    console.log('Connected to DB');
+  }
+});
+
+// Get all ingredients from the main database in json format
+// const mockIngredients = [
+//   { id: 1, name: 'Tomato', description: 'Fresh red tomatoes' },
+//   { id: 2, name: 'Cheese', description: 'Mozzarella cheese' }
+// ];
+
+app.get('/api/ingredients', (req, res) => {
+  const query = 'SELECT * FROM ingredients';
+  db2.query(query, (err, results) => {
+    if (err) {
+      console.error('Failed to fetch ingredients:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(results);
+  });
 });
