@@ -131,7 +131,7 @@ db2.connect((err) => {
 // ];
 
 app.get('/api/ingredients', (req, res) => {
-  const query = 'SELECT * FROM ingredients';
+  const query = 'SELECT * FROM ingredient';
   db2.query(query, (err, results) => {
     if (err) {
       console.error('Failed to fetch ingredients:', err.message);
