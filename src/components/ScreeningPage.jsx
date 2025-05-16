@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../styles/ScreeningPage.css';
 import Prism from 'prismjs';
@@ -88,8 +88,6 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   });
   const [showIngredientSqlBox, setShowIngredientSqlBox] = useState(false);
   const [highlightedIngredientSql, setHighlightedIngredientSql] = useState('');
-  const [ingredientSearchTerm, setIngredientSearchTerm] = useState('');
-  const [filteredIngredients, setFilteredIngredients] = useState(ingredientList);
 
   // Instead, track the current menu ID and dish ID
   const [currentMenuId, setCurrentMenuId] = useState(null);
@@ -190,21 +188,9 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   useEffect(() => {
     if (!originalScreening) return;
     // Deep compare using JSON.stringify (sufficient for this use case)
-    setIsScreeningDirty(JSON.stringify(screening) !== JSON.stringify(originalScreening));
-  }, [screening, originalScreening]);
-
-  // Filter ingredients based on search term
-  useEffect(() => {
-    if (ingredientSearchTerm) {
-      const filtered = ingredientList.filter(ingredient =>
-        ingredient.name.toLowerCase().includes(ingredientSearchTerm.toLowerCase()) ||
-        ingredient.description.toLowerCase().includes(ingredientSearchTerm.toLowerCase())
-      );
-      setFilteredIngredients(filtered);
-    } else {
-      setFilteredIngredients(ingredientList);
-    }
-  }, [ingredientSearchTerm]);
+    const isDirty = JSON.stringify(screening) !== JSON.stringify(originalScreening);
+    setIsScreeningDirty(isDirty);
+  }, [screening, originalScreening, setIsScreeningDirty]);
 
   // Highlight SQL when code box is shown or values change
   useEffect(() => {
@@ -1333,6 +1319,98 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
   const [showAllSql, setShowAllSql] = useState(false);
 
+  // This function will replace the old search effect
+  const filterIngredientsByTerm = (searchTerm) => {
+    if (!searchTerm) return ingredientList;
+    
+    return ingredientList.filter(ingredient =>
+      ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (ingredient.description && ingredient.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  // Create a custom ingredient selector component
+  const IngredientSelector = ({ 
+    selectedId, 
+    onChange,
+    hasError,
+    ingredientList
+  }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+    const [filtered, setFiltered] = useState(ingredientList);
+    const containerRef = useRef(null);
+    
+    // Filter ingredients when search term changes
+    useEffect(() => {
+      setFiltered(filterIngredientsByTerm(searchTerm));
+    }, [searchTerm]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (containerRef.current && !containerRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Get the name of the selected ingredient
+    const selectedIngredient = ingredientList.find(i => i.id == selectedId);
+    const displayValue = selectedId && selectedIngredient
+      ? `${selectedIngredient.name}${selectedIngredient.description ? ` - ${selectedIngredient.description}` : ''}`
+      : searchTerm;
+
+    return (
+      <div 
+        ref={containerRef} 
+        className={`ingredient-select-container ${isOpen ? 'open' : ''} ${hasError ? 'error' : ''}`}
+      >
+        <input
+          type="text"
+          placeholder="Search ingredients..."
+          value={displayValue}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchTerm(value);
+            // Clear selection if user types
+            if (selectedId && value !== displayValue) {
+              onChange({ target: { name: 'ingredient_id', value: '' } });
+            }
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          className="ingredient-search"
+        />
+        <div className="dropdown-arrow"></div>
+        {isOpen && (
+          <div className="ingredient-dropdown">
+            {filtered.length > 0 ? (
+              filtered.map(option => (
+                <div 
+                  key={option.id} 
+                  className={`dropdown-item ${option.id == selectedId ? 'selected' : ''}`}
+                  onClick={() => {
+                    onChange({ target: { name: 'ingredient_id', value: option.id } });
+                    setSearchTerm('');
+                    setIsOpen(false);
+                  }}
+                >
+                  {option.name}<p id="ingredient-description">{option.description ? `${option.description}` : ''}</p>
+                </div>
+              ))
+            ) : (
+              <div className="dropdown-empty">No ingredients found</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="screening-page">
       {/* Secondary Header */}
@@ -1916,29 +1994,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                   <div className="menu-entry ingredient-entry" key={ingredient.id}>
                     <div className="form-group">
                       <label>Ingredient</label>
-                      <div className="ingredient-select-container">
-                        <input
-                          type="text"
-                          placeholder="Search ingredients..."
-                          value={ingredientSearchTerm}
-                          onChange={e => setIngredientSearchTerm(e.target.value)}
-                          className="ingredient-search"
-                        />
-                        <select
-                          name="ingredient_id"
-                          value={ingredient.ingredient_id || ''}
-                          onChange={e => handleIngredientInputChange(ingredient.id, e)}
-                          required
-                          className={`ingredient-select ${!ingredient.ingredient_id ? 'input-error' : ''}`}
-                        >
-                          <option value="">Select an ingredient</option>
-                          {filteredIngredients.map(option => (
-                            <option key={option.id} value={option.id}>
-                              {option.name} - {option.description}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <IngredientSelector
+                        selectedId={ingredient.ingredient_id || ''}
+                        onChange={(e) => handleIngredientInputChange(ingredient.id, e)}
+                        hasError={!ingredient.ingredient_id}
+                        ingredientList={ingredientList}
+                      />
                       {!ingredient.ingredient_id && (
                         <div className="error-message">
                           Ingredient ID is required
@@ -1987,7 +2048,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       className="remove-ingredient-under-button"
                       onClick={() => {
                         const ingredientName = ingredient.ingredient_id
-                          ? (filteredIngredients.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
+                          ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
                           : 'this ingredient';
 
                         if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
