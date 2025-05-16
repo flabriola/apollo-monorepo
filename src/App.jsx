@@ -19,6 +19,7 @@ function App() {
   const [userAttributes, setUserAttributes] = useState(null);
   const [screeningData, setScreeningData] = useState(null);
   const [ingredients, setIngredients] = useState(null);
+  const [isScreeningDirty, setIsScreeningDirty] = useState(false);
 
   // fetch functions upon user login
   useEffect(() => {
@@ -65,6 +66,12 @@ function App() {
     loadIngredientData();
   }, [user]);
 
+  // useEffect(() => {
+  //   if (!user && authUser) {
+  //     setUser(authUser);
+  //   }
+  // }, [authUser]);
+
   return (
     <Authenticator
       hideSignUp
@@ -86,11 +93,11 @@ function App() {
         return (
           <Router>
             <div className="app">
-              <Header signOut={signOut} user={authUser} userAttributes={userAttributes} />
+              <Header signOut={signOut} user={authUser} userAttributes={userAttributes} isScreeningDirty={isScreeningDirty} setIsScreeningDirty={setIsScreeningDirty} />
               <Routes>
                 <Route path="/" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/dashboard" element={<Dashboard screeningData={screeningData} />} />
-                <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} ingredients={ingredients} />} />
+                <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} ingredients={ingredients} isScreeningDirty={isScreeningDirty} setIsScreeningDirty={setIsScreeningDirty} />} />
               </Routes>
             </div>
           </Router>

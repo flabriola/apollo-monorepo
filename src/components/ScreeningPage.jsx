@@ -19,12 +19,13 @@ const mockIngredients = [
   { id: 10, name: 'Mushroom', description: 'Cremini mushrooms' },
 ];
 
-const ScreeningPage = ({ user, userAttributes, ingredients }) => {
+const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, setIsScreeningDirty }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const ingredientList = ingredients ? Object.values(ingredients) : mockIngredients;
   // set it to the screening data and parse
   const initialScreening = location.state?.screening;
+  
 
   // Initialize screening state
   const [screening, setScreening] = useState({
@@ -100,7 +101,6 @@ const ScreeningPage = ({ user, userAttributes, ingredients }) => {
 
   // Initialize original screening state
   const [originalScreening, setOriginalScreening] = useState(null);
-  const [isScreeningDirty, setIsScreeningDirty] = useState(false);
 
   // Initialize from screening data if it exists
   useEffect(() => {
@@ -1325,6 +1325,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients }) => {
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -1343,6 +1344,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients }) => {
                 if (isScreeningDirty) {
                   const confirmLeave = window.confirm('You have unsaved changes. Are you sure you want to leave without saving?');
                   if (!confirmLeave) return;
+                  setIsScreeningDirty(false);
                 }
                 navigate('/dashboard');
               }}>
