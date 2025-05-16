@@ -25,7 +25,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const ingredientList = ingredients ? Object.values(ingredients) : mockIngredients;
   // set it to the screening data and parse
   const initialScreening = location.state?.screening;
-  
+
 
   // Initialize screening state
   const [screening, setScreening] = useState({
@@ -353,7 +353,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }
 
     updateMenu(menuId, menuUpdate);
-    
+
     // Validate field immediately
     if (name === 'name') {
       validateMenuField(menuId, name, value);
@@ -372,7 +372,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       if (value && value.length > 512) error = 'Max 512 characters';
     }
     // No validation for description (TEXT) or active (checkbox)
-    
+
     // Create dishErrorsByMenu[idx] if it doesn't exist
     if (!dishErrorsByMenu[idx]) {
       setDishErrorsByMenu(prev => ({
@@ -381,7 +381,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       }));
       return !error; // Return early since we can't update the state in the same cycle
     }
-    
+
     const newErrors = { ...dishErrorsByMenu };
     if (!newErrors[idx]) {
       newErrors[idx] = {};
@@ -475,7 +475,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }
 
     updateDish(dishId, dishUpdate);
-    
+
     // Validate field immediately
     if (name === 'name' || name === 'price' || name === 'category') {
       const menuId = screening.dishes[dishId].menu;
@@ -511,12 +511,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }
 
     const currentMenuDishErrors = { ...dishErrorsByMenu[menuIdx] };
-    
+
     // Create currentMenuDishErrors[dishIdx] if it doesn't exist
     if (!currentMenuDishErrors[dishIdx]) {
       currentMenuDishErrors[dishIdx] = {};
     }
-    
+
     currentMenuDishErrors[dishIdx] = {
       ...currentMenuDishErrors[dishIdx],
       [field]: error
@@ -650,7 +650,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     };
 
     updateIngredient(ingredientId, ingredientUpdate);
-    
+
     // Validate field immediately
     if (name === 'ingredient_id') {
       const ingredient = screening.ingredients[ingredientId];
@@ -684,12 +684,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }
 
     const currentErrors = [...(ingredientErrorsByDish[dishKey] || [])];
-    
+
     // Create currentErrors[ingredientIdx] if it doesn't exist
     if (!currentErrors[ingredientIdx]) {
       currentErrors[ingredientIdx] = {};
     }
-    
+
     currentErrors[ingredientIdx] = {
       ...currentErrors[ingredientIdx],
       [field]: error
@@ -739,6 +739,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     // Loop through all ingredients
     Object.keys(screening.ingredients || {}).forEach(ingredientId => {
       const ingredient = screening.ingredients[ingredientId];
+
+      // Skip items (ingredient_id = 400000)
+      if (isItem(ingredient)) {
+        return;
+      }
+
       const dishId = ingredient.dish;
       // Get dish_id from the consistent mapping
       const dish_id = dishIdsByDishKey[dishId] || '1';  // Use default value of 1
@@ -746,9 +752,24 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       // Include all ingredients with placeholder values for empty fields
       const ingredient_id = ingredient.ingredient_id || '1';  // Use default value of 1
 
-      const ingredientValue =
-        `    (${dish_id}, ${ingredient_id}, ${ingredient.private ? 1 : 0}, '${ingredient.description?.replace(/'/g, "''") || ''}')`;
-      allValues.push(ingredientValue);
+      // For ingredients that are part of an item, combine descriptions
+      let description = ingredient.description || '';
+      if (ingredient.ingredient_item) {
+        // Find the parent item
+        const parentItem = Object.values(screening.ingredients || {}).find(
+          ing => ing.item === ingredient.ingredient_item
+        );
+
+        if (parentItem && parentItem.description) {
+          // Combine descriptions: Parent [Child]
+          description = `[${description}]${parentItem.description}`;
+        }
+      }
+
+      const escapedDescription = description.replace(/'/g, "''");
+
+      const sql = `    (${dish_id}, ${ingredient_id}, ${ingredient.private ? 1 : 0}, '${escapedDescription}')`;
+      allValues.push(sql);
     });
 
     return allValues.length > 0
@@ -1061,10 +1082,11 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const getCurrentDishIngredients = () => {
     const ingredients = [];
     Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
-      if (screening.ingredients[ingredientKey].dish === currentDishId) {
+      const ingredient = screening.ingredients[ingredientKey];
+      if (ingredient.dish === currentDishId && !ingredient.ingredient_item) {
         ingredients.push({
           id: parseInt(ingredientKey),
-          ...screening.ingredients[ingredientKey]
+          ...ingredient
         });
       }
     });
@@ -1075,7 +1097,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const handleSave = async () => {
     // Perform comprehensive validation before saving
     const isValid = validateBeforeSave();
-    
+
     if (!isValid) {
       alert("Please fix the validation errors before saving.");
       return;
@@ -1084,12 +1106,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     // Get restaurant name for the title
     const restaurantName = screening.restaurant.name || restaurantInfo.name;
     const screeningTitle = restaurantName || 'Untitled Screening';
-    
+
     try {
       // Determine if this is a new screening or an update
       if (initialScreening?.id) {
         // This is an existing screening - UPDATE
-        
+
         // Prepare data to send for update
         const updateData = {
           title: screeningTitle,
@@ -1098,7 +1120,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
         // Make API request to update
         const UPDATE_URL = `${import.meta.env.VITE_API_URL}/screenings/${initialScreening.id}`;
-        
+
         const response = await fetch(UPDATE_URL, {
           method: 'PUT',
           headers: {
@@ -1113,20 +1135,20 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
         const result = await response.json();
         console.log('Screening updated successfully:', result);
-        
+
         // Update originalScreening to match current screening (no longer dirty)
         setOriginalScreening(screening);
         setIsScreeningDirty(false);
-        
+
         alert('Screening updated successfully!');
       } else {
         // This is a new screening - CREATE
-        
+
         // Ensure we have the user information
         if (!user || !user.username) {
           throw new Error('User information is missing. Please try again or log out and back in.');
         }
-        
+
         // Prepare data for creating a new screening
         const createData = {
           user_id: user.username,
@@ -1135,10 +1157,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           first_name: userAttributes?.name || '',
           last_name: userAttributes?.family_name || ''
         };
-        
+
         // Make API request to create
         const CREATE_URL = `${import.meta.env.VITE_API_URL}/screenings`;
-        
+
         const response = await fetch(CREATE_URL, {
           method: 'POST',
           headers: {
@@ -1153,20 +1175,20 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
         const result = await response.json();
         console.log('New screening created successfully:', result);
-        
+
         // Update the component to reflect that this is now an existing screening
         const newScreeningData = {
           id: result.id,
           json: screening,
           title: screeningTitle
         };
-        
+
         // Update state to treat this as an existing screening from now on
         setOriginalScreening(screening);
         setIsScreeningDirty(false);
-        
+
         alert('New screening created successfully!');
-        
+
         // Navigate to the dashboard to see the new screening
         navigate('/dashboard');
       }
@@ -1208,16 +1230,16 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       // Temporarily set currentMenuId to validate each menu's dishes
       const originalMenuId = currentMenuId;
       setCurrentMenuId(parseInt(menuId));
-      
+
       const menuDishesValid = validateAllDishes();
       if (!menuDishesValid) {
         dishesValid = false;
       }
-      
+
       // Restore original currentMenuId
       setCurrentMenuId(originalMenuId);
     });
-    
+
     if (!dishesValid) {
       isValid = false;
       errorFields.push("Dishes");
@@ -1229,23 +1251,23 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       // Temporarily set currentDishId to validate each dish's ingredients
       const originalDishId = currentDishId;
       setCurrentDishId(parseInt(dishId));
-      
+
       const dishIngredientsValid = validateAllIngredients();
       if (!dishIngredientsValid) {
         ingredientsValid = false;
       }
-      
+
       // Restore original currentDishId
       setCurrentDishId(originalDishId);
     });
-    
+
     if (!ingredientsValid) {
       isValid = false;
       errorFields.push("Ingredients");
     }
 
     // 5. Check for empty required fields in all parts of the screening object
-    
+
     // Check restaurant fields (NOT NULL constraints)
     if (!screening.restaurant.name || !screening.restaurant.address || !screening.restaurant.phone) {
       isValid = false;
@@ -1253,7 +1275,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         errorFields.push("Restaurant Information");
       }
     }
-    
+
     // Check menus (NOT NULL constraints)
     Object.keys(screening.menus || {}).forEach(menuId => {
       const menu = screening.menus[menuId];
@@ -1264,7 +1286,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         }
       }
     });
-    
+
     // Check dishes (NOT NULL constraints)
     Object.keys(screening.dishes || {}).forEach(dishId => {
       const dish = screening.dishes[dishId];
@@ -1282,7 +1304,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         }
       }
     });
-    
+
     // Check ingredients (NOT NULL constraints)
     Object.keys(screening.ingredients || {}).forEach(ingredientId => {
       const ingredient = screening.ingredients[ingredientId];
@@ -1322,7 +1344,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   // This function will replace the old search effect
   const filterIngredientsByTerm = (searchTerm) => {
     if (!searchTerm) return ingredientList;
-    
+
     return ingredientList.filter(ingredient =>
       ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (ingredient.description && ingredient.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -1330,21 +1352,46 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   };
 
   // Create a custom ingredient selector component
-  const IngredientSelector = ({ 
-    selectedId, 
+  const IngredientSelector = ({
+    selectedId,
     onChange,
     hasError,
-    ingredientList
+    ingredientList,
+    disabled = false,
+    isPartOfItem = false  // New prop to indicate if this ingredient is part of an item
   }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [filtered, setFiltered] = useState(ingredientList);
     const containerRef = useRef(null);
-    
-    // Filter ingredients when search term changes
+
+    // Filter ingredients when search term changes or when isPartOfItem changes
     useEffect(() => {
-      setFiltered(filterIngredientsByTerm(searchTerm));
-    }, [searchTerm]);
+      // If ingredient is part of an item, filter out the item option (400000)
+      const baseList = isPartOfItem 
+        ? ingredientList.filter(ing => ing.id != 400000) 
+        : ingredientList;
+      
+      // Then apply the search term filter
+      if (!searchTerm) {
+        setFiltered(baseList);
+      } else {
+        setFiltered(baseList.filter(ingredient =>
+          ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (ingredient.description && ingredient.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        ));
+      }
+    }, [searchTerm, isPartOfItem, ingredientList]);
+
+    // Filter ingredients by search term and optional ingredient list
+    const filterIngredientsByTerm = (searchTerm, list = ingredientList) => {
+      if (!searchTerm) return list;
+
+      return list.filter(ingredient =>
+        ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (ingredient.description && ingredient.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    };
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -1353,7 +1400,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           setIsOpen(false);
         }
       };
-      
+
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -1361,19 +1408,21 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     // Get the name of the selected ingredient
     const selectedIngredient = ingredientList.find(i => i.id == selectedId);
     const displayValue = selectedId && selectedIngredient
-      ? `${selectedIngredient.name}${selectedIngredient.description ? ` - ${selectedIngredient.description}` : ''}`
+      ? `${selectedIngredient.name}`
       : searchTerm;
 
     return (
-      <div 
-        ref={containerRef} 
-        className={`ingredient-select-container ${isOpen ? 'open' : ''} ${hasError ? 'error' : ''}`}
+      <div
+        ref={containerRef}
+        className={`ingredient-select-container ${isOpen ? 'open' : ''} ${hasError ? 'error' : ''} ${disabled ? 'disabled' : ''}`}
       >
         <input
           type="text"
           placeholder="Search ingredients..."
           value={displayValue}
           onChange={(e) => {
+            if (disabled) return;
+
             const value = e.target.value;
             setSearchTerm(value);
             // Clear selection if user types
@@ -1382,16 +1431,17 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             }
             setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => !disabled && setIsOpen(true)}
           className="ingredient-search"
+          disabled={disabled}
         />
         <div className="dropdown-arrow"></div>
-        {isOpen && (
+        {isOpen && !disabled && (
           <div className="ingredient-dropdown">
             {filtered.length > 0 ? (
               filtered.map(option => (
-                <div 
-                  key={option.id} 
+                <div
+                  key={option.id}
                   className={`dropdown-item ${option.id == selectedId ? 'selected' : ''}`}
                   onClick={() => {
                     onChange({ target: { name: 'ingredient_id', value: option.id } });
@@ -1409,6 +1459,76 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         )}
       </div>
     );
+  };
+
+  // Helper functions for item management
+  const isItem = (ingredient) => ingredient.ingredient_id == 400000;
+
+  const getItemIngredients = (itemId) => {
+    if (!itemId) return [];
+
+    return Object.values(screening.ingredients || {})
+      .filter(ing => ing.ingredient_item === itemId)
+      .map(ing => {
+        const ingKey = Object.keys(screening.ingredients).find(key => screening.ingredients[key] === ing);
+        return {
+          id: parseInt(ingKey),
+          ...ing
+        };
+      });
+  };
+
+  const addIngredientToItem = (itemId) => {
+    // Generate a new key for the ingredient
+    const ingredientKeys = Object.keys(screening.ingredients || {}).map(k => parseInt(k, 10));
+    const newIngredientKey = ingredientKeys.length > 0 ? Math.max(...ingredientKeys) + 1 : 1;
+
+    // Get the dish_id and item number from the item
+    const itemIngredient = screening.ingredients[itemId];
+    const dish_id = itemIngredient.dish_id;
+    const dishId = itemIngredient.dish;
+    const itemNumber = itemIngredient.item;
+
+    const newIngredient = {
+      dish: dishId,
+      dish_id: dish_id,
+      ingredient_id: '',
+      ingredient_item: itemNumber, // Use the item number, not the ID
+      private: false,
+      description: ''
+    };
+
+    setScreening(prev => ({
+      ...prev,
+      ingredients: {
+        ...prev.ingredients,
+        [newIngredientKey]: newIngredient
+      }
+    }));
+  };
+
+  const removeItem = (itemId) => {
+    const itemIngredient = screening.ingredients[itemId];
+    if (!itemIngredient || !itemIngredient.item) return;
+
+    const itemNumber = itemIngredient.item;
+
+    // Find all ingredients that belong to this item
+    const ingredientsToRemove = Object.keys(screening.ingredients || {}).filter(key => {
+      const ing = screening.ingredients[key];
+      // Check if this is the item itself (key equals itemId) or a child ingredient
+      return key == itemId || ing.ingredient_item === itemNumber;
+    });
+
+    // Remove the item and all its ingredients
+    setScreening(prev => {
+      const newIngredients = { ...prev.ingredients };
+      ingredientsToRemove.forEach(key => delete newIngredients[key]);
+      return {
+        ...prev,
+        ingredients: newIngredients
+      };
+    });
   };
 
   return (
@@ -1433,8 +1553,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               <button className="action-button" onClick={() => setShowAllSql(v => !v)}>
                 View
               </button>
-              <button 
-                className="action-button" 
+              <button
+                className="action-button"
                 disabled={initialScreening ? !isScreeningDirty : false}
                 onClick={handleSave}
               >
@@ -1592,7 +1712,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                     if (currentMenuId) {
                       updateMenu(currentMenuId, { restaurant_id: value });
                     }
-                    
+
                     // Validate immediately
                     if (!value) {
                       setMenuRestaurantIdError('Restaurant ID is required');
@@ -1768,7 +1888,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                         updateDish(dishKey, { menu_id: value });
                       }
                     });
-                    
+
                     // Validate immediately
                     if (!value) {
                       setMenuIdForDishesError('Menu ID is required');
@@ -1825,7 +1945,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                         // Allow only digits and one decimal point with max 2 decimal places
                         const keyCode = e.charCode;
                         const currentValue = e.target.value;
-                        
+
                         // Allow digits (0-9)
                         if (keyCode >= 48 && keyCode <= 57) {
                           // Check if we're trying to add a digit after the decimal point
@@ -1839,12 +1959,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                           }
                           return;
                         }
-                        
+
                         // Allow decimal point (.) only if it doesn't already exist in the value
                         if (keyCode === 46 && !currentValue.includes('.')) {
                           return;
                         }
-                        
+
                         // Block all other characters
                         e.preventDefault();
                       }}
@@ -1989,24 +2109,63 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                   <div className="field-constraint">INT NOT NULL</div>
                 </div>
 
-                {/* Ingredients for current dish */}
+                {/* Current dish's ingredients */}
                 {getCurrentDishIngredients().map((ingredient, idx) => (
-                  <div className="menu-entry ingredient-entry" key={ingredient.id}>
+                  <React.Fragment key={ingredient.id}>
+                    <div className="menu-entry ingredient-entry">
                     <div className="form-group">
-                      <label>Ingredient</label>
-                      <IngredientSelector
-                        selectedId={ingredient.ingredient_id || ''}
-                        onChange={(e) => handleIngredientInputChange(ingredient.id, e)}
-                        hasError={!ingredient.ingredient_id}
-                        ingredientList={ingredientList}
-                      />
-                      {!ingredient.ingredient_id && (
-                        <div className="error-message">
-                          Ingredient ID is required
-                        </div>
-                      )}
+                        <label>{isItem(ingredient) ? 'Item' : 'Ingredient'}</label>
+                        <IngredientSelector
+                          selectedId={ingredient.ingredient_id || ''}
+                          onChange={(e) => {
+                            handleIngredientInputChange(ingredient.id, e);
+                            // If the ingredient is being set as an item (400000), add item field
+                            if (e.target.value == 400000 && !ingredient.item) {
+                              // Find the max item number and increment
+                              const maxItem = Math.max(0, ...Object.values(screening.ingredients || {})
+                                .filter(ing => ing.item)
+                                .map(ing => ing.item));
+
+                              updateIngredient(ingredient.id, {
+                                item: maxItem + 1
+                              });
+                            } else if (ingredient.item && e.target.value != 400000) {
+                              // If changing from item to regular ingredient, remove item field and all its children
+                              const itemIngredients = Object.keys(screening.ingredients || {}).filter(key =>
+                                screening.ingredients[key].ingredient_item === ingredient.item
+                              );
+
+                              // Remove all child ingredients
+                              const newIngredients = { ...screening.ingredients };
+                              itemIngredients.forEach(key => delete newIngredients[key]);
+
+                              // Update the screening with ingredients removed and item field removed
+                              setScreening(prev => ({
+                                ...prev,
+                                ingredients: newIngredients
+                              }));
+
+                              // Remove the item field
+                              updateIngredient(ingredient.id, {
+                                item: undefined
+                              });
+                            }
+                          }}
+                          hasError={!ingredient.ingredient_id}
+                          ingredientList={ingredientList}
+                          disabled={isItem(ingredient)}
+                          isPartOfItem={!!ingredient.ingredient_item}
+                        />
+                        {!ingredient.ingredient_id && (
+                          <div className="error-message">
+                            Ingredient ID is required
+                      </div>
+                        )}
                       <div className="field-constraint">INT NOT NULL</div>
                     </div>
+
+                      {/* Only show private toggle for non-items */}
+                      {!isItem(ingredient) && (
                     <div className="form-group">
                       <label>Private</label>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -2021,34 +2180,139 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                         </label>
                         <span className="toggle-label">{ingredient.private ? 'Yes' : 'No'}</span>
                       </div>
-                      {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.private && (
-                        <div className="error-message">
-                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].private}
-                        </div>
-                      )}
+                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.private && (
+                            <div className="error-message">
+                              {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].private}
+                            </div>
+                          )}
                       <div className="field-constraint">BOOLEAN NOT NULL</div>
                     </div>
+                      )}
+
                     <div className="form-group">
                       <label>Description</label>
                       <textarea
                         name="description"
                         value={ingredient.description || ''}
                         onChange={e => handleIngredientInputChange(ingredient.id, e)}
-                        className={ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description ? 'input-error' : ''}
+                          className={ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description ? 'input-error' : ''}
+                        />
+                        {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description && (
+                          <div className="error-message">
+                            {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].description}
+                          </div>
+                        )}
+                        <div className="field-constraint">TEXT</div>
+                      </div>
+
+
+                      {/* Display item's ingredients if this is an item */}
+                      {isItem(ingredient) && ingredient.item && (
+                        <div className="item-ingredients">
+                          {getItemIngredients(ingredient.item).map((itemIngredient) => (
+                            <div className="menu-entry ingredient-entry item-child" key={itemIngredient.id}>
+                              <div className="form-group">
+                                <label>Ingredient</label>
+                                <IngredientSelector
+                                  selectedId={itemIngredient.ingredient_id || ''}
+                                  onChange={(e) => handleIngredientInputChange(itemIngredient.id, e)}
+                                  hasError={!itemIngredient.ingredient_id}
+                                  ingredientList={ingredientList}
+                                  disabled={isItem(itemIngredient)}
+                                  isPartOfItem={!!itemIngredient.ingredient_item}
+                                />
+                                {!itemIngredient.ingredient_id && (
+                                  <div className="error-message">
+                                    Ingredient ID is required
+                                  </div>
+                                )}
+                                <div className="field-constraint">INT NOT NULL</div>
+                              </div>
+                              <div className="form-group">
+                                <label>Private</label>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      name="private"
+                                      checked={itemIngredient.private || false}
+                                      onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
+                                    />
+                                    <span className="slider"></span>
+                                  </label>
+                                  <span className="toggle-label">{itemIngredient.private ? 'Yes' : 'No'}</span>
+                                </div>
+                                <div className="field-constraint">BOOLEAN NOT NULL</div>
+                              </div>
+                              <div className="form-group">
+                                <label>Description</label>
+                                <textarea
+                                  name="description"
+                                  value={itemIngredient.description || ''}
+                                  onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
                       />
-                      {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description && (
-                        <div className="error-message">
-                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].description}
-                        </div>
-                      )}
                       <div className="field-constraint">TEXT</div>
                     </div>
+                              <button
+                                type="button"
+                                className="remove-ingredient-under-button"
+                                onClick={() => {
+                                  const ingredientName = itemIngredient.ingredient_id
+                                    ? (ingredientList.find(i => i.id == itemIngredient.ingredient_id)?.name || 'this ingredient')
+                                    : 'this ingredient';
+
+                                  if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                    setScreening(prev => {
+                                      const newIngredients = { ...prev.ingredients };
+                                      delete newIngredients[itemIngredient.id];
+                                      return {
+                                        ...prev,
+                                        ingredients: newIngredients
+                                      };
+                                    });
+                                  }
+                                }}
+                                aria-label="Remove ingredient"
+                              >
+                                Remove Ingredient
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+
+                      {/* Action buttons */}
+                      <div className="ingredient-actions">
+                        {isItem(ingredient) ? (
+                          <>
+                            <button
+                              type="button"
+                              className="item-add-ingredient-button"
+                              onClick={() => addIngredientToItem(ingredient.id)}
+                            >
+                              Add Ingredient
+                            </button>
+                            <button
+                              type="button"
+                              className="remove-item-button"
+                              onClick={() => {
+                                const confirmed = window.confirm(`Are you sure you want to remove this item and all its ingredients?`);
+                                if (confirmed) {
+                                  removeItem(ingredient.id);
+                                }
+                              }}
+                            >
+                              Remove Item
+                            </button>
+                          </>
+                        ) : (
                     <button
                       type="button"
                       className="remove-ingredient-under-button"
                       onClick={() => {
                         const ingredientName = ingredient.ingredient_id
-                          ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
+                                ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
                           : 'this ingredient';
 
                         if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
@@ -2067,7 +2331,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                     >
                       Remove Ingredient
                     </button>
+                        )}
                   </div>
+                    </div>
+                  </React.Fragment>
                 ))}
               </div>
 
@@ -2094,7 +2361,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           {/* Ingredients section actions */}
           <div className="section-actions">
             <button
-              className="sql-button add-ingredient-button"
+              className="sql-button main-add-ingredient-button"
               type="button"
               onClick={addIngredientEntry}
             >

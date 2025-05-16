@@ -83,20 +83,22 @@ export const screenings = [
         2: {
           dish: 1,
           dish_id: 30001,
-          ingredient_id: 2,
-          private: true,
-          description: "Ingredient 2 description"
+          ingredient_id: 400000,
+          private: false,
+          description: "dressing",
+          item: 1
         },
         3: {
           dish: 1,
           dish_id: 30001,
-          ingredient_id: 3,
+          ingredient_id: 400007,
           private: false,
-          description: "Ingredient 3 description"
+          description: "[Ingredient 3 description]dressing",
+          ingredient_item: 1
         },
         4: {
-          dish: 2,
-          dish_id: 30002,
+          dish: 1,
+          dish_id: 30001,
           ingredient_id: 2,
           private: false,
           description: "Ingredient 4 description"

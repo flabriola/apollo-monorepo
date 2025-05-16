@@ -249,30 +249,7 @@
   }
 }
 
-@media (max-width: 900px) {
-  .section-content {
-    justify-content: center;
-    gap: 1.5rem;
-    width: 50.37%;
-  }
-  .screening-page-content {
-    padding: 7rem 4rem;
-  }
 
-  .screening-page {
-    padding: 0rem 0rem;
-  }
-  
-  #code-box {
-    width: 100%;
-  }
-  .section-content .code-box,
-  .section-content .form-row {
-    max-width: 100%;
-    min-width: 0;
-  }
-
-}
 
 .screening-page,
 .screening-page-header,
@@ -745,4 +722,111 @@
 #ingredient-description {
   font-size: 0.8rem;
   color: #86868b;
+}
+
+/* Item ingredients section */
+.item-ingredients {
+  margin: 0 1rem 1.5rem 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid #e7e7e7;
+}
+
+.ingredient-entry.item-child {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.ingredient-entry.item-child:last-child {
+  border-bottom: none;
+}
+
+.ingredient-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  justify-content: center;
+}
+
+.item-add-ingredient-button,
+.remove-item-button {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  display: inline-block;
+}
+
+.item-add-ingredient-button {
+  color: #4CAF50;
+}
+
+.item-add-ingredient-button:focus,
+.item-add-ingredient-button:active,
+.remove-item-button:focus,
+.remove-item-button:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.remove-item-button {
+  color: #b71c1c;
+}
+
+.item-add-ingredient-button:hover {
+  color: #2E7D32;
+}
+
+.remove-item-button:hover {
+  color: #7F0000;
+}
+
+.ingredient-select-container.disabled .ingredient-search {
+  background-color: #f5f5f7;
+  color: #86868b;
+  cursor: not-allowed;
+}
+
+.ingredient-select-container.disabled .dropdown-arrow {
+  opacity: 0.5;
+}
+
+/* Main Add Ingredient button */
+.main-add-ingredient-button {
+  /* This button already inherits styles from .sql-button */
+  /* Just add any specific styling here if needed */
+  font-weight: 350;
+}
+
+@media (max-width: 900px) {
+  .section-content {
+    justify-content: center;
+    gap: 1.5rem;
+    width: 50.37%;
+  }
+  .screening-page-content {
+    padding: 7rem 4rem;
+  }
+
+  .screening-page {
+    padding: 0rem 0rem;
+  }
+  
+  #code-box {
+    width: 100%;
+  }
+  .section-content .code-box,
+  .section-content .form-row {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .item-ingredients {
+    margin: 0 0 1.5rem 0rem;
+  }
+
 }
