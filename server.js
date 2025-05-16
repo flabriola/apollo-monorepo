@@ -22,20 +22,26 @@ app.use(cors({
 
 const PORT = process.env.PORT;
 
-const db = mysql.createConnection({
+// Connection pool for screenings DB
+const screeningsPool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error('DB connection error:', err.stack);
-  } else {
-    console.log('Connected to DB');
-  }
+// Connection pool for ingredients DB
+const ingredientsPool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_MAIN_NAME,
+  port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 5,
 });
 
 app.get('/', (req, res) => {
@@ -57,7 +63,7 @@ app.get('/api/screenings/:userId', (req, res) => {
     WHERE s.user_id = ?
     ORDER BY s.last_modified DESC
   `;
-  db.query(query, [userId], (err, results) => {
+  screeningsPool.query(query, [userId], (err, results) => {
     if (err) {
       console.error('Failed to fetch screenings:', err.message);
       return res.status(500).json({ error: 'Database error' });
@@ -66,15 +72,14 @@ app.get('/api/screenings/:userId', (req, res) => {
   });
 });
 
-
 // Insert a new screening
 app.post('/api/screenings', (req, res) => {
   const { user_id, title, json_data, first_name, last_name } = req.body;
   const query = `
-      INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
-      VALUES (?, ?, CAST(? AS JSON), ?, ?)
+    INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
+    VALUES (?, ?, CAST(? AS JSON), ?, ?)
   `;
-  db.query(query, [user_id, title, JSON.stringify(json_data), first_name, last_name], (err, result) => {
+  screeningsPool.query(query, [user_id, title, JSON.stringify(json_data), first_name, last_name], (err, result) => {
     if (err) {
       console.error('Failed to insert screening:', err.message);
       return res.status(500).json({ error: 'Database error' });
@@ -88,14 +93,14 @@ app.put('/api/screenings/:id', (req, res) => {
   const screeningId = req.params.id;
   const { title, json_data } = req.body;
   const query = `
-      UPDATE screenings
-      SET 
-        title = ?,
-        json_data = CAST(? AS JSON),
-        last_modified = CURRENT_TIMESTAMP
-      WHERE id = ?;
+    UPDATE screenings
+    SET 
+      title = ?,
+      json_data = CAST(? AS JSON),
+      last_modified = CURRENT_TIMESTAMP
+    WHERE id = ?
   `;
-  db.query(query, [title, JSON.stringify(json_data), screeningId], (err) => {
+  screeningsPool.query(query, [title, JSON.stringify(json_data), screeningId], (err) => {
     if (err) {
       console.error('Failed to update screening:', err.message);
       return res.status(500).json({ error: 'Database error' });
@@ -104,39 +109,18 @@ app.put('/api/screenings/:id', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-const db2 = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_MAIN_NAME,
-  port: process.env.DB_PORT || 3306,
-});
-
-db2.connect((err) => {
-  if (err) {
-    console.error('DB connection error:', err.stack);
-  } else {
-    console.log('Connected to DB');
-  }
-});
-
 // Get all ingredients from the main database in json format
-// const mockIngredients = [
-//   { id: 1, name: 'Tomato', description: 'Fresh red tomatoes' },
-//   { id: 2, name: 'Cheese', description: 'Mozzarella cheese' }
-// ];
-
 app.get('/api/ingredients', (req, res) => {
   const query = 'SELECT * FROM ingredient';
-  db2.query(query, (err, results) => {
+  ingredientsPool.query(query, (err, results) => {
     if (err) {
       console.error('Failed to fetch ingredients:', err.message);
       return res.status(500).json({ error: 'Database error' });
     }
     res.json(results);
   });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
