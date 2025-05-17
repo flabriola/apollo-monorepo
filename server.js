@@ -8,6 +8,23 @@ app.use(express.json());
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
+
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+}));
+
+const PORT = process.env.PORT;
 const s3 = new AWS.S3({
   region: 'eu-north-1',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -35,24 +52,6 @@ app.get('/api/upload-url', async (req, res) => {
     res.status(500).json({ error: 'Could not generate upload URL' });
   }
 });
-
-
-
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
-];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
-}));
-
-const PORT = process.env.PORT;
 
 // Connection pool for screenings DB
 const screeningsPool = mysql.createPool({
