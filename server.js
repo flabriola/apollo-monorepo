@@ -2,13 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-
-const app = express();
-app.use(express.json());
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-
+const app = express();
+app.use(express.json());
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -25,6 +23,8 @@ app.use(cors({
 }));
 
 const PORT = process.env.PORT;
+
+// AWS S3 config
 const s3 = new AWS.S3({
   region: 'eu-north-1',
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -32,16 +32,29 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4'
 });
 
+// Allowed image types
+const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+
+// Upload URL route (protected)
 app.get('/api/upload-url', async (req, res) => {
-  const contentType = req.query.contentType || 'image/*'; // fallback
-  const ext = contentType.split('/')[1] || 'jpg';
+  const apiKey = req.header('x-api-key');
+  if (apiKey !== process.env.UPLOAD_API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const contentType = req.query.contentType;
+  if (!allowedImageTypes.includes(contentType)) {
+    return res.status(400).json({ error: 'Invalid content type' });
+  }
+
+  const ext = contentType.split('/')[1];
   const imageName = `${uuidv4()}.${ext}`;
 
   const params = {
     Bucket: 'ag-screening',
     Key: imageName,
     Expires: 60,
-    ContentType: contentType
+    ContentType: contentType,
   };
 
   try {
