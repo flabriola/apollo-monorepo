@@ -99,62 +99,85 @@ export const screenings = [
         4: {
           dish: 1,
           dish_id: 30001,
-          ingredient_id: 2,
-          private: false,
-          description: "Ingredient 4 description"
+          ingredient_id: 400001,
+          private: true,
+          description: "Balsamic Vinegar",
+          ingredient_item: 1,
+          secondary: 1
         },
         5: {
-          dish: 2,
-          dish_id: 30002,
-          ingredient_id: 6,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400009,
           private: false,
-          description: "Ingredient 5 description"
+          description: "{Balsamic Vinegar}dressing",
+          ingredient_item: 1,
+          secondary_ingredient: 1
         },
         6: {
-          dish: 2,
-          dish_id: 30002,
-          ingredient_id: 1,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400015,
           private: false,
-          description: "Ingredient 6 description"
+          description: "{Balsamic Vinegar}dressing",
+          ingredient_item: 1,
+          secondary_ingredient: 1
         },
         7: {
-          dish: 3,
-          dish_id: 30003,
-          ingredient_id: 6,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400098,
           private: false,
           description: "Ingredient 7 description"
         },
         8: {
-          dish: 3,
-          dish_id: 30003,
-          ingredient_id: 8,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400007,
           private: false,
           description: "Ingredient 8 description"
         },
         9: {
-          dish: 4,
-          dish_id: 30008,
-          ingredient_id: 1,
-          private: false,
-          description: "Ingredient 9 description"
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400001,
+          private: true,
+          description: "Bagel Seasoning",
+          secondary: 2
         },
         10: {
-          dish: 4,
-          dish_id: 30008,
-          ingredient_id: 1,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400065,
           private: false,
-          description: "Ingredient 10 description"
+          description: "{Bagel Seasoning}",
+          secondary_ingredient: 2
         },
         11: {
-          dish: 5,
-          dish_id: 30009,
-          ingredient_id: 1,
+          dish: 1,
+          dish_id: 30001,
+          ingredient_id: 400032,
           private: false,
-          description: "Ingredient 11 description"
+          description: "{Bagel Seasoning}",
+          secondary_ingredient: 2
         },
         12 : {
-          dish: 5, 
-          dish_id: 30009,
+          dish: 2, 
+          dish_id: 30002,
+          ingredient_id: 2,
+          private: false,
+          description: "Ingredient 12 description"
+        },
+        13 : {
+          dish: 3,
+          dish_id: 30002,
+          ingredient_id: 2,
+          private: false,
+          description: "Ingredient 12 description"
+        },
+        14 : {
+          dish: 4,
+          dish_id: 30002,
           ingredient_id: 2,
           private: false,
           description: "Ingredient 12 description"

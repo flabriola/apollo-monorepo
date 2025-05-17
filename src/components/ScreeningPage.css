@@ -1,0 +1,32 @@
+.secondary-ingredients {
+  margin: 1rem 0 1.5rem 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid #8dbdc3;
+  background-color: #f8fcfc;
+}
+
+.ingredient-entry.secondary-child {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #e0e6e7;
+}
+
+.ingredient-entry.secondary-child:last-child {
+  border-bottom: none;
+}
+
+.secondary-add-ingredient-button {
+  color: #4184a0;
+}
+
+.secondary-add-ingredient-button:hover {
+  color: #2a6980;
+}
+
+.remove-secondary-button {
+  color: #b14973;
+}
+
+.remove-secondary-button:hover {
+  color: #8f325a;
+} 

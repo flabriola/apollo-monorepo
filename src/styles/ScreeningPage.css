@@ -165,6 +165,8 @@
   margin-top: 1.5rem;
   padding: 0;
   box-shadow: none;
+  position: sticky;
+  top: 120px;
 }
 
 .code-box-header {
@@ -725,19 +727,22 @@
 }
 
 /* Item ingredients section */
-.item-ingredients {
-  margin: 0 1rem 1.5rem 1rem;
+.item-ingredients,
+.secondary-ingredients {
+  margin-bottom: 1.5rem;
   padding-left: 1rem;
   border-left: 2px solid #e7e7e7;
 }
 
-.ingredient-entry.item-child {
+.ingredient-entry.item-child,
+.ingredient-entry.secondary-child {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px dashed #f0f0f0;
 }
 
-.ingredient-entry.item-child:last-child {
+.ingredient-entry.item-child:last-child,
+.ingredient-entry.secondary-child:last-child {
   border-bottom: none;
 }
 
@@ -749,7 +754,9 @@
 }
 
 .item-add-ingredient-button,
-.remove-item-button {
+.secondary-add-ingredient-button,
+.remove-item-button,
+.remove-secondary-button {
   background: none;
   border: none;
   font-size: 0.85rem;
@@ -761,27 +768,35 @@
   display: inline-block;
 }
 
-.item-add-ingredient-button {
+.item-add-ingredient-button,
+.secondary-add-ingredient-button {
   color: #4CAF50;
 }
 
 .item-add-ingredient-button:focus,
 .item-add-ingredient-button:active,
+.secondary-add-ingredient-button:focus,
+.secondary-add-ingredient-button:active,
 .remove-item-button:focus,
-.remove-item-button:active {
+.remove-item-button:active,
+.remove-secondary-button:focus,
+.remove-secondary-button:active {
   outline: none;
   box-shadow: none;
 }
 
-.remove-item-button {
+.remove-item-button,
+.remove-secondary-button {
   color: #b71c1c;
 }
 
-.item-add-ingredient-button:hover {
+.item-add-ingredient-button:hover,
+.secondary-add-ingredient-button:hover {
   color: #2E7D32;
 }
 
-.remove-item-button:hover {
+.remove-item-button:hover,
+.remove-secondary-button:hover {
   color: #7F0000;
 }
 
@@ -829,4 +844,36 @@
     margin: 0 0 1.5rem 0rem;
   }
 
+}
+
+.secondary-description {
+  font-size: 0.9rem;
+  color: #4184a0;
+  margin: 0.5rem 0 1rem;
+  padding: 0.5rem;
+  background-color: #eaf6f9;
+  border-radius: 4px;
+  border-left: 3px solid #4184a0;
+}
+
+.form-info {
+  margin-top: 0.5rem;
+}
+
+.field-info {
+  font-size: 0.85rem;
+  color: #86868b;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Styles for the item action buttons container */
+.item-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-top: 1px dashed #ddd;
 }

@@ -651,9 +651,88 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     updateIngredient(ingredientId, ingredientUpdate);
 
-    // Validate field immediately
+    // Special handling for ingredient_id changes
     if (name === 'ingredient_id') {
       const ingredient = screening.ingredients[ingredientId];
+
+      // If this is an ingredient within an item and user selected Secondary Ingredient (400001)
+      if (ingredient.ingredient_item && value == 400001) {
+        // Find the max secondary number and increment
+        const maxSecondary = Math.max(0, ...Object.values(screening.ingredients || {})
+          .filter(ing => ing.secondary)
+          .map(ing => ing.secondary));
+
+        const newSecondaryNumber = maxSecondary + 1;
+
+        // Convert this ingredient into a secondary ingredient
+        updateIngredient(ingredientId, {
+          secondary: newSecondaryNumber,
+          private: true, // Secondary ingredients are always private
+        });
+
+        // Don't automatically add a first ingredient to this new secondary
+        // The user will add ingredients to the secondary group manually
+      }
+
+      // If changing from a secondary ingredient to something else
+      else if (ingredient.secondary && value != 400001) {
+        // Find and remove all child ingredients of this secondary
+        const secondaryIngredients = Object.keys(screening.ingredients || {}).filter(key =>
+          screening.ingredients[key].secondary_ingredient === ingredient.secondary
+        );
+
+        // Remove all child ingredients
+        const newIngredients = { ...screening.ingredients };
+        secondaryIngredients.forEach(key => delete newIngredients[key]);
+
+        // Update the screening with ingredients removed and secondary field removed
+        setScreening(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+
+        // Remove the secondary field
+        updateIngredient(ingredientId, {
+          secondary: undefined
+        });
+      }
+
+      // If this is a dish's direct ingredient (not in item) and user selected Item (400000)
+      else if (!ingredient.ingredient_item && value == 400000 && !ingredient.secondary) {
+        // Find the max item number and increment
+        const maxItem = Math.max(0, ...Object.values(screening.ingredients || {})
+          .filter(ing => ing.item)
+          .map(ing => ing.item));
+
+        // Convert this ingredient to an item
+        updateIngredient(ingredientId, {
+          item: maxItem + 1
+        });
+      }
+
+      // If changing from an item to something else
+      else if (ingredient.item && value != 400000) {
+        // Find all ingredients that are part of this item
+        const itemIngredients = Object.keys(screening.ingredients || {}).filter(key =>
+          screening.ingredients[key].ingredient_item === ingredient.item
+        );
+
+        // Remove all child ingredients
+        const newIngredients = { ...screening.ingredients };
+        itemIngredients.forEach(key => delete newIngredients[key]);
+
+        // Update the screening with ingredients removed
+        setScreening(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+
+        // Remove the item field
+        updateIngredient(ingredientId, {
+          item: undefined
+        });
+      }
+
       const dishKey = ingredient.dish;
       const ingredientIdx = getCurrentDishIngredients().findIndex(ing => ing.id === ingredientId);
       if (ingredientIdx !== -1) {
@@ -752,23 +831,71 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       // Include all ingredients with placeholder values for empty fields
       const ingredient_id = ingredient.ingredient_id || '1';  // Use default value of 1
 
-      // For ingredients that are part of an item, combine descriptions
+      // Process the description based on ingredient type
       let description = ingredient.description || '';
-      if (ingredient.ingredient_item) {
+      let isPrivate = ingredient.private || false;
+
+      // For secondary ingredients, their children need to use the secondary's description
+      if (isSecondary(ingredient)) {
+        // This is a secondary ingredient, no special description formatting but enforce private=TRUE
+        isPrivate = true;
+      }
+      else if (ingredient.secondary_ingredient) {
+        // This is a child of a secondary ingredient
+        // Find the parent secondary ingredient
+        const parentSecondary = Object.values(screening.ingredients || {}).find(
+          ing => ing.secondary === ingredient.secondary_ingredient
+        );
+
+        // Find if this is inside an item
+        let isInsideItem = false;
+        let parentItem = null;
+        
+        if (parentSecondary && parentSecondary.ingredient_item) {
+          isInsideItem = true;
+          // Find the parent item
+          parentItem = Object.values(screening.ingredients || {}).find(
+            ing => ing.item === parentSecondary.ingredient_item
+          );
+        }
+
+        if (parentSecondary && parentSecondary.description) {
+          if (isInsideItem && parentItem && parentItem.description) {
+            // For secondary ingredients inside items: {secondary description}item's description
+            description = `{${parentSecondary.description}}${parentItem.description}`;
+          } else {
+            // Use the parent's description in curly brackets (standard secondary)
+            description = `{${parentSecondary.description}}`;
+          }
+        }
+
+        // For child ingredients of secondary, use their actual private value from the UI
+        isPrivate = ingredient.private || false;
+      }
+      else if (ingredient.ingredient_item) {
+        // For ingredients that are part of an item, combine descriptions
         // Find the parent item
         const parentItem = Object.values(screening.ingredients || {}).find(
           ing => ing.item === ingredient.ingredient_item
         );
 
         if (parentItem && parentItem.description) {
-          // Combine descriptions: Parent [Child]
-          description = `[${description}]${parentItem.description}`;
+          // If this is a secondary ingredient within an item, handle specially
+          if (isSecondary(ingredient)) {
+            // Secondary ingredients in items are always private and use their own description
+            isPrivate = true;
+          }
+          // If this is a regular ingredient within an item
+          else {
+            // NEW FORMAT: [ingredient description]item description
+            description = `[${description}]${parentItem.description}`;
+          }
         }
       }
 
       const escapedDescription = description.replace(/'/g, "''");
 
-      const sql = `    (${dish_id}, ${ingredient_id}, ${ingredient.private ? 1 : 0}, '${escapedDescription}')`;
+      const sql = `    (${dish_id}, ${ingredient_id}, ${isPrivate ? 1 : 0}, '${escapedDescription}')`;
       allValues.push(sql);
     });
 
@@ -1044,7 +1171,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       dish: dishId,
       dish_id: dish_id,
       ingredient_id: '',
-      private: false,
+      private: false, // Explicitly set to false for new ingredients
       description: ''
     };
 
@@ -1083,7 +1210,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     const ingredients = [];
     Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
       const ingredient = screening.ingredients[ingredientKey];
-      if (ingredient.dish === currentDishId && !ingredient.ingredient_item) {
+      // Only include ingredients directly under the dish (not part of items or secondary ingredients)
+      if (ingredient.dish === currentDishId && !ingredient.ingredient_item && !ingredient.secondary_ingredient) {
         ingredients.push({
           id: parseInt(ingredientKey),
           ...ingredient
@@ -1358,20 +1486,36 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     hasError,
     ingredientList,
     disabled = false,
-    isPartOfItem = false  // New prop to indicate if this ingredient is part of an item
+    isPartOfItem = false, // Ingredient is part of an item
+    isPartOfSecondary = false, // Ingredient is part of a secondary ingredient
+    isSecondaryIngredient = false // This is a secondary ingredient itself
   }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [filtered, setFiltered] = useState(ingredientList);
     const containerRef = useRef(null);
 
-    // Filter ingredients when search term changes or when isPartOfItem changes
+    // Filter ingredients when search term changes or when props change
     useEffect(() => {
-      // If ingredient is part of an item, filter out the item option (400000)
-      const baseList = isPartOfItem 
-        ? ingredientList.filter(ing => ing.id != 400000) 
-        : ingredientList;
-      
+      let baseList = ingredientList;
+
+      // Apply appropriate filters based on the ingredient type
+      if (isPartOfItem) {
+        // If ingredient is part of an item, filter out the item option (400000) 
+        // but allow secondary ingredient option (400001)
+        baseList = baseList.filter(ing => ing.id != 400000);
+      }
+
+      if (isPartOfSecondary || isSecondaryIngredient) {
+        // Secondary ingredients can't contain items and items can't be secondary
+        baseList = baseList.filter(ing => ing.id != 400000);
+      }
+
+      if (isPartOfSecondary) {
+        // Ingredients that are part of secondary ingredients can't be secondary themselves
+        baseList = baseList.filter(ing => ing.id != 400001);
+      }
+
       // Then apply the search term filter
       if (!searchTerm) {
         setFiltered(baseList);
@@ -1381,7 +1525,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           (ingredient.description && ingredient.description.toLowerCase().includes(searchTerm.toLowerCase()))
         ));
       }
-    }, [searchTerm, isPartOfItem, ingredientList]);
+    }, [searchTerm, isPartOfItem, isPartOfSecondary, isSecondaryIngredient, ingredientList]);
 
     // Filter ingredients by search term and optional ingredient list
     const filterIngredientsByTerm = (searchTerm, list = ingredientList) => {
@@ -1461,8 +1605,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     );
   };
 
-  // Helper functions for item management
+  // Add a debug function to help us see when secondary ingredients appear
+  const DEBUG_SECONDARY = false;
+
+  // Helper functions for item and secondary ingredient management
   const isItem = (ingredient) => ingredient.ingredient_id == 400000;
+  const isSecondary = (ingredient) => ingredient.ingredient_id == 400001;
 
   const getItemIngredients = (itemId) => {
     if (!itemId) return [];
@@ -1476,6 +1624,25 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           ...ing
         };
       });
+  };
+
+  const getSecondaryIngredients = (secondaryId) => {
+    if (DEBUG_SECONDARY) console.log("Looking for secondary ingredients with secondaryId:", secondaryId);
+
+    if (!secondaryId) return [];
+
+    const result = Object.values(screening.ingredients || {})
+      .filter(ing => ing.secondary_ingredient === secondaryId)
+      .map(ing => {
+        const ingKey = Object.keys(screening.ingredients).find(key => screening.ingredients[key] === ing);
+        return {
+          id: parseInt(ingKey),
+          ...ing
+        };
+      });
+
+    if (DEBUG_SECONDARY) console.log("Found secondary ingredients:", result);
+    return result;
   };
 
   const addIngredientToItem = (itemId) => {
@@ -1507,6 +1674,77 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }));
   };
 
+  // Function to add a secondary ingredient to an item
+  const addSecondaryToItem = (itemId) => {
+    // Generate a new key for the secondary ingredient
+    const ingredientKeys = Object.keys(screening.ingredients || {}).map(k => parseInt(k, 10));
+    const newSecondaryKey = ingredientKeys.length > 0 ? Math.max(...ingredientKeys) + 1 : 1;
+
+    // Get the dish_id and item number from the item
+    const itemIngredient = screening.ingredients[itemId];
+    const dish_id = itemIngredient.dish_id;
+    const dishId = itemIngredient.dish;
+    const itemNumber = itemIngredient.item;
+
+    // Find the max secondary number and increment
+    const maxSecondary = Math.max(0, ...Object.values(screening.ingredients || {})
+      .filter(ing => ing.secondary)
+      .map(ing => ing.secondary));
+
+    const newSecondaryNumber = maxSecondary + 1;
+
+    // Create a new secondary ingredient that's part of the item
+    const newSecondary = {
+      dish: dishId,
+      dish_id: dish_id,
+      ingredient_id: 400001, // Secondary ingredient ID
+      ingredient_item: itemNumber, // This secondary is part of the item
+      secondary: newSecondaryNumber, // Assign a new secondary number
+      private: true, // Secondary ingredients are always private
+      description: '' // Description for the secondary ingredients group
+    };
+
+    setScreening(prev => ({
+      ...prev,
+      ingredients: {
+        ...prev.ingredients,
+        [newSecondaryKey]: newSecondary
+      }
+    }));
+
+    // Return the ID of the created secondary ingredient so we can add an ingredient to it
+    return newSecondaryKey;
+  };
+
+  const addIngredientToSecondary = (secondaryId) => {
+    // Generate a new key for the ingredient
+    const ingredientKeys = Object.keys(screening.ingredients || {}).map(k => parseInt(k, 10));
+    const newIngredientKey = ingredientKeys.length > 0 ? Math.max(...ingredientKeys) + 1 : 1;
+
+    // Get the dish_id and secondary number from the secondary ingredient
+    const secondaryIngredient = screening.ingredients[secondaryId];
+    const dish_id = secondaryIngredient.dish_id;
+    const dishId = secondaryIngredient.dish;
+    const secondaryNumber = secondaryIngredient.secondary;
+
+    const newIngredient = {
+      dish: dishId,
+      dish_id: dish_id,
+      ingredient_id: '',
+      secondary_ingredient: secondaryNumber, // Use the secondary number, not the ID
+      private: false, // Default to false for child ingredients of secondary
+      description: '' // Description will be derived from the secondary ingredient
+    };
+
+    setScreening(prev => ({
+      ...prev,
+      ingredients: {
+        ...prev.ingredients,
+        [newIngredientKey]: newIngredient
+      }
+    }));
+  };
+
   const removeItem = (itemId) => {
     const itemIngredient = screening.ingredients[itemId];
     if (!itemIngredient || !itemIngredient.item) return;
@@ -1517,10 +1755,39 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     const ingredientsToRemove = Object.keys(screening.ingredients || {}).filter(key => {
       const ing = screening.ingredients[key];
       // Check if this is the item itself (key equals itemId) or a child ingredient
-      return key == itemId || ing.ingredient_item === itemNumber;
+      // or a secondary ingredient that's part of this item or a child of such a secondary
+      return key == itemId ||
+        ing.ingredient_item === itemNumber ||
+        (ing.secondary_ingredient && Object.values(screening.ingredients).some(si =>
+          si.secondary === ing.secondary_ingredient && si.ingredient_item === itemNumber
+        ));
     });
 
     // Remove the item and all its ingredients
+    setScreening(prev => {
+      const newIngredients = { ...prev.ingredients };
+      ingredientsToRemove.forEach(key => delete newIngredients[key]);
+      return {
+        ...prev,
+        ingredients: newIngredients
+      };
+    });
+  };
+
+  const removeSecondary = (secondaryId) => {
+    const secondaryIngredient = screening.ingredients[secondaryId];
+    if (!secondaryIngredient || !secondaryIngredient.secondary) return;
+
+    const secondaryNumber = secondaryIngredient.secondary;
+
+    // Find all ingredients that belong to this secondary ingredient
+    const ingredientsToRemove = Object.keys(screening.ingredients || {}).filter(key => {
+      const ing = screening.ingredients[key];
+      // Check if this is the secondary ingredient itself (key equals secondaryId) or a child ingredient
+      return key == secondaryId || ing.secondary_ingredient === secondaryNumber;
+    });
+
+    // Remove the secondary ingredient and all its ingredients
     setScreening(prev => {
       const newIngredients = { ...prev.ingredients };
       ingredientsToRemove.forEach(key => delete newIngredients[key]);
@@ -2113,8 +2380,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                 {getCurrentDishIngredients().map((ingredient, idx) => (
                   <React.Fragment key={ingredient.id}>
                     <div className="menu-entry ingredient-entry">
-                    <div className="form-group">
-                        <label>{isItem(ingredient) ? 'Item' : 'Ingredient'}</label>
+                      <div className="form-group">
+                        <label>{isItem(ingredient) ? 'Item' : isSecondary(ingredient) ? 'Secondary Ingredient' : 'Ingredient'}</label>
                         <IngredientSelector
                           selectedId={ingredient.ingredient_id || ''}
                           onChange={(e) => {
@@ -2129,8 +2396,21 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                               updateIngredient(ingredient.id, {
                                 item: maxItem + 1
                               });
-                            } else if (ingredient.item && e.target.value != 400000) {
-                              // If changing from item to regular ingredient, remove item field and all its children
+                            }
+                            // If the ingredient is being set as a secondary ingredient (400001), add secondary field
+                            else if (e.target.value == 400001 && !ingredient.secondary) {
+                              // Find the max secondary number and increment
+                              const maxSecondary = Math.max(0, ...Object.values(screening.ingredients || {})
+                                .filter(ing => ing.secondary)
+                                .map(ing => ing.secondary));
+
+                              updateIngredient(ingredient.id, {
+                                secondary: maxSecondary + 1,
+                                private: true // Secondary ingredients are always private
+                              });
+                            }
+                            // If changing from item to regular ingredient, remove item field and all its children
+                            else if (ingredient.item && e.target.value != 400000) {
                               const itemIngredients = Object.keys(screening.ingredients || {}).filter(key =>
                                 screening.ingredients[key].ingredient_item === ingredient.item
                               );
@@ -2150,84 +2430,310 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                 item: undefined
                               });
                             }
+                            // If changing from secondary to regular ingredient, remove secondary field and all its children
+                            else if (ingredient.secondary && e.target.value != 400001) {
+                              const secondaryIngredients = Object.keys(screening.ingredients || {}).filter(key =>
+                                screening.ingredients[key].secondary_ingredient === ingredient.secondary
+                              );
+
+                              // Remove all child ingredients
+                              const newIngredients = { ...screening.ingredients };
+                              secondaryIngredients.forEach(key => delete newIngredients[key]);
+
+                              // Update the screening with ingredients removed and secondary field removed
+                              setScreening(prev => ({
+                                ...prev,
+                                ingredients: newIngredients
+                              }));
+
+                              // Remove the secondary field
+                              updateIngredient(ingredient.id, {
+                                secondary: undefined
+                              });
+                            }
                           }}
                           hasError={!ingredient.ingredient_id}
                           ingredientList={ingredientList}
-                          disabled={isItem(ingredient)}
+                          disabled={isItem(ingredient) || isSecondary(ingredient)}
                           isPartOfItem={!!ingredient.ingredient_item}
+                          isPartOfSecondary={!!ingredient.secondary_ingredient}
+                          isSecondaryIngredient={isSecondary(ingredient)}
                         />
                         {!ingredient.ingredient_id && (
                           <div className="error-message">
                             Ingredient ID is required
-                      </div>
-                        )}
-                      <div className="field-constraint">INT NOT NULL</div>
-                    </div>
-
-                      {/* Only show private toggle for non-items */}
-                      {!isItem(ingredient) && (
-                    <div className="form-group">
-                      <label>Private</label>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <label className="switch">
-                          <input
-                            type="checkbox"
-                            name="private"
-                            checked={ingredient.private || false}
-                            onChange={e => handleIngredientInputChange(ingredient.id, e)}
-                          />
-                          <span className="slider"></span>
-                        </label>
-                        <span className="toggle-label">{ingredient.private ? 'Yes' : 'No'}</span>
-                      </div>
-                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.private && (
-                            <div className="error-message">
-                              {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].private}
-                            </div>
-                          )}
-                      <div className="field-constraint">BOOLEAN NOT NULL</div>
-                    </div>
-                      )}
-
-                    <div className="form-group">
-                      <label>Description</label>
-                      <textarea
-                        name="description"
-                        value={ingredient.description || ''}
-                        onChange={e => handleIngredientInputChange(ingredient.id, e)}
-                          className={ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description ? 'input-error' : ''}
-                        />
-                        {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description && (
-                          <div className="error-message">
-                            {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].description}
                           </div>
                         )}
-                        <div className="field-constraint">TEXT</div>
+                        <div className="field-constraint">INT NOT NULL</div>
                       </div>
 
+                      {/* Private toggle for ingredients */}
+                      {!ingredient.ingredient_item && !isItem(ingredient) && ingredient.ingredient_id !== 400001 && (
+                        <div className="form-group">
+                          <label>Private</label>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <label className="switch">
+                              <input
+                                type="checkbox"
+                                name="private"
+                                checked={ingredient.private || false}
+                                onChange={e => handleIngredientInputChange(ingredient.id, e)}
+                              />
+                              <span className="slider"></span>
+                            </label>
+                            <span className="toggle-label">{ingredient.private ? 'Yes' : 'No'}</span>
+                          </div>
+                          <div className="field-constraint">BOOLEAN NOT NULL</div>
+                        </div>
+                      )}
+
+                      {/* Don't show description field for ingredients that are part of secondary ingredients */}
+                      {!ingredient.secondary_ingredient && (
+                        <div className="form-group">
+                          <label>Description</label>
+                          <textarea
+                            name="description"
+                            value={ingredient.description || ''}
+                            onChange={e => handleIngredientInputChange(ingredient.id, e)}
+                            className={ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description ? 'input-error' : ''}
+                          />
+                          {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`]?.[idx]?.description && (
+                            <div className="error-message">
+                              {ingredientErrorsByDish[`${currentMenuId}-${currentDishId}`][idx].description}
+                            </div>
+                          )}
+                          <div className="field-constraint">TEXT</div>
+                        </div>
+                      )}
 
                       {/* Display item's ingredients if this is an item */}
                       {isItem(ingredient) && ingredient.item && (
                         <div className="item-ingredients">
                           {getItemIngredients(ingredient.item).map((itemIngredient) => (
                             <div className="menu-entry ingredient-entry item-child" key={itemIngredient.id}>
+                              {isSecondary(itemIngredient) ? (
+                                // This is a secondary ingredient within an item
+                                <div className="secondary-in-item">
+                                  <div className="form-group">
+                                    <label>Secondary Ingredient</label>
+                                    <IngredientSelector
+                                      selectedId={itemIngredient.ingredient_id || ''}
+                                      onChange={(e) => handleIngredientInputChange(itemIngredient.id, e)}
+                                      hasError={!itemIngredient.ingredient_id}
+                                      ingredientList={ingredientList}
+                                      disabled={isItem(itemIngredient) || isSecondary(itemIngredient)}
+                                      isPartOfItem={!!itemIngredient.ingredient_item}
+                                      isPartOfSecondary={true} // Always true for secondary ingredient children
+                                      isSecondaryIngredient={isSecondary(itemIngredient)}
+                                    />
+                                    {!itemIngredient.ingredient_id && (
+                                      <div className="error-message">
+                                        Ingredient ID is required
+                                      </div>
+                                    )}
+                                    <div className="field-constraint">INT NOT NULL</div>
+                                  </div>
+                                  <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                      name="description"
+                                      value={itemIngredient.description || ''}
+                                      onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
+                                    />
+                                    <div className="field-constraint">TEXT</div>
+                                  </div>
+                                  <div className="secondary-ingredients">
+                                    <p className="secondary-description">Child ingredients in this group will use this description: <strong>{itemIngredient.description || 'No description'}</strong></p>
+                                    {getSecondaryIngredients(itemIngredient.secondary).map((secondaryIngredient) => (
+                                      <div className="menu-entry ingredient-entry secondary-child" key={secondaryIngredient.id}>
+                                        <div className="form-group">
+                                          <label>Ingredient</label>
+                                          <IngredientSelector
+                                            selectedId={secondaryIngredient.ingredient_id || ''}
+                                            onChange={(e) => handleIngredientInputChange(secondaryIngredient.id, e)}
+                                            hasError={!secondaryIngredient.ingredient_id}
+                                            ingredientList={ingredientList}
+                                            disabled={isItem(secondaryIngredient) || isSecondary(secondaryIngredient)}
+                                            isPartOfItem={true}
+                                            isPartOfSecondary={true}
+                                            isSecondaryIngredient={isSecondary(secondaryIngredient)}
+                                          />
+                                          {!secondaryIngredient.ingredient_id && (
+                                            <div className="error-message">
+                                              Ingredient ID is required
+                                            </div>
+                                          )}
+                                          <div className="field-constraint">INT NOT NULL</div>
+                                        </div>
+                                        <div className="form-group">
+                                          <label>Private</label>
+                                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <label className="switch">
+                                              <input
+                                                type="checkbox"
+                                                name="private"
+                                                checked={secondaryIngredient.private || false}
+                                                onChange={e => handleIngredientInputChange(secondaryIngredient.id, e)}
+                                              />
+                                              <span className="slider"></span>
+                                            </label>
+                                            <span className="toggle-label">{secondaryIngredient.private ? 'Yes' : 'No'}</span>
+                                          </div>
+                                          <div className="field-constraint">BOOLEAN NOT NULL</div>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          className="remove-ingredient-under-button"
+                                          onClick={() => {
+                                            const ingredientName = secondaryIngredient.ingredient_id
+                                              ? (ingredientList.find(i => i.id == secondaryIngredient.ingredient_id)?.name || 'this ingredient')
+                                              : 'this ingredient';
+
+                                            if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                              setScreening(prev => {
+                                                const newIngredients = { ...prev.ingredients };
+                                                delete newIngredients[secondaryIngredient.id];
+                                                return {
+                                                  ...prev,
+                                                  ingredients: newIngredients
+                                                };
+                                              });
+                                            }
+                                          }}
+                                          aria-label="Remove ingredient"
+                                        >
+                                          Remove Ingredient
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="ingredient-actions">
+                                    <button
+                                      type="button"
+                                      className="secondary-add-ingredient-button"
+                                      onClick={() => addIngredientToSecondary(itemIngredient.id)}
+                                    >
+                                      Add Ingredient (S)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="remove-secondary-button"
+                                      onClick={() => {
+                                        const confirmed = window.confirm(`Are you sure you want to remove this secondary ingredient group and all its ingredients?`);
+                                        if (confirmed) {
+                                          removeSecondary(itemIngredient.id);
+                                        }
+                                      }}
+                                    >
+                                      Remove Ingredient (S)
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // Regular ingredient within an item
+                                <>
+                                  <div className="form-group">
+                                    <label>Ingredient</label>
+                                    <IngredientSelector
+                                      selectedId={itemIngredient.ingredient_id || ''}
+                                      onChange={(e) => handleIngredientInputChange(itemIngredient.id, e)}
+                                      hasError={!itemIngredient.ingredient_id}
+                                      ingredientList={ingredientList}
+                                      disabled={isItem(itemIngredient) || isSecondary(itemIngredient)}
+                                      isPartOfItem={!!itemIngredient.ingredient_item}
+                                      isPartOfSecondary={!!itemIngredient.secondary_ingredient}
+                                      isSecondaryIngredient={isSecondary(itemIngredient)}
+                                    />
+                                    {!itemIngredient.ingredient_id && (
+                                      <div className="error-message">
+                                        Ingredient ID is required
+                                      </div>
+                                    )}
+                                    <div className="field-constraint">INT NOT NULL</div>
+                                  </div>
+                                  <div className="form-group">
+                                    <label>Private</label>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                      <label className="switch">
+                                        <input
+                                          type="checkbox"
+                                          name="private"
+                                          checked={itemIngredient.private || false}
+                                          onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
+                                        />
+                                        <span className="slider"></span>
+                                      </label>
+                                      <span className="toggle-label">{itemIngredient.private ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="field-constraint">BOOLEAN NOT NULL</div>
+                                  </div>
+                                  <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                      name="description"
+                                      value={itemIngredient.description || ''}
+                                      onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
+                                    />
+                                    <div className="field-constraint">TEXT</div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="remove-ingredient-under-button"
+                                    onClick={() => {
+                                      const ingredientName = itemIngredient.ingredient_id
+                                        ? (ingredientList.find(i => i.id == itemIngredient.ingredient_id)?.name || 'this ingredient')
+                                        : 'this ingredient';
+
+                                      if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                        setScreening(prev => {
+                                          const newIngredients = { ...prev.ingredients };
+                                          delete newIngredients[itemIngredient.id];
+                                          return {
+                                            ...prev,
+                                            ingredients: newIngredients
+                                          };
+                                        });
+                                      }
+                                    }}
+                                    aria-label="Remove ingredient"
+                                  >
+                                    Remove Ingredient
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          ))}
+
+
+                        </div>
+                      )}
+
+                      {/* Display secondary's ingredients if this is a secondary ingredient */}
+                      {isSecondary(ingredient) && ingredient.secondary && (
+                        <div className="secondary-ingredients">
+                          <p className="secondary-description">Child ingredients in this group will use this description: <strong>{ingredient.description || 'No description'}</strong></p>
+                          {getSecondaryIngredients(ingredient.secondary).map((secondaryIngredient) => (
+                            <div className="menu-entry ingredient-entry secondary-child" key={secondaryIngredient.id}>
                               <div className="form-group">
                                 <label>Ingredient</label>
                                 <IngredientSelector
-                                  selectedId={itemIngredient.ingredient_id || ''}
-                                  onChange={(e) => handleIngredientInputChange(itemIngredient.id, e)}
-                                  hasError={!itemIngredient.ingredient_id}
+                                  selectedId={secondaryIngredient.ingredient_id || ''}
+                                  onChange={(e) => handleIngredientInputChange(secondaryIngredient.id, e)}
+                                  hasError={!secondaryIngredient.ingredient_id}
                                   ingredientList={ingredientList}
-                                  disabled={isItem(itemIngredient)}
-                                  isPartOfItem={!!itemIngredient.ingredient_item}
+                                  disabled={isItem(secondaryIngredient) || isSecondary(secondaryIngredient)}
+                                  isPartOfItem={!!secondaryIngredient.ingredient_item}
+                                  isPartOfSecondary={true} // Always true for secondary ingredient children
+                                  isSecondaryIngredient={isSecondary(secondaryIngredient)}
                                 />
-                                {!itemIngredient.ingredient_id && (
+                                {!secondaryIngredient.ingredient_id && (
                                   <div className="error-message">
                                     Ingredient ID is required
                                   </div>
                                 )}
                                 <div className="field-constraint">INT NOT NULL</div>
                               </div>
+                              {/* Add private toggle for secondary ingredient children */}
                               <div className="form-group">
                                 <label>Private</label>
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -2235,36 +2741,27 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                     <input
                                       type="checkbox"
                                       name="private"
-                                      checked={itemIngredient.private || false}
-                                      onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
+                                      checked={secondaryIngredient.private || false}
+                                      onChange={e => handleIngredientInputChange(secondaryIngredient.id, e)}
                                     />
                                     <span className="slider"></span>
                                   </label>
-                                  <span className="toggle-label">{itemIngredient.private ? 'Yes' : 'No'}</span>
+                                  <span className="toggle-label">{secondaryIngredient.private ? 'Yes' : 'No'}</span>
                                 </div>
                                 <div className="field-constraint">BOOLEAN NOT NULL</div>
                               </div>
-                              <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                  name="description"
-                                  value={itemIngredient.description || ''}
-                                  onChange={e => handleIngredientInputChange(itemIngredient.id, e)}
-                      />
-                      <div className="field-constraint">TEXT</div>
-                    </div>
                               <button
                                 type="button"
                                 className="remove-ingredient-under-button"
                                 onClick={() => {
-                                  const ingredientName = itemIngredient.ingredient_id
-                                    ? (ingredientList.find(i => i.id == itemIngredient.ingredient_id)?.name || 'this ingredient')
+                                  const ingredientName = secondaryIngredient.ingredient_id
+                                    ? (ingredientList.find(i => i.id == secondaryIngredient.ingredient_id)?.name || 'this ingredient')
                                     : 'this ingredient';
 
                                   if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
                                     setScreening(prev => {
                                       const newIngredients = { ...prev.ingredients };
-                                      delete newIngredients[itemIngredient.id];
+                                      delete newIngredients[secondaryIngredient.id];
                                       return {
                                         ...prev,
                                         ingredients: newIngredients
@@ -2281,11 +2778,11 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                         </div>
                       )}
 
-
                       {/* Action buttons */}
                       <div className="ingredient-actions">
                         {isItem(ingredient) ? (
                           <>
+                                     
                             <button
                               type="button"
                               className="item-add-ingredient-button"
@@ -2306,33 +2803,56 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                               Remove Item
                             </button>
                           </>
+                        ) : isSecondary(ingredient) ? (
+                          <div className="ingredient-actions">
+                            <button
+                              type="button"
+                              className="secondary-add-ingredient-button"
+                              onClick={() => addIngredientToSecondary(ingredient.id)}
+                            >
+                              Add Ingredient
+                            </button>
+                            <button
+                              type="button"
+                              className="remove-secondary-button"
+                              onClick={() => {
+                                const confirmed = window.confirm(`Are you sure you want to remove this secondary ingredient and all its ingredients?`);
+                                if (confirmed) {
+                                  removeSecondary(ingredient.id);
+                                }
+                              }}
+                            >
+                              Remove Ingredient
+                            </button>
+                          </div>
                         ) : (
-                    <button
-                      type="button"
-                      className="remove-ingredient-under-button"
-                      onClick={() => {
-                        const ingredientName = ingredient.ingredient_id
+                          <button
+                            type="button"
+                            className="remove-ingredient-under-button"
+                            onClick={() => {
+                              const ingredientName = ingredient.ingredient_id
                                 ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
-                          : 'this ingredient';
+                                : 'this ingredient';
 
-                        if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
-                          // Remove the ingredient from the screening data
-                          setScreening(prev => {
-                            const newIngredients = { ...prev.ingredients };
-                            delete newIngredients[ingredient.id];
-                            return {
-                              ...prev,
-                              ingredients: newIngredients
-                            };
-                          });
-                        }
-                      }}
-                      aria-label="Remove ingredient"
-                    >
-                      Remove Ingredient
-                    </button>
+                              if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                // Remove the ingredient from the screening data
+                                setScreening(prev => {
+                                  const newIngredients = { ...prev.ingredients };
+                                  delete newIngredients[ingredient.id];
+                                  return {
+                                    ...prev,
+                                    ingredients: newIngredients
+                                  };
+                                });
+                              }
+                            }}
+                            aria-label="Remove ingredient"
+                          >
+                            Remove Ingredient
+                          </button>
                         )}
-                  </div>
+                      </div>
+
                     </div>
                   </React.Fragment>
                 ))}
