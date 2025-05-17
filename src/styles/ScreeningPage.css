@@ -729,7 +729,6 @@
 /* Item ingredients section */
 .item-ingredients,
 .secondary-ingredients {
-  margin-bottom: 1.5rem;
   padding-left: 1rem;
   border-left: 2px solid #e7e7e7;
 }
@@ -749,7 +748,6 @@
 .ingredient-actions {
   display: flex;
   gap: 0.8rem;
-  margin-top: 0.5rem;
   justify-content: center;
 }
 
@@ -759,6 +757,7 @@
 .remove-secondary-button {
   background: none;
   border: none;
+  color: #b0b0b0;
   font-size: 0.85rem;
   font-weight: 400;
   cursor: pointer;
@@ -770,7 +769,7 @@
 
 .item-add-ingredient-button,
 .secondary-add-ingredient-button {
-  color: #4CAF50;
+  color: #b0b0b0;
 }
 
 .item-add-ingredient-button:focus,
@@ -787,17 +786,17 @@
 
 .remove-item-button,
 .remove-secondary-button {
-  color: #b71c1c;
+  color: #b0b0b0;
 }
 
 .item-add-ingredient-button:hover,
 .secondary-add-ingredient-button:hover {
-  color: #2E7D32;
+  color: #2a5f29;
 }
 
 .remove-item-button:hover,
 .remove-secondary-button:hover {
-  color: #7F0000;
+  color: #b71c1c;
 }
 
 .ingredient-select-container.disabled .ingredient-search {
@@ -848,12 +847,12 @@
 
 .secondary-description {
   font-size: 0.9rem;
-  color: #4184a0;
+  color: #9a9a9a;
   margin: 0.5rem 0 1rem;
   padding: 0.5rem;
-  background-color: #eaf6f9;
+  background-color:#f7f5f0;
   border-radius: 4px;
-  border-left: 3px solid #4184a0;
+  border-left: 3px solid #e7d6bb;
 }
 
 .form-info {
