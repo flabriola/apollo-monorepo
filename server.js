@@ -5,6 +5,38 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+const AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
+
+const s3 = new AWS.S3({
+  region: 'eu-north-1',
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  signatureVersion: 'v4'
+});
+
+app.get('/api/upload-url', async (req, res) => {
+  const contentType = req.query.contentType || 'image/*'; // fallback
+  const ext = contentType.split('/')[1] || 'jpg';
+  const imageName = `${uuidv4()}.${ext}`;
+
+  const params = {
+    Bucket: 'ag-screening',
+    Key: imageName,
+    Expires: 60,
+    ContentType: contentType
+  };
+
+  try {
+    const uploadURL = await s3.getSignedUrlPromise('putObject', params);
+    res.send({ uploadURL, key: imageName });
+  } catch (err) {
+    console.error('Error generating S3 upload URL:', err);
+    res.status(500).json({ error: 'Could not generate upload URL' });
+  }
+});
+
+
 
 const allowedOrigins = [
   'http://localhost:5173',
