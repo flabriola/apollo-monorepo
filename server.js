@@ -2,11 +2,29 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const multer = require('multer');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(express.json());
+
+// Set up AWS configuration
+AWS.config.update({
+  region: process.env.AWS_REGION || 'us-east-1',
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+});
+
+const s3 = new AWS.S3();
+const BUCKET_NAME = 'ag-screening';
+
+// Configure multer for memory storage
+const upload = multer({
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
+});
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -23,48 +41,6 @@ app.use(cors({
 }));
 
 const PORT = process.env.PORT;
-
-// AWS S3 config
-const s3 = new AWS.S3({
-  region: 'eu-north-1',
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  signatureVersion: 'v4'
-});
-
-// Allowed image types
-const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
-
-// Upload URL route (protected)
-app.get('/api/upload-url', async (req, res) => {
-  const apiKey = req.header('x-api-key');
-  if (apiKey !== process.env.UPLOAD_API_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const contentType = req.query.contentType;
-  if (!allowedImageTypes.includes(contentType)) {
-    return res.status(400).json({ error: 'Invalid content type' });
-  }
-
-  const ext = contentType.split('/')[1];
-  const imageName = `${uuidv4()}.${ext}`;
-
-  const params = {
-    Bucket: 'ag-screening',
-    Key: imageName,
-    Expires: 60,
-    ContentType: contentType,
-  };
-
-  try {
-    const uploadURL = await s3.getSignedUrlPromise('putObject', params);
-    res.send({ uploadURL, key: imageName });
-  } catch (err) {
-    console.error('Error generating S3 upload URL:', err);
-    res.status(500).json({ error: 'Could not generate upload URL' });
-  }
-});
 
 // Connection pool for screenings DB
 const screeningsPool = mysql.createPool({
@@ -163,6 +139,45 @@ app.get('/api/ingredients', (req, res) => {
     }
     res.json(results);
   });
+});
+
+// NEW API: Upload image to S3
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    // Get user ID if available (optional)
+    const userId = req.body.userId || 'anonymous';
+    
+    // Generate unique filename to prevent overwriting
+    const fileExtension = req.file.originalname.split('.').pop();
+    const fileName = `${userId}/${uuidv4()}.${fileExtension}`;
+    
+    // Upload to S3
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: fileName,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+      ACL: 'public-read' // Make file publicly accessible
+    };
+    
+    const uploadResult = await s3.upload(params).promise();
+    
+    // Return success response with the URL
+    res.status(201).json({
+      url: uploadResult.Location,
+      fileName: fileName,
+      originalName: req.file.originalname,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
 });
 
 app.listen(PORT, () => {
