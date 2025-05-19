@@ -22,7 +22,7 @@ const BUCKET_NAME = 'ag-screening';
 // Configure multer for memory storage
 const upload = multer({
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 6 * 1024 * 1024, // 5MB limit
   }
 });
 
@@ -161,7 +161,7 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       Key: fileName,
       Body: req.file.buffer,
       ContentType: req.file.mimetype,
-      ACL: 'public-read' // Make file publicly accessible
+      // ACL: 'public-read' // Make file publicly accessible
     };
     
     const uploadResult = await s3.upload(params).promise();
