@@ -13,13 +13,13 @@ export const screenings = [
       },
       menus: {
         // key of each object used to refer to each dish inside the menu
-        1 : {
+        1: {
           restaurant_id: 100013, // field in form
           name: "Lunch",
           description: "Menu 1 description",
           active: true
         },
-        2 : {
+        2: {
           restaurant_id: 100013, // same for all menus
           name: "Dinner",
           description: "Menu 2 description",
@@ -78,7 +78,24 @@ export const screenings = [
           dish_id: 30001, // this field should still be an input field, not used for pagination, however only asked on top of the list as it's the same for all in that specific diish (as is)
           ingredient_id: 1,
           private: false,
-          description: "Ingredient 1 description"
+          description: "Ingredient 1 description",
+          cc: [
+            {
+              allergen_id: 500007,
+              reason: "G",
+              description: "Grilled with shrimp"
+            },
+            {
+              allergen_id: 500009,
+              reason: "G",
+              description: "Grilled with shrimp"
+            },
+            {
+              allergen_id: 500011,
+              reason: "F",
+              description: "Fried with gluten"
+            }
+          ]
         },
         2: {
           dish: 1,
@@ -169,21 +186,21 @@ export const screenings = [
           description: "{Bagel Seasoning}",
           secondary_ingredient: 2
         },
-        12 : {
-          dish: 2, 
+        12: {
+          dish: 2,
           dish_id: 30002,
           ingredient_id: 2,
           private: false,
           description: "Ingredient 12 description"
         },
-        13 : {
+        13: {
           dish: 3,
           dish_id: 30002,
           ingredient_id: 2,
           private: false,
           description: "Ingredient 12 description"
         },
-        14 : {
+        14: {
           dish: 4,
           dish_id: 30002,
           ingredient_id: 2,
@@ -193,7 +210,7 @@ export const screenings = [
       }
     }
   }
-]; 
+];
 
 // Pagination organization of above screening
 // menu.1
@@ -238,7 +255,7 @@ export const ingredients = [
   {
     id: 4,
     name: "Cheese",
-    description: "Ingredient 4 description" 
+    description: "Ingredient 4 description"
   },
   {
     id: 5,
@@ -250,5 +267,5 @@ export const ingredients = [
     name: "Beef Patty",
     description: "Ingredient 6 description"
   }
-  
+
 ];

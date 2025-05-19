@@ -21,6 +21,34 @@ const mockIngredients = [
   { id: 10, name: 'Mushroom', description: 'Cremini mushrooms' },
 ];
 
+const cookingMethods = [
+  { id: 'G', name: 'Grilled' },
+  { id: 'F', name: 'Fried' },
+  { id: 'BK', name: 'Baked' },
+  { id: 'BO', name: 'Boiled' },
+  { id: 'P', name: 'Prepared' },
+  { id: 'M', name: 'Marinated' },
+  { id: 'BF', name: 'Buffet' },
+  { id: 'S', name: 'Stored' }
+];
+
+const allergens = [
+  { id: 500000, name: 'Egg' },
+  { id: 500001, name: 'Milk' },
+  { id: 500002, name: 'Soya' },
+  { id: 500003, name: 'Wheat' },
+  { id: 500004, name: 'Tree Nuts' },
+  { id: 500005, name: 'Peanuts' },
+  { id: 500006, name: 'Nuts' },
+  { id: 500007, name: 'Shellfish' },
+  { id: 500008, name: 'Fish' },
+  { id: 500009, name: 'Seafood' },
+  { id: 500010, name: 'Sesame' },
+  { id: 500011, name: 'Coeliac' },
+  { id: 500012, name: 'Sulphite' },
+  { id: 500013, name: 'Mustard' }
+];
+
 const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, setIsScreeningDirty }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -906,6 +934,40 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       : '-- No ingredients selected for any dish';
   };
 
+  const generateCCSql = () => {
+    let allValues = [];
+
+    // Loop through all ingredients
+    Object.keys(screening.ingredients || {}).forEach(ingredientKey => {
+      const ingredient = screening.ingredients[ingredientKey];
+
+      // Skip if ingredient doesn't have CC entries
+      if (!ingredient.cc || ingredient.cc.length === 0) return;
+
+      // Get dish_id from the ingredient
+      const dish_id = ingredient.dish_id || '1';  // Use default value of 1
+
+      // Skip if ingredient_id is not defined
+      if (!ingredient.ingredient_id) return;
+
+      // Process each CC entry
+      ingredient.cc.forEach(cc => {
+        // Skip if no allergen_id is selected
+        if (!cc.allergen_id) return;
+
+        const reason = cc.reason || '';
+        const description = cc.description?.replace(/'/g, "''") || '';
+
+        const sqlValue = `    (${dish_id}, ${cc.allergen_id}, '${reason}', ${ingredient.ingredient_id}, '${description}')`;
+        allValues.push(sqlValue);
+      });
+    });
+
+    return allValues.length > 0
+      ? `INSERT INTO dish_cc_allergen (dish_id, allergen_id, reason, ingredient_id, description) \nVALUES\n${allValues.join(',\n')}\nON DUPLICATE KEY UPDATE \n    reason = VALUES(reason), \n    ingredient_id = VALUES(ingredient_id), \n    description = VALUES(description);`
+      : '-- No cross contamination entries added';
+  };
+
   // Highlight SQL for ingredients
   useEffect(() => {
     if (showIngredientSqlBox) {
@@ -1374,49 +1436,49 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     // Check if we already have 4 images
     const currentImages = ingredient.images || [];
-    
+
     // Check if adding these images would exceed the limit of 4
     if (currentImages.length + files.length > 4) {
       setUploadErrors({
         ...uploadErrors,
         [ingredientId]: `Can only add ${4 - currentImages.length} more image(s). You selected ${files.length}.`
       });
-      
+
       // If there's at least some space left, we'll process only what fits
       if (currentImages.length >= 4) return;
     }
-    
+
     // Determine how many files we can process
     const filesToProcess = Math.min(files.length, 4 - currentImages.length);
-    
+
     // Arrays to collect new object URLs and pending uploads
     const newObjectUrls = [];
     const newPendingUploads = [];
-    
+
     // Process each file up to the limit
     for (let i = 0; i < filesToProcess; i++) {
       const file = files[i];
-      
+
       try {
         // Show compression status
         setCompressionStatus(prev => ({
           ...prev,
-          [ingredientId]: `Compressing ${i+1} of ${filesToProcess} files...`
+          [ingredientId]: `Compressing ${i + 1} of ${filesToProcess} files...`
         }));
-        
+
         // Compress image but don't upload yet
         const compressedFile = await compressImage(file, ingredientId);
 
         // Create a temporary object URL for the compressed file
         const objectUrl = URL.createObjectURL(compressedFile);
-        
+
         // Add to our collections
         newObjectUrls.push(objectUrl);
         newPendingUploads.push({ file: compressedFile, objectUrl });
-        
+
       } catch (error) {
         console.error('Error compressing image:', error);
-        
+
         // Update error state
         setUploadErrors({
           ...uploadErrors,
@@ -1424,14 +1486,14 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         });
       }
     }
-    
+
     // Clear compression status when done
     setCompressionStatus(prev => {
       const newStatus = { ...prev };
       delete newStatus[ingredientId];
       return newStatus;
     });
-    
+
     // Only update if we have successfully processed files
     if (newObjectUrls.length > 0) {
       // Update the pending uploads state with all new files at once
@@ -1442,11 +1504,11 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           ...newPendingUploads
         ]
       }));
-      
+
       // Update the ingredient with all new URLs at once
       const updatedImages = [...(ingredient.images || []), ...newObjectUrls];
       updateIngredient(ingredientId, { images: updatedImages });
-      
+
       // Clear error if there was one
       if (uploadErrors[ingredientId]) {
         setUploadErrors(prev => {
@@ -1455,7 +1517,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           return newErrors;
         });
       }
-      
+
       // If we couldn't process all files due to the limit, show a warning
       if (files.length > filesToProcess) {
         setUploadErrors({
@@ -1464,7 +1526,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         });
       }
     }
-    
+
     // Reset the file input value so the same files can be selected again if needed
     if (fileInputRefs.current[ingredientId]) {
       fileInputRefs.current[ingredientId].value = "";
@@ -1558,38 +1620,38 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     // Check if we have any pending image uploads
     const hasPendingUploads = Object.keys(pendingImageUploads).length > 0;
-    
+
     if (hasPendingUploads) {
       try {
         // Count total images to upload across all ingredients
         let totalImagesToUpload = 0;
         let uploadedImages = 0;
-        
+
         // First pass to count total images
         for (const ingredientId of Object.keys(pendingImageUploads)) {
           totalImagesToUpload += pendingImageUploads[ingredientId].length;
         }
-        
+
         // Show loading message with total count
         setUploadProgress({
           isUploading: true,
           message: `Preparing to upload ${totalImagesToUpload} image${totalImagesToUpload !== 1 ? 's' : ''}...`
         });
-        
+
         // Process all pending image uploads
         for (const ingredientId of Object.keys(pendingImageUploads)) {
           const pendingUploads = pendingImageUploads[ingredientId];
           const ingredient = screeningToSave.ingredients[ingredientId];
-          
+
           if (!ingredient || !ingredient.images) continue;
-          
+
           // Keep track of which object URLs need to be replaced with server URLs
           const urlReplacements = {};
-          
+
           // Upload each pending image
           for (const [index, { file, objectUrl }] of pendingUploads.entries()) {
             uploadedImages++;
-            
+
             // Update progress message with overall progress and per-ingredient progress
             setUploadProgress({
               isUploading: true,
@@ -2209,6 +2271,128 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     });
   };
 
+  // Add these state variables at the top with other states
+  const [showCCModal, setShowCCModal] = useState(false);
+  const [currentCCIngredientId, setCurrentCCIngredientId] = useState(null);
+  const [highlightedCCSql, setHighlightedCCSql] = useState('');
+  const [ccForm, setCCForm] = useState({
+    allergen_id: '',
+    reason: '',
+    description: ''
+  });
+  const [addCCAttempted, setAddCCAttempted] = useState(false);
+
+  // Function to open the CC modal
+  const openCCModal = (ingredientId) => {
+    setCurrentCCIngredientId(ingredientId);
+    setCCForm({
+      allergen_id: '',
+      reason: '',
+      description: ''
+    });
+    setAddCCAttempted(false);
+    setShowCCModal(true);
+  };
+
+  // Function to close the CC modal
+  const closeCCModal = () => {
+    setShowCCModal(false);
+    setCurrentCCIngredientId(null);
+    setAddCCAttempted(false);
+  };
+
+  // Function to handle CC form input changes
+  const handleCCFormChange = (e) => {
+    const { name, value } = e.target;
+    setCCForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Function to add a CC entry
+  const addCCEntry = () => {
+    // Set attempted flag to true
+    setAddCCAttempted(true);
+
+    // Validate that all required fields are filled
+    if (!ccForm.allergen_id || !ccForm.reason || !ccForm.description) {
+      return;
+    }
+
+    const ingredientId = currentCCIngredientId;
+    if (!ingredientId) return;
+
+    setScreening(prev => {
+      const newIngredients = { ...prev.ingredients };
+      const ingredient = { ...newIngredients[ingredientId] };
+
+      // Initialize CC array if it doesn't exist
+      if (!ingredient.cc) {
+        ingredient.cc = [];
+      }
+
+      // Add new CC entry
+      ingredient.cc = [
+        ...ingredient.cc,
+        { ...ccForm }
+      ];
+
+      // Update the ingredient with new CC entry
+      newIngredients[ingredientId] = ingredient;
+
+      return {
+        ...prev,
+        ingredients: newIngredients
+      };
+    });
+
+    // Reset only the form for the next entry, but keep validation state
+    setCCForm({
+      allergen_id: '',
+      reason: '',
+      description: ''
+    });
+
+    // Don't reset the attempted flag so validation continues to show
+    // This keeps the UI consistent after adding an entry
+  };
+
+  // Function to remove a CC entry
+  const removeCCEntry = (ingredientId, index) => {
+    setScreening(prev => {
+      const newIngredients = { ...prev.ingredients };
+      const ingredient = { ...newIngredients[ingredientId] };
+
+      if (ingredient.cc) {
+        // Remove the CC entry at the specified index
+        ingredient.cc = ingredient.cc.filter((_, i) => i !== index);
+
+        // If no more CC entries, remove the cc property
+        if (ingredient.cc.length === 0) {
+          delete ingredient.cc;
+        }
+
+        // Update the ingredient
+        newIngredients[ingredientId] = ingredient;
+      }
+
+      return {
+        ...prev,
+        ingredients: newIngredients
+      };
+    });
+  };
+
+  // Highlight SQL for CC entries
+  useEffect(() => {
+    if (showIngredientSqlBox) {
+      const raw = generateCCSql();
+      const html = Prism.highlight(raw, Prism.languages.sql, 'sql');
+      setHighlightedCCSql(html);
+    }
+  }, [showIngredientSqlBox, screening.ingredients]);
+
   return (
     <div className="screening-page">
       {/* Secondary Header */}
@@ -2293,6 +2477,17 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               </div>
               <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
             </div>
+            <div className="code-box-secondary-header">
+              <div className="code-box-header">
+                <span className="code-box-label">sql</span>
+                <div className="code-box-actions">
+                  <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateCCSql())}>
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedCCSql }} />
+            </div>
           </div>
         </div>
       </div>
@@ -2346,19 +2541,21 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               </div>
             </div>
             {showSqlBox && (
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+              <div className="code-box-container">
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
                 </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
               </div>
             )}
           </div>
@@ -2477,19 +2674,21 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             </div>
 
             {showMenuSqlBox && (
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+              <div className="code-box-container">
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
                 </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
               </div>
             )}
           </div>
@@ -2695,19 +2894,21 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
             {/* Dish SQL Box */}
             {showDishSqlBox && (
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+              <div className="code-box-container">
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
                 </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
               </div>
             )}
           </div>
@@ -3223,17 +3424,18 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                               {ingredient.images && ingredient.images.length > 0 &&
                                 ingredient.images.map((imageUrl, index) => {
                                   return (
-                                  <div key={index} className="image-preview-item">
-                                    <img src={imageUrl} alt={`Uploaded ${index}`} className="image-preview" />
-                                    <button
-                                      type="button"
-                                      className="remove-image-button"
-                                      onClick={() => removeImage(ingredient.id, imageUrl)}
-                                    >
-                                      &times;
-                                    </button>
-                                  </div>
-                                )})
+                                    <div key={index} className="image-preview-item">
+                                      <img src={imageUrl} alt={`Uploaded ${index}`} className="image-preview" />
+                                      <button
+                                        type="button"
+                                        className="remove-image-button"
+                                        onClick={() => removeImage(ingredient.id, imageUrl)}
+                                      >
+                                        &times;
+                                      </button>
+                                    </div>
+                                  )
+                                })
                               }
                             </div>
                           </div>
@@ -3308,7 +3510,15 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       <div className="ingredient-actions">
                         {isItem(ingredient) ? (
                           <>
-
+                            <button
+                              type="button"
+                              className="cc-button"
+                              onClick={() => openCCModal(ingredient.id)}
+                            >
+                              {ingredient.cc && ingredient.cc.length > 0
+                                ? `CC(${ingredient.cc.length})`
+                                : "CC"}
+                            </button>
                             <button
                               type="button"
                               className="item-add-ingredient-button"
@@ -3333,6 +3543,15 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                           <div className="ingredient-actions">
                             <button
                               type="button"
+                              className="cc-button"
+                              onClick={() => openCCModal(ingredient.id)}
+                            >
+                              {ingredient.cc && ingredient.cc.length > 0
+                                ? `CC(${ingredient.cc.length})`
+                                : "CC"}
+                            </button>
+                            <button
+                              type="button"
                               className="secondary-add-ingredient-button"
                               onClick={() => addIngredientToSecondary(ingredient.id)}
                             >
@@ -3352,30 +3571,41 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                             </button>
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            className="remove-ingredient-under-button"
-                            onClick={() => {
-                              const ingredientName = ingredient.ingredient_id
-                                ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
-                                : 'this ingredient';
+                          <div className="ingredient-action-buttons">
+                            <button
+                              type="button"
+                              className="cc-button"
+                              onClick={() => openCCModal(ingredient.id)}
+                            >
+                              {ingredient.cc && ingredient.cc.length > 0
+                                ? `CC(${ingredient.cc.length})`
+                                : "CC"}
+                            </button>
+                            <button
+                              type="button"
+                              className="remove-ingredient-under-button"
+                              onClick={() => {
+                                const ingredientName = ingredient.ingredient_id
+                                  ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
+                                  : 'this ingredient';
 
-                              if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
-                                // Remove the ingredient from the screening data
-                                setScreening(prev => {
-                                  const newIngredients = { ...prev.ingredients };
-                                  delete newIngredients[ingredient.id];
-                                  return {
-                                    ...prev,
-                                    ingredients: newIngredients
-                                  };
-                                });
-                              }
-                            }}
-                            aria-label="Remove ingredient"
-                          >
-                            Remove Ingredient
-                          </button>
+                                if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                  // Remove the ingredient from the screening data
+                                  setScreening(prev => {
+                                    const newIngredients = { ...prev.ingredients };
+                                    delete newIngredients[ingredient.id];
+                                    return {
+                                      ...prev,
+                                      ingredients: newIngredients
+                                    };
+                                  });
+                                }
+                              }}
+                              aria-label="Remove ingredient"
+                            >
+                              Remove Ingredient
+                            </button>
+                          </div>
                         )}
                       </div>
 
@@ -3386,19 +3616,35 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
               {/* Ingredients SQL Box */}
               {showIngredientSqlBox && (
-                <div className="code-box">
-                  <div className="code-box-header">
-                    <span className="code-box-label">sql</span>
-                    <div className="code-box-actions">
-                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
-                        Copy
-                      </button>
-                      <button className="edit-button">
-                        Edit
-                      </button>
+                <div className="code-box-container">
+                  <div className="code-box">
+                    <div className="code-box-header">
+                      <span className="code-box-label">sql</span>
+                      <div className="code-box-actions">
+                        <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
+                          Copy
+                        </button>
+                        <button className="edit-button">
+                          Edit
+                        </button>
+                      </div>
                     </div>
+                    <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
                   </div>
-                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
+                  <div className="code-box">
+                    <div className="code-box-header">
+                      <span className="code-box-label">sql</span>
+                      <div className="code-box-actions">
+                        <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateCCSql())}>
+                          Copy
+                        </button>
+                        <button className="edit-button">
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                    <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedCCSql }} />
+                  </div>
                 </div>
               )}
             </div>
@@ -3419,6 +3665,127 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           </div>
         </div>
       </div>
+      {/* CC Modal */}
+      {showCCModal && (
+        <div className="modal-overlay">
+          <div className="cc-modal">
+            <div className="modal-header">
+              <h3>Cross Contamination</h3>
+              <button onClick={closeCCModal} className="close-modal">&times;</button>
+            </div>
+
+            <div className="modal-content">
+              {/* Display existing CC entries for this ingredient */}
+              {currentCCIngredientId && screening.ingredients[currentCCIngredientId]?.cc &&
+                screening.ingredients[currentCCIngredientId].cc.length > 0 && (
+                  <div className="cc-entries">
+                    {screening.ingredients[currentCCIngredientId].cc.map((entry, index) => (
+                      <div key={index} className="cc-entry">
+                        <div className="cc-entry-details">
+                          <div className="cc-entry-field">
+                            Allergen: {allergens.find(a => a.id == entry.allergen_id)?.name || entry.allergen_id}
+                          </div>
+                          <div className="cc-entry-field">
+                            Reason: {cookingMethods.find(m => m.id === entry.reason)?.name || entry.reason}
+                          </div>
+                          {entry.description && (
+                            <div className="cc-entry-field">
+                              Description: {entry.description}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="remove-cc-button"
+                          onClick={() => removeCCEntry(currentCCIngredientId, index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              <div className="cc-form">
+                <div className="form-group">
+                  <label>Allergen</label>
+                  <select
+                    name="allergen_id"
+                    value={ccForm.allergen_id}
+                    onChange={handleCCFormChange}
+                    required
+                    className={!ccForm.allergen_id && addCCAttempted ? 'input-error' : ''}
+                  >
+                    <option value="">Select Allergen</option>
+                    {allergens.map(allergen => (
+                      <option key={allergen.id} value={allergen.id}>
+                        {allergen.name}
+                      </option>
+                    ))}
+                  </select>
+                  {!ccForm.allergen_id && addCCAttempted && (
+                    <div className="error-message">Please select an allergen</div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>Reason</label>
+                  <select
+                    name="reason"
+                    value={ccForm.reason}
+                    onChange={handleCCFormChange}
+                    required
+                    className={!ccForm.reason && addCCAttempted ? 'input-error' : ''}
+                  >
+                    <option value="">Select Cooking Method</option>
+                    {cookingMethods.map(method => (
+                      <option key={method.id} value={method.id}>
+                        {method.name}
+                      </option>
+                    ))}
+                  </select>
+                  {!ccForm.reason && addCCAttempted && (
+                    <div className="error-message">Please select a cooking method</div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    name="description"
+                    value={ccForm.description}
+                    onChange={handleCCFormChange}
+                    placeholder="Additional details about the cross contamination"
+                    required
+                    className={!ccForm.description && addCCAttempted ? 'input-error' : ''}
+                  />
+                  {!ccForm.description && addCCAttempted && (
+                    <div className="error-message">Please provide a description</div>
+                  )}
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="add-cc-button"
+                    onClick={addCCEntry}
+                    disabled={!ccForm.allergen_id || !ccForm.reason || !ccForm.description}
+                  >
+                    Add CC Entry
+                  </button>
+                  <button
+                    type="button"
+                    className="cancel-button"
+                    onClick={closeCCModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
