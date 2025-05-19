@@ -6,6 +6,7 @@ export const screenings = [
     lastModified: "2024-03-20T14:30:00",
     owner: "John Smith", // compination of first and last name
     json: {
+      status: false,
       restaurant: {
         name: "Joe's Pizza",
         address: "123 Main St, New York, NY 10001",

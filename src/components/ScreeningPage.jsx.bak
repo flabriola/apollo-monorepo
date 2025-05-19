@@ -904,7 +904,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             description = `{${parentSecondary.description}}${parentItem.description}`;
           } else {
             // Use the parent's description in curly brackets (standard secondary)
-          description = `{${parentSecondary.description}}`;
+            description = `{${parentSecondary.description}}`;
           }
         }
 
@@ -1616,18 +1616,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
   // Save handler that also handles image uploads
   const handleSave = async () => {
-    // Run validation but don't prevent saving
-    const isValid = validateBeforeSave(false); // Don't show alerts
+    // Perform comprehensive validation before saving
+    const isValid = validateBeforeSave(true);
 
     if (!isValid) {
-      // Call validateBeforeSave again with true just to log errors to console
-      validateBeforeSave(true);
-      
-      // Just inform the user that the screening is not complete without preventing save
-      const confirmSave = window.confirm("The screening has validation errors. Do you want to save it anyway?");
-      if (!confirmSave) {
-        return;
-      }
+      alert("Please fix the validation errors before saving.");
+      return;
     }
 
     // Create a deep copy of the screening data that we'll update with server URLs
@@ -1934,7 +1928,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     // If not valid and showAlerts is true, log the error fields
     if (!isValid && showAlerts) {
-      console.log("Validation failed for:", errorFields);
+      console.error("Validation failed for:", errorFields);
     }
 
     return isValid;
@@ -2634,7 +2628,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       disabled={currentTodoIndex >= todoItems.length - 1}
                     >
                       &gt;
-              </button>
+                    </button>
                   </div>
                 </>
               )}
@@ -2780,19 +2774,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             </div>
             {showSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
                 </div>
               </div>
             )}
@@ -2923,19 +2917,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
             {showMenuSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
                 </div>
               </div>
             )}
@@ -3154,19 +3148,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             {/* Dish SQL Box */}
             {showDishSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
                 </div>
               </div>
             )}
@@ -3854,30 +3848,30 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                 ? `CC(${ingredient.cc.length})`
                                 : "CC"}
                             </button>
-                          <button
-                            type="button"
-                            className="remove-ingredient-under-button"
-                            onClick={() => {
-                              const ingredientName = ingredient.ingredient_id
-                                ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
-                                : 'this ingredient';
+                            <button
+                              type="button"
+                              className="remove-ingredient-under-button"
+                              onClick={() => {
+                                const ingredientName = ingredient.ingredient_id
+                                  ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
+                                  : 'this ingredient';
 
-                              if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
-                                // Remove the ingredient from the screening data
-                                setScreening(prev => {
-                                  const newIngredients = { ...prev.ingredients };
-                                  delete newIngredients[ingredient.id];
-                                  return {
-                                    ...prev,
-                                    ingredients: newIngredients
-                                  };
-                                });
-                              }
-                            }}
-                            aria-label="Remove ingredient"
-                          >
-                            Remove Ingredient
-                          </button>
+                                if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                  // Remove the ingredient from the screening data
+                                  setScreening(prev => {
+                                    const newIngredients = { ...prev.ingredients };
+                                    delete newIngredients[ingredient.id];
+                                    return {
+                                      ...prev,
+                                      ingredients: newIngredients
+                                    };
+                                  });
+                                }
+                              }}
+                              aria-label="Remove ingredient"
+                            >
+                              Remove Ingredient
+                            </button>
                           </div>
                         )}
                       </div>
@@ -3890,19 +3884,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               {/* Ingredients SQL Box */}
               {showIngredientSqlBox && (
                 <div className="code-box-container">
-                <div className="code-box">
-                  <div className="code-box-header">
-                    <span className="code-box-label">sql</span>
-                    <div className="code-box-actions">
-                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
-                        Copy
-                      </button>
-                      <button className="edit-button">
-                        Edit
-                      </button>
+                  <div className="code-box">
+                    <div className="code-box-header">
+                      <span className="code-box-label">sql</span>
+                      <div className="code-box-actions">
+                        <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
+                          Copy
+                        </button>
+                        <button className="edit-button">
+                          Edit
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
+                    <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
                   </div>
                   <div className="code-box">
                     <div className="code-box-header">
