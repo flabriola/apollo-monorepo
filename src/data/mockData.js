@@ -103,7 +103,12 @@ export const screenings = [
           private: true,
           description: "Balsamic Vinegar",
           ingredient_item: 1,
-          secondary: 1
+          secondary: 1,
+          images: [
+            "https://ag-screening.s3.amazonaws.com/10bc095c-b071-707d-0748-8f5ee5811517/1/img1.jpg",
+            "https://ag-screening.s3.amazonaws.com/10bc095c-b071-707d-0748-8f5ee5811517/1/img1.jpg",
+            "https://ag-screening.s3.amazonaws.com/10bc095c-b071-707d-0748-8f5ee5811517/1/img1.jpg"
+          ]
         },
         5: {
           dish: 1,
@@ -143,7 +148,10 @@ export const screenings = [
           ingredient_id: 400001,
           private: true,
           description: "Bagel Seasoning",
-          secondary: 2
+          secondary: 2,
+          images: [
+            "https://ag-screening.s3.amazonaws.com/10bc095c-b071-707d-0748-8f5ee5811517/1/img1.jpg"
+          ]
         },
         10: {
           dish: 1,

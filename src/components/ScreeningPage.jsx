@@ -4,6 +4,8 @@ import '../styles/ScreeningPage.css';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-sql';
 import 'prismjs/themes/prism.css';
+// Add import for UUID generation
+import { v4 as uuidv4 } from 'uuid';
 
 // Mock ingredients data for the selection box
 const mockIngredients = [
@@ -850,7 +852,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         // Find if this is inside an item
         let isInsideItem = false;
         let parentItem = null;
-        
+
         if (parentSecondary && parentSecondary.ingredient_item) {
           isInsideItem = true;
           // Find the parent item
@@ -1221,7 +1223,327 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     return ingredients.sort((a, b) => a.id - b.id);
   };
 
-  // Save handler
+  // Add state for images
+  const [uploadErrors, setUploadErrors] = useState({});
+  const [compressionStatus, setCompressionStatus] = useState({});
+  const fileInputRefs = useRef({});
+  // Store compressed image files for upload on save
+  const [pendingImageUploads, setPendingImageUploads] = useState({});
+
+  // Function to trigger file input click
+  const triggerFileInput = (ingredientId) => {
+    if (fileInputRefs.current[ingredientId]) {
+      fileInputRefs.current[ingredientId].click();
+    }
+  };
+
+  // Image compression function to ensure file size is under 5MB
+  const compressImage = (file, ingredientId) => {
+    return new Promise((resolve, reject) => {
+      // Update compression status
+      setCompressionStatus(prev => ({
+        ...prev,
+        [ingredientId]: `Compressing ${file.name}...`
+      }));
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = () => {
+          // Create canvas
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1080;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round(height * (MAX_WIDTH / width));
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round(width * (MAX_HEIGHT / height));
+              height = MAX_HEIGHT;
+            }
+          }
+
+          // Set canvas dimensions
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Start with high quality
+          let quality = 0.9;
+          let compressedFile;
+
+          // Function to convert data URL to File object
+          const dataURLtoFile = (dataURL, filename) => {
+            const arr = dataURL.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+
+            return new File([u8arr], filename, { type: mime });
+          };
+
+          // Function to compress recursively until size is under limit
+          const compressRecursively = () => {
+            // Convert canvas to data URL with current quality
+            const dataURL = canvas.toDataURL('image/jpeg', quality);
+
+            // Convert data URL to file
+            compressedFile = dataURLtoFile(dataURL, file.name);
+
+            // Update compression status with current size info
+            setCompressionStatus(prev => ({
+              ...prev,
+              [ingredientId]: `Compressing ${file.name}... (${(compressedFile.size / (1024 * 1024)).toFixed(2)}MB)`
+            }));
+
+            // Check size (5MB = 5 * 1024 * 1024 bytes)
+            if (compressedFile.size > 5 * 1024 * 1024 && quality > 0.1) {
+              // Reduce quality and try again
+              quality -= 0.1;
+              compressRecursively();
+            } else {
+              // Size is acceptable or quality can't be reduced further
+              // Clear compression status
+              setCompressionStatus(prev => {
+                const newStatus = { ...prev };
+                delete newStatus[ingredientId];
+                return newStatus;
+              });
+
+              resolve(compressedFile);
+            }
+          };
+
+          // Start compression
+          compressRecursively();
+        };
+
+        img.onerror = (error) => {
+          // Clear compression status on error
+          setCompressionStatus(prev => {
+            const newStatus = { ...prev };
+            delete newStatus[ingredientId];
+            return newStatus;
+          });
+
+          reject(error);
+        };
+      };
+
+      reader.onerror = (error) => {
+        // Clear compression status on error
+        setCompressionStatus(prev => {
+          const newStatus = { ...prev };
+          delete newStatus[ingredientId];
+          return newStatus;
+        });
+
+        reject(error);
+      };
+    });
+  };
+
+  // Add function to handle image selection
+  const handleImageSelect = async (ingredientId, event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    // Get the ingredient
+    const ingredient = screening.ingredients[ingredientId];
+    if (!ingredient) return;
+
+    // Check if we already have 4 images
+    const currentImages = ingredient.images || [];
+    
+    // Check if adding these images would exceed the limit of 4
+    if (currentImages.length + files.length > 4) {
+      setUploadErrors({
+        ...uploadErrors,
+        [ingredientId]: `Can only add ${4 - currentImages.length} more image(s). You selected ${files.length}.`
+      });
+      
+      // If there's at least some space left, we'll process only what fits
+      if (currentImages.length >= 4) return;
+    }
+    
+    // Determine how many files we can process
+    const filesToProcess = Math.min(files.length, 4 - currentImages.length);
+    
+    // Arrays to collect new object URLs and pending uploads
+    const newObjectUrls = [];
+    const newPendingUploads = [];
+    
+    // Process each file up to the limit
+    for (let i = 0; i < filesToProcess; i++) {
+      const file = files[i];
+      
+      try {
+        // Show compression status
+        setCompressionStatus(prev => ({
+          ...prev,
+          [ingredientId]: `Compressing ${i+1} of ${filesToProcess} files...`
+        }));
+        
+        // Compress image but don't upload yet
+        const compressedFile = await compressImage(file, ingredientId);
+
+        // Create a temporary object URL for the compressed file
+        const objectUrl = URL.createObjectURL(compressedFile);
+        
+        // Add to our collections
+        newObjectUrls.push(objectUrl);
+        newPendingUploads.push({ file: compressedFile, objectUrl });
+        
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        
+        // Update error state
+        setUploadErrors({
+          ...uploadErrors,
+          [ingredientId]: `Failed to process image: ${error.message}`
+        });
+      }
+    }
+    
+    // Clear compression status when done
+    setCompressionStatus(prev => {
+      const newStatus = { ...prev };
+      delete newStatus[ingredientId];
+      return newStatus;
+    });
+    
+    // Only update if we have successfully processed files
+    if (newObjectUrls.length > 0) {
+      // Update the pending uploads state with all new files at once
+      setPendingImageUploads(prev => ({
+        ...prev,
+        [ingredientId]: [
+          ...(prev[ingredientId] || []),
+          ...newPendingUploads
+        ]
+      }));
+      
+      // Update the ingredient with all new URLs at once
+      const updatedImages = [...(ingredient.images || []), ...newObjectUrls];
+      updateIngredient(ingredientId, { images: updatedImages });
+      
+      // Clear error if there was one
+      if (uploadErrors[ingredientId]) {
+        setUploadErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[ingredientId];
+          return newErrors;
+        });
+      }
+      
+      // If we couldn't process all files due to the limit, show a warning
+      if (files.length > filesToProcess) {
+        setUploadErrors({
+          ...uploadErrors,
+          [ingredientId]: `Added ${filesToProcess} image(s). Skipped ${files.length - filesToProcess} due to the 4 image limit.`
+        });
+      }
+    }
+    
+    // Reset the file input value so the same files can be selected again if needed
+    if (fileInputRefs.current[ingredientId]) {
+      fileInputRefs.current[ingredientId].value = "";
+    }
+  };
+
+  // Function to upload a single image to the server
+  const uploadImageToServer = async (file, userId, screeningId) => {
+    // Create FormData for the upload
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // Add userId if available to make filename unique
+    if (userId) {
+      formData.append('userId', userId);
+
+      // Add screening ID if available
+      if (screeningId) {
+        formData.append('screeningId', screeningId);
+      }
+    }
+
+    // Make API request to upload
+    const UPLOAD_URL = `${import.meta.env.VITE_API_URL}/upload-image`;
+    const response = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return await response.json();
+  };
+
+  // Add function to remove an image
+  const removeImage = (ingredientId, imageUrl) => {
+    const ingredient = screening.ingredients[ingredientId];
+    if (!ingredient || !ingredient.images) return;
+
+    // Filter out the image to remove
+    const updatedImages = ingredient.images.filter(url => url !== imageUrl);
+
+    // Also remove from pending uploads if it's there
+    setPendingImageUploads(prev => {
+      const pendingForIngredient = prev[ingredientId] || [];
+      const updatedPending = pendingForIngredient.filter(item => item.objectUrl !== imageUrl);
+
+      // If we have an objectURL, revoke it to free up memory
+      if (imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
+      }
+
+      // If this ingredient no longer has any pending uploads, remove the key entirely
+      if (updatedPending.length === 0) {
+        const newPending = { ...prev };
+        delete newPending[ingredientId];
+        return newPending;
+      }
+
+      // Otherwise, update with the filtered list
+      return {
+        ...prev,
+        [ingredientId]: updatedPending
+      };
+    });
+
+    // Update the ingredient
+    updateIngredient(ingredientId, { images: updatedImages });
+  };
+
+  // Add upload progress tracking
+  const [uploadProgress, setUploadProgress] = useState({
+    isUploading: false,
+    message: ''
+  });
+
+  // Save handler that also handles image uploads
   const handleSave = async () => {
     // Perform comprehensive validation before saving
     const isValid = validateBeforeSave();
@@ -1231,8 +1553,93 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       return;
     }
 
+    // Create a deep copy of the screening data that we'll update with server URLs
+    const screeningToSave = JSON.parse(JSON.stringify(screening));
+
+    // Check if we have any pending image uploads
+    const hasPendingUploads = Object.keys(pendingImageUploads).length > 0;
+    
+    if (hasPendingUploads) {
+      try {
+        // Count total images to upload across all ingredients
+        let totalImagesToUpload = 0;
+        let uploadedImages = 0;
+        
+        // First pass to count total images
+        for (const ingredientId of Object.keys(pendingImageUploads)) {
+          totalImagesToUpload += pendingImageUploads[ingredientId].length;
+        }
+        
+        // Show loading message with total count
+        setUploadProgress({
+          isUploading: true,
+          message: `Preparing to upload ${totalImagesToUpload} image${totalImagesToUpload !== 1 ? 's' : ''}...`
+        });
+        
+        // Process all pending image uploads
+        for (const ingredientId of Object.keys(pendingImageUploads)) {
+          const pendingUploads = pendingImageUploads[ingredientId];
+          const ingredient = screeningToSave.ingredients[ingredientId];
+          
+          if (!ingredient || !ingredient.images) continue;
+          
+          // Keep track of which object URLs need to be replaced with server URLs
+          const urlReplacements = {};
+          
+          // Upload each pending image
+          for (const [index, { file, objectUrl }] of pendingUploads.entries()) {
+            uploadedImages++;
+            
+            // Update progress message with overall progress and per-ingredient progress
+            setUploadProgress({
+              isUploading: true,
+              message: `Uploading image ${uploadedImages} of ${totalImagesToUpload} (${index + 1}/${pendingUploads.length} for ingredient ${ingredientId})...`
+            });
+
+            // Upload the image to the server
+            const result = await uploadImageToServer(
+              file,
+              user?.username,
+              initialScreening?.id
+            );
+
+            // Store the mapping from object URL to server URL
+            urlReplacements[objectUrl] = result.url;
+
+            // Revoke the object URL to free memory
+            URL.revokeObjectURL(objectUrl);
+          }
+
+          // Replace object URLs with server URLs in the ingredient
+          ingredient.images = ingredient.images.map(url =>
+            urlReplacements[url] || url
+          );
+        }
+
+        // Clear pending uploads since they've now been processed
+        setPendingImageUploads({});
+
+        // Clear upload progress
+        setUploadProgress({
+          isUploading: false,
+          message: ''
+        });
+      } catch (error) {
+        console.error("Error uploading images:", error);
+
+        // Clear upload progress
+        setUploadProgress({
+          isUploading: false,
+          message: ''
+        });
+
+        alert(`Error uploading images: ${error.message}`);
+        return;
+      }
+    }
+
     // Get restaurant name for the title
-    const restaurantName = screening.restaurant.name || restaurantInfo.name;
+    const restaurantName = screeningToSave.restaurant.name || restaurantInfo.name;
     const screeningTitle = restaurantName || 'Untitled Screening';
 
     try {
@@ -1243,7 +1650,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         // Prepare data to send for update
         const updateData = {
           title: screeningTitle,
-          json_data: screening // This is the current state with all changes
+          json_data: screeningToSave // Use the updated screening with server URLs
         };
 
         // Make API request to update
@@ -1265,7 +1672,9 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         console.log('Screening updated successfully:', result);
 
         // Update originalScreening to match current screening (no longer dirty)
-        setOriginalScreening(screening);
+        setOriginalScreening(screeningToSave);
+        // Update the actual screening state with server URLs
+        setScreening(screeningToSave);
         setIsScreeningDirty(false);
 
         alert('Screening updated successfully!');
@@ -1281,7 +1690,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         const createData = {
           user_id: user.username,
           title: screeningTitle,
-          json_data: screening,
+          json_data: screeningToSave, // Use the updated screening with server URLs
           first_name: userAttributes?.name || '',
           last_name: userAttributes?.family_name || ''
         };
@@ -1307,12 +1716,14 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         // Update the component to reflect that this is now an existing screening
         const newScreeningData = {
           id: result.id,
-          json: screening,
+          json: screeningToSave,
           title: screeningTitle
         };
 
         // Update state to treat this as an existing screening from now on
-        setOriginalScreening(screening);
+        setOriginalScreening(screeningToSave);
+        // Update the actual screening state with server URLs
+        setScreening(screeningToSave);
         setIsScreeningDirty(false);
 
         alert('New screening created successfully!');
@@ -1822,13 +2233,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               </button>
               <button
                 className="action-button"
-                disabled={initialScreening ? !isScreeningDirty : false}
+                disabled={initialScreening ? !isScreeningDirty : false || uploadProgress.isUploading}
                 onClick={handleSave}
               >
-                {initialScreening ? 'Save' : 'Create'}
+                {uploadProgress.isUploading ? 'Uploading...' : (initialScreening ? 'Save' : 'Create')}
               </button>
             </div>
           </div>
+          {uploadProgress.isUploading && (
+            <div className="upload-progress-bar">
+              <div className="upload-progress-message">{uploadProgress.message}</div>
+              <div className="upload-progress-spinner"></div>
+            </div>
+          )}
         </div>
         <div className={`all-sql-row${showAllSql ? ' expanded' : ''}`}>
           <div className="all-sql-scroll">
@@ -2542,6 +2959,60 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                     />
                                     <div className="field-constraint">TEXT</div>
                                   </div>
+
+                                  {/* Add image upload UI for secondary ingredients in items */}
+                                  <div className="image-upload-container">
+                                    <button
+                                      type="button"
+                                      className="image-upload-button"
+                                      onClick={() => triggerFileInput(itemIngredient.id)}
+                                    >
+                                      <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 10.0001C9.10457 10.0001 10 9.10466 10 8.00009C10 6.89552 9.10457 6.00009 8 6.00009C6.89543 6.00009 6 6.89552 6 8.00009C6 9.10466 6.89543 10.0001 8 10.0001Z" fill="#333" />
+                                        <path d="M6 1.00009L4.5 3.00009H2C1.44772 3.00009 1 3.4478 1 4.00009V12.0001C1 12.5524 1.44772 13.0001 2 13.0001H14C14.5523 13.0001 15 12.5524 15 12.0001V4.00009C15 3.4478 14.5523 3.00009 14 3.00009H11.5L10 1.00009H6ZM8 11.5001C6.067 11.5001 4.5 9.93309 4.5 8.00009C4.5 6.06709 6.067 4.50009 8 4.50009C9.933 4.50009 11.5 6.06709 11.5 8.00009C11.5 9.93309 9.933 11.5001 8 11.5001Z" fill="#333" />
+                                      </svg>
+                                      Add Images
+                                    </button>
+                                    <input
+                                      ref={el => fileInputRefs.current[itemIngredient.id] = el}
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      style={{ display: 'none' }}
+                                      onChange={(e) => handleImageSelect(itemIngredient.id, e)}
+                                      capture="environment"
+                                    />
+                                    {uploadErrors[itemIngredient.id] && (
+                                      <div className="error-message">{uploadErrors[itemIngredient.id]}</div>
+                                    )}
+
+                                    {/* Show compression status */}
+                                    {compressionStatus[itemIngredient.id] && (
+                                      <div className="compression-status">{compressionStatus[itemIngredient.id]}</div>
+                                    )}
+
+                                    {/* Display uploaded images and loading state */}
+                                    <div className="image-preview-container">
+                                      {/* No loading indicator needed here anymore since we upload on save */}
+
+                                      {/* Show existing images */}
+                                      {itemIngredient.images && itemIngredient.images.length > 0 &&
+                                        itemIngredient.images.map((imageUrl, index) => (
+                                          <div key={index} className="image-preview-item">
+                                            <img src={imageUrl} alt={`Uploaded ${index}`} className="image-preview" />
+                                            <button
+                                              type="button"
+                                              className="remove-image-button"
+                                              onClick={() => removeImage(itemIngredient.id, imageUrl)}
+                                            >
+                                              &times;
+                                            </button>
+                                          </div>
+                                        ))
+                                      }
+                                    </div>
+                                  </div>
+
                                   <div className="secondary-ingredients">
                                     <p className="secondary-description">Child ingredients in this group will use this description: <strong>{itemIngredient.description || 'No description'}</strong></p>
                                     {getSecondaryIngredients(itemIngredient.secondary).map((secondaryIngredient) => (
@@ -2712,6 +3183,61 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       {isSecondary(ingredient) && ingredient.secondary && (
                         <div className="secondary-ingredients">
                           <p className="secondary-description">Child ingredients in this group will use this description: <strong>{ingredient.description || 'No description'}</strong></p>
+
+                          {/* Add image upload UI for secondary ingredients */}
+                          <div className="image-upload-container">
+                            <button
+                              type="button"
+                              className="image-upload-button"
+                              onClick={() => triggerFileInput(ingredient.id)}
+                            >
+                              <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 10.0001C9.10457 10.0001 10 9.10466 10 8.00009C10 6.89552 9.10457 6.00009 8 6.00009C6.89543 6.00009 6 6.89552 6 8.00009C6 9.10466 6.89543 10.0001 8 10.0001Z" fill="#333" />
+                                <path d="M6 1.00009L4.5 3.00009H2C1.44772 3.00009 1 3.4478 1 4.00009V12.0001C1 12.5524 1.44772 13.0001 2 13.0001H14C14.5523 13.0001 15 12.5524 15 12.0001V4.00009C15 3.4478 14.5523 3.00009 14 3.00009H11.5L10 1.00009H6ZM8 11.5001C6.067 11.5001 4.5 9.93309 4.5 8.00009C4.5 6.06709 6.067 4.50009 8 4.50009C9.933 4.50009 11.5 6.06709 11.5 8.00009C11.5 9.93309 9.933 11.5001 8 11.5001Z" fill="#333" />
+                              </svg>
+                              Add Images
+                            </button>
+                            <input
+                              ref={el => fileInputRefs.current[ingredient.id] = el}
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              style={{ display: 'none' }}
+                              onChange={(e) => handleImageSelect(ingredient.id, e)}
+                              capture="environment"
+                            />
+                            {uploadErrors[ingredient.id] && (
+                              <div className="error-message">{uploadErrors[ingredient.id]}</div>
+                            )}
+
+                            {/* Show compression status */}
+                            {compressionStatus[ingredient.id] && (
+                              <div className="compression-status">{compressionStatus[ingredient.id]}</div>
+                            )}
+
+                            {/* Display uploaded images and loading state */}
+                            <div className="image-preview-container">
+                              {/* No loading indicator needed here anymore since we upload on save */}
+
+                              {/* Show existing images and print image url */}
+                              {ingredient.images && ingredient.images.length > 0 &&
+                                ingredient.images.map((imageUrl, index) => {
+                                  return (
+                                  <div key={index} className="image-preview-item">
+                                    <img src={imageUrl} alt={`Uploaded ${index}`} className="image-preview" />
+                                    <button
+                                      type="button"
+                                      className="remove-image-button"
+                                      onClick={() => removeImage(ingredient.id, imageUrl)}
+                                    >
+                                      &times;
+                                    </button>
+                                  </div>
+                                )})
+                              }
+                            </div>
+                          </div>
+
                           {getSecondaryIngredients(ingredient.secondary).map((secondaryIngredient) => (
                             <div className="menu-entry ingredient-entry secondary-child" key={secondaryIngredient.id}>
                               <div className="form-group">
@@ -2782,7 +3308,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       <div className="ingredient-actions">
                         {isItem(ingredient) ? (
                           <>
-                                     
+
                             <button
                               type="button"
                               className="item-add-ingredient-button"
