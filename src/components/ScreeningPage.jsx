@@ -6,6 +6,8 @@ import 'prismjs/components/prism-sql';
 import 'prismjs/themes/prism.css';
 // Add import for UUID generation
 import { v4 as uuidv4 } from 'uuid';
+import Left from '../assets/O-left.svg';
+import Right from '../assets/O.svg';
 
 // Mock ingredients data for the selection box
 const mockIngredients = [
@@ -858,8 +860,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     Object.keys(screening.ingredients || {}).forEach(ingredientId => {
       const ingredient = screening.ingredients[ingredientId];
 
-      // Skip items (ingredient_id = 400000)
-      if (isItem(ingredient)) {
+      // Skip items (ingredient_id = 400000) and also ingredients with ID 40000
+      if (isItem(ingredient) || ingredient.ingredient_id == 40000) {
         return;
       }
 
@@ -2613,31 +2615,27 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                 ←&nbsp;&nbsp;&nbsp;Dashboard
               </button>
               
-              {/* TODO Navigator */}
-              {todoItems.length > 0 && (
-                <>
-                  <div className="header-separator"></div>
-                  <div className="todo-navigator">
-                    <button 
-                      className="todo-nav-arrow" 
-                      onClick={() => navigateToTodoItem(currentTodoIndex - 1)}
-                      disabled={currentTodoIndex <= 0}
-                    >
-                      &lt;
-                    </button>
-                    <span className="todo-count">
-                      {todoItems.length > 0 ? `${currentTodoIndex + 1}/${todoItems.length}` : '0/0'}
-                    </span>
-                    <button 
-                      className="todo-nav-arrow" 
-                      onClick={() => navigateToTodoItem(currentTodoIndex + 1)}
-                      disabled={currentTodoIndex >= todoItems.length - 1}
-                    >
-                      &gt;
-              </button>
-                  </div>
-                </>
-              )}
+              {/* Always render the separator and navigator but with conditional class for animation */}
+              <div className={`header-separator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}></div>
+              <div className={`todo-navigator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}>
+                <button 
+                  className="todo-nav-arrow" 
+                  onClick={() => navigateToTodoItem(currentTodoIndex - 1)}
+                  disabled={currentTodoIndex <= 0}
+                >
+                  <img src={Left} alt="Left" className="todo-nav-arrow-icon" />
+                </button>
+                <span className="todo-count">
+                  {todoItems.length > 0 ? `${currentTodoIndex + 1}` : '0/0'}
+                </span>
+                <button 
+                  className="todo-nav-arrow" 
+                  onClick={() => navigateToTodoItem(currentTodoIndex + 1)}
+                  disabled={currentTodoIndex >= todoItems.length - 1}
+                >
+                  <img src={Right} alt="Right" className="todo-nav-arrow-icon" /> 
+                </button>
+              </div>
             </div>
             <div className="right-actions">
               <div className="status-indicator" title={screeningStatus ? "Ready to submit" : "Missing required fields or todo items"}>

@@ -25,12 +25,16 @@
   background-color: #000000;
   color: white;
   border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 980px;
-  font-size: 1rem;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
+}
+
+.new-screening-button:focus {
+  outline: none;
 }
 
 .new-screening-button:hover {
@@ -53,7 +57,7 @@
 .screenings-table th {
   text-align: left;
   padding: 1rem 1.5rem;
-  font-weight: 300;
+  font-weight: 400;
   color: #000000;
   border-bottom: 0.5px solid #d2d2d7;
   background-color: #ffffff;
@@ -61,6 +65,7 @@
 
 .screenings-table td {
   padding: 1rem 1.5rem;
+  font-size: 0.85rem;
   color: #000000;
   font-weight: 300;
   border-bottom: 0.5px solid #d2d2d7;
@@ -77,6 +82,34 @@
 
 .screening-row:last-child td {
   border-bottom: none;
+}
+
+/* Status indicator styles for dashboard */
+.status-cell {
+  width: 50px;
+  text-align: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.status-complete {
+  background-color: #257228; /* Green for complete */
+}
+
+.status-incomplete {
+  background-color: #831c1c; /* Red for incomplete */
 }
 
 @media (max-width: 768px) {
@@ -97,8 +130,8 @@
 } 
 
 #screenings-title {
-  font-size: 1.5rem;
-  font-weight: 300;
+  font-size: 1.4rem;
+  font-weight: 500;
   color: #000000;
   margin: 0;
 }

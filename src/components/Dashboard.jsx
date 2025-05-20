@@ -40,7 +40,7 @@ const Dashboard = ({ screeningData }) => {
         {screenings.length === 0 ? (
           <tbody style={{ textAlign: 'center' }}>
             <tr>
-              <td colSpan="3" className="no-screenings-message">No screenings associated with your account</td>
+              <td colSpan="4" className="no-screenings-message">No screenings associated with your account</td>
             </tr>
           </tbody>
         ) : (
@@ -52,6 +52,7 @@ const Dashboard = ({ screeningData }) => {
                   <th>Title</th>
                   <th>Owner</th>
                   <th>Last Modified</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -64,6 +65,11 @@ const Dashboard = ({ screeningData }) => {
                     <td>{screening.title}</td>
                     <td>{screening.owner}</td>
                     <td>{formatDate(screening.lastModified)}</td>
+                    <td className="status-cell">
+                      <div className="status-indicator" title={screening.json?.status ? "Ready to submit" : "Missing required fields or todo items"}>
+                        <div className={`status-dot ${screening.json?.status ? 'status-complete' : 'status-incomplete'}`}></div>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
