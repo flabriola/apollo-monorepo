@@ -903,8 +903,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
         if (parentSecondary && parentSecondary.description) {
           if (isInsideItem && parentItem && parentItem.description) {
-            // For secondary ingredients inside items: {secondary description}item's description
-            description = `{${parentSecondary.description}}${parentItem.description}`;
+            // For secondary ingredients inside items: [{secondary description}]item's description
+            description = `[{${parentSecondary.description}}]${parentItem.description}`;
           } else {
             // Use the parent's description in curly brackets (standard secondary)
             description = `{${parentSecondary.description}}`;
@@ -2629,6 +2629,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareModalData, setShareModalData] = useState(null);
   const [shareTitle, setShareTitle] = useState('');
+  
+  // Add state for shared items dropdown in items
+  const [showSharedDropdown, setShowSharedDropdown] = useState({});
+  const dropdownRef = useRef({});
 
   // Initialize shared items from screening data
   useEffect(() => {
@@ -2668,14 +2672,26 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     if (isItem) {
       childIngredients = getItemIngredients(shareModalData.item);
     } else if (isSecondary) {
+      // For secondary ingredients, get their child ingredients
+      // If this secondary is inside an item, we still want to share it as an independent secondary
       childIngredients = getSecondaryIngredients(shareModalData.secondary);
     }
+
+    // Create a clean version of the main ingredient without item relationships
+    // This ensures that when we share a secondary ingredient that's inside an item,
+    // it becomes an independent secondary ingredient
+    const cleanMainIngredient = {
+      ...shareModalData,
+      // Remove item-related properties to make it independent
+      ingredient_item: undefined,
+      item: undefined
+    };
 
     const sharedItem = {
       id: Date.now(), // Simple ID generation
       title,
       type: isItem ? 'item' : 'secondary',
-      mainIngredient: shareModalData,
+      mainIngredient: cleanMainIngredient,
       childIngredients,
       createdAt: new Date().toISOString()
     };
@@ -2730,7 +2746,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         ...childIngredient,
         id: childId,
         dish: currentDishId,
-        dish_id: dishIdsByDishKey[currentDishId] || ''
+        dish_id: dishIdsByDishKey[currentDishId] || '',
+        // Clean any item relationships for child ingredients
+        ingredient_item: undefined,
+        item: undefined
       };
 
       if (sharedItem.type === 'item') {
@@ -2762,6 +2781,87 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     setIsScreeningDirty(true);
   };
+
+  // Functions for shared items dropdown in items
+  const toggleSharedDropdown = (itemId) => {
+    setShowSharedDropdown(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
+
+  const addSharedSecondaryToItem = (sharedItem, itemId) => {
+    if (!currentDishId || sharedItem.type !== 'secondary') return;
+
+    // Add the shared secondary ingredient to the item
+    const mainIngredientId = Date.now();
+    const newMainIngredient = {
+      ...sharedItem.mainIngredient,
+      id: mainIngredientId,
+      dish: currentDishId,
+      dish_id: dishIdsByDishKey[currentDishId] || '',
+      ingredient_item: itemId // Link to the item
+    };
+
+    // Assign a new secondary number
+    const maxSecondary = Math.max(0, ...Object.values(screening.ingredients || {})
+      .filter(ing => ing.secondary)
+      .map(ing => ing.secondary));
+    newMainIngredient.secondary = maxSecondary + 1;
+
+    // Add child ingredients
+    const newIngredients = { ...screening.ingredients };
+    newIngredients[mainIngredientId] = newMainIngredient;
+
+    sharedItem.childIngredients.forEach((childIngredient, index) => {
+      const childId = Date.now() + index + 1;
+      const newChildIngredient = {
+        ...childIngredient,
+        id: childId,
+        dish: currentDishId,
+        dish_id: dishIdsByDishKey[currentDishId] || '',
+        secondary_ingredient: newMainIngredient.secondary,
+        // Clean any item relationships for child ingredients
+        ingredient_item: undefined,
+        item: undefined
+      };
+
+      newIngredients[childId] = newChildIngredient;
+    });
+
+    setScreening(prev => ({
+      ...prev,
+      ingredients: newIngredients
+    }));
+
+    setIsScreeningDirty(true);
+    
+    // Close the dropdown
+    setShowSharedDropdown(prev => ({
+      ...prev,
+      [itemId]: false
+    }));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      Object.keys(showSharedDropdown).forEach(itemId => {
+        if (showSharedDropdown[itemId] && dropdownRef.current[itemId] && 
+            !dropdownRef.current[itemId].contains(event.target)) {
+          setShowSharedDropdown(prev => ({
+            ...prev,
+            [itemId]: false
+          }));
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSharedDropdown]);
 
   return (
     <div className="screening-page">
@@ -3623,7 +3723,17 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                 // This is a secondary ingredient within an item
                                 <div className="secondary-in-item">
                                   <div className="form-group">
-                                    <label>Secondary Ingredient</label>
+                                    <div className="ingredient-header">
+                                      <label>Secondary Ingredient</label>
+                                      <button
+                                        type="button"
+                                        className="share-button"
+                                        onClick={() => openShareModal(itemIngredient)}
+                                        title="Share this secondary ingredient"
+                                      >
+                                        <img src={SharedItemsIcon} alt="Share" />
+                                      </button>
+                                    </div>
                                     <IngredientSelector
                                       selectedId={itemIngredient.ingredient_id || ''}
                                       onChange={(e) => handleIngredientInputChange(itemIngredient.id, e)}
@@ -4000,6 +4110,46 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                       <div className="ingredient-actions">
                         {isItem(ingredient) ? (
                           <>
+                            {/* Shared Items Dropdown for Items */}
+                            <div 
+                              className="shared-items-dropdown-container" 
+                              ref={el => dropdownRef.current[ingredient.id] = el}
+                              data-open={showSharedDropdown[ingredient.id] || false}
+                            >
+                              <button
+                                type="button"
+                                className="shared-items-dropdown-button"
+                                onClick={() => toggleSharedDropdown(ingredient.id)}
+                                disabled={sharedItems.filter(item => item.type === 'secondary').length === 0}
+                                title="Add shared secondary ingredient to this item"
+                              >
+                                <img src={SharedItemsIcon} alt="Shared Items" />
+                                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              </button>
+                              {showSharedDropdown[ingredient.id] && (
+                                <div className="shared-items-dropdown-menu">
+                                  {sharedItems.filter(item => item.type === 'secondary').length === 0 ? (
+                                    <div className="shared-items-dropdown-empty">No shared secondary ingredients available</div>
+                                  ) : (
+                                    sharedItems
+                                      .filter(item => item.type === 'secondary')
+                                      .map(sharedItem => (
+                                        <button
+                                          key={sharedItem.id}
+                                          className="shared-items-dropdown-item"
+                                          onClick={() => addSharedSecondaryToItem(sharedItem, ingredient.item)}
+                                          title={`Add ${sharedItem.title} to this item`}
+                                        >
+                                          {sharedItem.title}
+                                        </button>
+                                      ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
                             <button
                               type="button"
                               className="cc-button"
