@@ -998,6 +998,32 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     setShowIngredientSqlBox(!showIngredientSqlBox);
   };
 
+  // Helper function to calculate visible pagination dots
+  const getVisiblePaginationItems = (items, currentItem, maxVisible = 10) => {
+    if (items.length <= maxVisible) {
+      return items;
+    }
+
+    const currentIndex = items.findIndex(item => 
+      typeof item === 'object' ? item.id === currentItem : item === currentItem
+    );
+    
+    if (currentIndex === -1) {
+      return items.slice(0, maxVisible);
+    }
+
+    const halfVisible = Math.floor(maxVisible / 2);
+    let startIndex = Math.max(0, currentIndex - halfVisible);
+    let endIndex = Math.min(items.length, startIndex + maxVisible);
+    
+    // Adjust if we're near the end
+    if (endIndex - startIndex < maxVisible) {
+      startIndex = Math.max(0, endIndex - maxVisible);
+    }
+    
+    return items.slice(startIndex, endIndex);
+  };
+
   // Update navigation functions for menus
   const nextMenu = () => {
     const menuIds = Object.keys(screening.menus || {})
@@ -2957,7 +2983,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             &larr;
           </button>
           <div className="pagination-dots">
-            {Object.keys(screening.menus || {}).map((menuId) => (
+            {getVisiblePaginationItems(
+              Object.keys(screening.menus || {}),
+              currentMenuId?.toString()
+            ).map((menuId) => (
               <button
                 key={menuId}
                 className={`pagination-dot ${parseInt(menuId) === currentMenuId ? 'active' : ''}`}
@@ -3187,7 +3216,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             &larr;
           </button>
           <div className="pagination-dots">
-            {getCurrentMenuDishes().map((dish) => (
+            {getVisiblePaginationItems(
+              getCurrentMenuDishes(),
+              currentDishId
+            ).map((dish) => (
               <button
                 key={dish.id}
                 className={`pagination-dot ${dish.id === currentDishId ? 'active' : ''}`}
