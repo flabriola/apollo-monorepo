@@ -3002,7 +3002,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                     onClick={() => addSharedItemToDish(sharedItem)}
                     title={`Add ${sharedItem.title} to current dish`}
                   >
-                    {sharedItem.title}
+                    <span className="shared-item-type">{sharedItem.type === 'item' ? 'I ' : ''}</span> {sharedItem.title}
                   </button>
                   <button
                     className="shared-item-remove"

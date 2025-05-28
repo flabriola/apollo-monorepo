@@ -1736,6 +1736,14 @@
   transition: transform 0.32s ease;
 }
 
+.shared-item-type {
+  font-weight: 200;
+  color: #bebebe;
+  font-family: 'Georgia', 'Times New Roman', 'Times', 'serif';
+  font-style: italic;
+  margin-right: 0.2rem;
+}
+
 .shared-items-dropdown-container[data-open="true"] .shared-items-dropdown-button svg {
   transform: rotate(180deg);
 }
@@ -1765,6 +1773,8 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-bottom: 1px solid #eee;
+  font-size: 0.7rem;
+  font-weight: 400;
 }
 
 .shared-items-dropdown-item:last-child {
