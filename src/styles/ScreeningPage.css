@@ -1582,8 +1582,7 @@
 }
 
 .shared-item-remove:hover {
-  background: #cc0000;
-  transform: scale(1.1);
+  color: #000000;
 }
 
 .shared-item-remove:active {

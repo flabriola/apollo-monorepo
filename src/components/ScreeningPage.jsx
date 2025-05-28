@@ -678,6 +678,9 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
     // Add a new ingredient to the current dish in the main screening state
     addNewIngredient(currentDishId);
+
+    // Scroll to the bottom of the page
+    window.scrollTo(0, document.body.scrollHeight);
   };
 
   // Update handle ingredient input changes
@@ -2178,7 +2181,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       dish_id: dish_id,
       ingredient_id: '',
       ingredient_item: itemNumber, // Use the item number, not the ID
-      private: false,
+      private: true,
       description: ''
     };
 
@@ -2249,7 +2252,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       dish_id: dish_id,
       ingredient_id: '',
       secondary_ingredient: secondaryNumber, // Use the secondary number, not the ID
-      private: false, // Default to false for child ingredients of secondary
+      private: true, // Default to true for child ingredients of secondary
       description: '' // Description will be derived from the secondary ingredient
     };
 
@@ -4291,7 +4294,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           </div>
 
           {/* Ingredients section actions */}
-          <div className="section-actions">
+          <div className="section-actions" id="bottom-of-page">
             <button
               className="sql-button main-add-ingredient-button"
               type="button"
