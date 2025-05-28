@@ -1497,3 +1497,191 @@
 .status-incomplete {
   background-color: #952626; /* Red for incomplete */
 }
+
+/* Shared Items Styles */
+.shared-items-bar {
+  position: fixed;
+  width: 100%;
+  top: 101px;
+  z-index: 100;
+  margin: 0 auto;
+}
+
+.shared-items-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1200px;
+  padding: 1rem 4rem;
+}
+
+
+.shared-items-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.shared-items-icon img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.shared-items-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.shared-item-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.shared-item-button {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.shared-item-button:focus{
+  outline: none;
+}
+
+.shared-item-button:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.shared-item-remove {
+  position: absolute;
+  top: 34px;
+  color: #6d6d6d;
+  background: none;
+  font-size: 10px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: color 0.2s ease;
+}
+
+.shared-item-container:hover .shared-item-remove {
+  display: flex;
+}
+
+.shared-item-remove:hover {
+  outline: none;
+  border: none;
+  color: #434343;
+}
+
+/* Share Button */
+.share-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin-left: 8px;
+  cursor: pointer;
+  border-radius: 400px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  vertical-align: middle;
+}
+
+.share-button:hover {
+  transform: scale(1.15);
+}
+
+.share-button:focus {
+  outline: none;
+}
+
+.share-button img {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+.share-button:hover img {
+  opacity: 0.8;
+}
+
+/* Share Modal */
+.share-modal {
+  width: 400px;
+  max-width: 90vw;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.share-modal .modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.share-modal .field-info {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.share-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.share-modal .cancel-button {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.share-modal .cancel-button:hover {
+  background: #e9ecef;
+}
+
+.share-modal .action-button {
+  background: #000000;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.share-modal .action-button:focus{
+  outline: none;
+}
+
+.share-modal .action-button:hover{
+  background: #393939;
+  border-color: #000000;
+}
+
+.share-modal .action-button:disabled {
+  background: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+}

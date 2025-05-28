@@ -8,6 +8,7 @@ import 'prismjs/themes/prism.css';
 import { v4 as uuidv4 } from 'uuid';
 import Left from '../assets/O-left.svg';
 import Right from '../assets/O.svg';
+import SharedItemsIcon from '../assets/shared-items.svg';
 
 // Mock ingredients data for the selection box
 const mockIngredients = [
@@ -203,7 +204,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       });
       setDishIdsByDishKey(dishIdMap);
       // --- END FIX ---
-      
+
       // Load todo items if they exist
       if (initialScreening.json.todo_list && Array.isArray(initialScreening.json.todo_list)) {
         setTodoItems(initialScreening.json.todo_list);
@@ -906,7 +907,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             description = `{${parentSecondary.description}}${parentItem.description}`;
           } else {
             // Use the parent's description in curly brackets (standard secondary)
-          description = `{${parentSecondary.description}}`;
+            description = `{${parentSecondary.description}}`;
           }
         }
 
@@ -1004,10 +1005,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       return items;
     }
 
-    const currentIndex = items.findIndex(item => 
+    const currentIndex = items.findIndex(item =>
       typeof item === 'object' ? item.id === currentItem : item === currentItem
     );
-    
+
     if (currentIndex === -1) {
       return items.slice(0, maxVisible);
     }
@@ -1015,12 +1016,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     const halfVisible = Math.floor(maxVisible / 2);
     let startIndex = Math.max(0, currentIndex - halfVisible);
     let endIndex = Math.min(items.length, startIndex + maxVisible);
-    
+
     // Adjust if we're near the end
     if (endIndex - startIndex < maxVisible) {
       startIndex = Math.max(0, endIndex - maxVisible);
     }
-    
+
     return items.slice(startIndex, endIndex);
   };
 
@@ -1650,7 +1651,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     if (!isValid) {
       // Call validateBeforeSave again with true just to log errors to console
       validateBeforeSave(true);
-      
+
       // Just inform the user that the screening is not complete without preventing save
       const confirmSave = window.confirm("The screening has validation errors. Do you want to save it anyway?");
       if (!confirmSave) {
@@ -2440,13 +2441,13 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const [todoItems, setTodoItems] = useState([]);
   const [currentTodoIndex, setCurrentTodoIndex] = useState(0);
   const [showTodoList, setShowTodoList] = useState(false);
-  
+
   // Create refs for elements that need to be scrolled to
   const restaurantInfoRef = useRef(null);
   const menuNameRefs = useRef({});
   const dishNameRefs = useRef({});
   const ingredientRefs = useRef({});
-  
+
   // Initialize refs when component mounts or when ingredients change
   useEffect(() => {
     // Keep ingredientRefs up to date with all current ingredients
@@ -2459,24 +2460,24 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       });
     }
   }, [screening.ingredients]);
-  
+
   // Function to add an item to the TODO list
   const addTodoItem = (id, type, label, menuId, dishId) => {
     // Check if item already exists
     const existingIndex = todoItems.findIndex(item => item.id === id);
-    
+
     if (existingIndex !== -1) {
       // Remove it if it already exists (toggle behavior)
       const newItems = [...todoItems];
       newItems.splice(existingIndex, 1);
       setTodoItems(newItems);
-      
+
       // Also update in screening data
       setScreening(prev => ({
         ...prev,
         todo_list: newItems
       }));
-      
+
       if (newItems.length > 0 && currentTodoIndex >= newItems.length) {
         setCurrentTodoIndex(newItems.length - 1);
       }
@@ -2490,10 +2491,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         dishId,
         addedAt: Date.now()
       };
-      
+
       const newItems = [...todoItems, newItem];
       setTodoItems(newItems);
-      
+
       // Also update in screening data
       setScreening(prev => ({
         ...prev,
@@ -2501,34 +2502,34 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       }));
     }
   };
-  
+
   // Function to remove a todo item
   const removeTodoItem = (index) => {
     const newItems = [...todoItems];
     newItems.splice(index, 1);
     setTodoItems(newItems);
-    
+
     // Also update in screening data
     setScreening(prev => ({
       ...prev,
       todo_list: newItems
     }));
-    
+
     if (newItems.length > 0 && currentTodoIndex >= newItems.length) {
       setCurrentTodoIndex(newItems.length - 1);
     }
   };
-  
+
   // Function to navigate to a specific todo item
   const navigateToTodoItem = (index) => {
     if (index < 0 || index >= todoItems.length) return;
-    
+
     setCurrentTodoIndex(index);
     const item = todoItems[index];
-    
+
     // Calculate header height for offset (secondary header + main header)
     const headerOffset = 150; // Increased offset to ensure elements aren't hidden under header
-    
+
     // Custom scroll function with offset
     const scrollWithOffset = (element) => {
       if (!element) {
@@ -2538,13 +2539,13 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
+
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
       });
     };
-    
+
     // Scroll to the appropriate element based on the type
     if (item.type === 'restaurant') {
       setTimeout(() => {
@@ -2569,7 +2570,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       // First go to the correct menu and dish
       goToMenu(item.menuId);
       goToDish(item.dishId);
-      
+
       // Then scroll to the element with a delay to ensure navigation completes
       setTimeout(() => {
         const ingredientElement = ingredientRefs.current[item.id];
@@ -2581,19 +2582,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       }, 300); // Slightly longer delay for ingredients to ensure dish navigation completes
     }
   };
-  
+
   // Helper function to check if an item is in the todo list
   const isInTodoList = (id) => {
     return todoItems.some(item => item.id === id);
   };
-  
+
   // Create a reusable component for clickable labels
   const ClickableLabel = ({ id, type, children, menuId, dishId }) => {
     const isInList = isInTodoList(id);
-    
+
     return (
-      <span 
-        className="label-button" 
+      <span
+        className="label-button"
         onClick={() => addTodoItem(id, type, children, menuId, dishId)}
       >
         {children}
@@ -2604,24 +2605,163 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
   // Add state variable for tracking screening status
   const [screeningStatus, setScreeningStatus] = useState(false);
-  
+
   // Effect to update screening status when todo list or validation changes
   useEffect(() => {
     // Check if the screening is valid
     const isValid = validateBeforeSave(false); // Pass false to prevent showing alerts
-    
+
     // Set status to true only if todo list is empty AND screening is valid
     const newStatus = todoItems.length === 0 && isValid;
-    
+
     // Update the status state
     setScreeningStatus(newStatus);
-    
+
     // Also update the status in the screening data
     setScreening(prev => ({
       ...prev,
       status: newStatus
     }));
   }, [todoItems, screening.restaurant, screening.menus, screening.dishes, screening.ingredients]);
+
+  // Add state for shared items functionality
+  const [sharedItems, setSharedItems] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareModalData, setShareModalData] = useState(null);
+  const [shareTitle, setShareTitle] = useState('');
+
+  // Initialize shared items from screening data
+  useEffect(() => {
+    if (initialScreening?.json?.shared_items) {
+      setSharedItems(initialScreening.json.shared_items);
+    }
+  }, [initialScreening]);
+
+  // Functions for shared items functionality
+  const openShareModal = (ingredient) => {
+    setShareModalData(ingredient);
+    setShareTitle('');
+    setShowShareModal(true);
+  };
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
+    setShareModalData(null);
+    setShareTitle('');
+  };
+
+  const handleShareItem = () => {
+    if (!shareModalData) return;
+
+    const isItem = shareModalData.ingredient_id == 400000;
+    const isSecondary = shareModalData.ingredient_id == 400001;
+
+    let title = shareTitle;
+    if (isSecondary && !title) {
+      title = shareModalData.description || 'Secondary Ingredient';
+    }
+
+    if (!title) return;
+
+    // Get all child ingredients for this item/secondary
+    let childIngredients = [];
+    if (isItem) {
+      childIngredients = getItemIngredients(shareModalData.item);
+    } else if (isSecondary) {
+      childIngredients = getSecondaryIngredients(shareModalData.secondary);
+    }
+
+    const sharedItem = {
+      id: Date.now(), // Simple ID generation
+      title,
+      type: isItem ? 'item' : 'secondary',
+      mainIngredient: shareModalData,
+      childIngredients,
+      createdAt: new Date().toISOString()
+    };
+
+    const newSharedItems = [...sharedItems, sharedItem];
+    setSharedItems(newSharedItems);
+
+    // Update screening data
+    setScreening(prev => ({
+      ...prev,
+      shared_items: newSharedItems
+    }));
+
+    closeShareModal();
+  };
+
+  const addSharedItemToDish = (sharedItem) => {
+    if (!currentDishId) return;
+
+    // Add the main ingredient first
+    const mainIngredientId = Date.now();
+    const newMainIngredient = {
+      ...sharedItem.mainIngredient,
+      id: mainIngredientId,
+      dish: currentDishId,
+      dish_id: dishIdsByDishKey[currentDishId] || ''
+    };
+
+    // If it's an item, assign a new item number
+    if (sharedItem.type === 'item') {
+      const maxItem = Math.max(0, ...Object.values(screening.ingredients || {})
+        .filter(ing => ing.item)
+        .map(ing => ing.item));
+      newMainIngredient.item = maxItem + 1;
+    }
+
+    // If it's a secondary, assign a new secondary number
+    if (sharedItem.type === 'secondary') {
+      const maxSecondary = Math.max(0, ...Object.values(screening.ingredients || {})
+        .filter(ing => ing.secondary)
+        .map(ing => ing.secondary));
+      newMainIngredient.secondary = maxSecondary + 1;
+    }
+
+    // Add child ingredients
+    const newIngredients = { ...screening.ingredients };
+    newIngredients[mainIngredientId] = newMainIngredient;
+
+    sharedItem.childIngredients.forEach((childIngredient, index) => {
+      const childId = Date.now() + index + 1;
+      const newChildIngredient = {
+        ...childIngredient,
+        id: childId,
+        dish: currentDishId,
+        dish_id: dishIdsByDishKey[currentDishId] || ''
+      };
+
+      if (sharedItem.type === 'item') {
+        newChildIngredient.ingredient_item = newMainIngredient.item;
+      } else if (sharedItem.type === 'secondary') {
+        newChildIngredient.secondary_ingredient = newMainIngredient.secondary;
+      }
+
+      newIngredients[childId] = newChildIngredient;
+    });
+
+    setScreening(prev => ({
+      ...prev,
+      ingredients: newIngredients
+    }));
+
+    setIsScreeningDirty(true);
+  };
+
+  const removeSharedItem = (sharedItemId) => {
+    const newSharedItems = sharedItems.filter(item => item.id !== sharedItemId);
+    setSharedItems(newSharedItems);
+
+    // Update screening data
+    setScreening(prev => ({
+      ...prev,
+      shared_items: newSharedItems
+    }));
+
+    setIsScreeningDirty(true);
+  };
 
   return (
     <div className="screening-page">
@@ -2640,12 +2780,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               }}>
                 ←&nbsp;&nbsp;&nbsp;Dashboard
               </button>
-              
+
               {/* Always render the separator and navigator but with conditional class for animation */}
               <div className={`header-separator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}></div>
               <div className={`todo-navigator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}>
-                <button 
-                  className="todo-nav-arrow" 
+                <button
+                  className="todo-nav-arrow"
                   onClick={() => navigateToTodoItem(currentTodoIndex - 1)}
                   disabled={currentTodoIndex <= 0}
                 >
@@ -2654,12 +2794,12 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                 <span className="todo-count">
                   {todoItems.length > 0 ? `${currentTodoIndex + 1}` : '0/0'}
                 </span>
-                <button 
-                  className="todo-nav-arrow" 
+                <button
+                  className="todo-nav-arrow"
                   onClick={() => navigateToTodoItem(currentTodoIndex + 1)}
                   disabled={currentTodoIndex >= todoItems.length - 1}
                 >
-                  <img src={Right} alt="Right" className="todo-nav-arrow-icon" /> 
+                  <img src={Right} alt="Right" className="todo-nav-arrow-icon" />
                 </button>
               </div>
             </div>
@@ -2746,12 +2886,47 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           </div>
         </div>
       </div>
+
+      {/* Shared Items Bar */}
+      {sharedItems.length > 0 && (
+        <div className="shared-items-bar">
+          <div className="shared-items-container">
+            <div className="shared-items-icon">
+              <img src={SharedItemsIcon} alt="Shared Items" />
+            </div>
+            <div className="shared-items-list">
+              {sharedItems.map((sharedItem) => (
+                <div key={sharedItem.id} className="shared-item-container">
+                  <button
+                    className="shared-item-button"
+                    onClick={() => addSharedItemToDish(sharedItem)}
+                    title={`Add ${sharedItem.title} to current dish`}
+                  >
+                    {sharedItem.title}
+                  </button>
+                  <button
+                    className="shared-item-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeSharedItem(sharedItem.id);
+                    }}
+                    title={`Remove ${sharedItem.title} from shared items`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={`screening-page-content${showAllSql ? ' blur' : ''}`}>
         <div className="section-header">
           <h2 ref={restaurantInfoRef}>
-            <ClickableLabel 
-              id="restaurant-info" 
-              type="restaurant" 
+            <ClickableLabel
+              id="restaurant-info"
+              type="restaurant"
             >
               Restaurant Information
             </ClickableLabel>
@@ -2804,19 +2979,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             </div>
             {showSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateSqlQuery())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
                 </div>
               </div>
             )}
@@ -2876,13 +3051,13 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               {/* Display only the current menu */}
               {currentMenuId && (
                 <div className="menu-entry">
-                  <div className="form-group" ref={el => { 
+                  <div className="form-group" ref={el => {
                     if (currentMenuId !== null) menuNameRefs.current[currentMenuId] = el;
                   }}>
                     <label>
-                      <ClickableLabel 
-                        id={`menu-name-${currentMenuId}`} 
-                        type="menu" 
+                      <ClickableLabel
+                        id={`menu-name-${currentMenuId}`}
+                        type="menu"
                         menuId={currentMenuId}
                       >
                         Name
@@ -2947,19 +3122,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
 
             {showMenuSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateMenuSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedMenuSql }} />
                 </div>
               </div>
             )}
@@ -3067,13 +3242,13 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               {/* Current dish (paginated) */}
               {currentDishId && (
                 <div className="menu-entry">
-                  <div className="form-group" ref={el => { 
+                  <div className="form-group" ref={el => {
                     if (currentDishId !== null) dishNameRefs.current[currentDishId] = el;
                   }}>
                     <label>
-                      <ClickableLabel 
-                        id={`dish-name-${currentDishId}`} 
-                        type="dish" 
+                      <ClickableLabel
+                        id={`dish-name-${currentDishId}`}
+                        type="dish"
                         menuId={currentMenuId}
                         dishId={currentDishId}
                       >
@@ -3181,19 +3356,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             {/* Dish SQL Box */}
             {showDishSqlBox && (
               <div className="code-box-container">
-              <div className="code-box">
-                <div className="code-box-header">
-                  <span className="code-box-label">sql</span>
-                  <div className="code-box-actions">
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
-                      Copy
-                    </button>
-                    <button className="edit-button">
-                      Edit
-                    </button>
+                <div className="code-box">
+                  <div className="code-box-header">
+                    <span className="code-box-label">sql</span>
+                    <div className="code-box-actions">
+                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateDishSql())}>
+                        Copy
+                      </button>
+                      <button className="edit-button">
+                        Edit
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
+                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedDishSql }} />
                 </div>
               </div>
             )}
@@ -3286,23 +3461,35 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                 {/* Current dish's ingredients */}
                 {getCurrentDishIngredients().map((ingredient, idx) => (
                   <React.Fragment key={ingredient.id}>
-                    <div 
+                    <div
                       className="menu-entry ingredient-entry"
                       ref={el => {
                         if (ingredient.id) ingredientRefs.current[ingredient.id] = el;
                       }}
                     >
                       <div className="form-group">
-                        <label>
-                          <ClickableLabel 
-                            id={ingredient.id} 
-                            type="ingredient" 
-                            menuId={currentMenuId}
-                            dishId={currentDishId}
-                          >
-                            {isItem(ingredient) ? 'Item' : isSecondary(ingredient) ? 'Secondary Ingredient' : 'Ingredient'}
-                          </ClickableLabel>
-                        </label>
+                        <div className="ingredient-header">
+                          <label>
+                            <ClickableLabel
+                              id={ingredient.id}
+                              type="ingredient"
+                              menuId={currentMenuId}
+                              dishId={currentDishId}
+                            >
+                              {isItem(ingredient) ? 'Item' : isSecondary(ingredient) ? 'Secondary Ingredient' : 'Ingredient'}
+                            </ClickableLabel>
+                          </label>
+                          {(isItem(ingredient) || isSecondary(ingredient)) && (
+                            <button
+                              type="button"
+                              className="share-button"
+                              onClick={() => openShareModal(ingredient)}
+                              title={`Share this ${isItem(ingredient) ? 'item' : 'secondary ingredient'}`}
+                            >
+                              <img src={SharedItemsIcon} alt="Share" />
+                            </button>
+                          )}
+                        </div>
                         <IngredientSelector
                           selectedId={ingredient.ingredient_id || ''}
                           onChange={(e) => {
@@ -3884,30 +4071,30 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                 ? `CC(${ingredient.cc.length})`
                                 : "CC"}
                             </button>
-                          <button
-                            type="button"
-                            className="remove-ingredient-under-button"
-                            onClick={() => {
-                              const ingredientName = ingredient.ingredient_id
-                                ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
-                                : 'this ingredient';
+                            <button
+                              type="button"
+                              className="remove-ingredient-under-button"
+                              onClick={() => {
+                                const ingredientName = ingredient.ingredient_id
+                                  ? (ingredientList.find(i => i.id == ingredient.ingredient_id)?.name || 'this ingredient')
+                                  : 'this ingredient';
 
-                              if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
-                                // Remove the ingredient from the screening data
-                                setScreening(prev => {
-                                  const newIngredients = { ...prev.ingredients };
-                                  delete newIngredients[ingredient.id];
-                                  return {
-                                    ...prev,
-                                    ingredients: newIngredients
-                                  };
-                                });
-                              }
-                            }}
-                            aria-label="Remove ingredient"
-                          >
-                            Remove Ingredient
-                          </button>
+                                if (window.confirm(`Are you sure you want to remove ${ingredientName}?`)) {
+                                  // Remove the ingredient from the screening data
+                                  setScreening(prev => {
+                                    const newIngredients = { ...prev.ingredients };
+                                    delete newIngredients[ingredient.id];
+                                    return {
+                                      ...prev,
+                                      ingredients: newIngredients
+                                    };
+                                  });
+                                }
+                              }}
+                              aria-label="Remove ingredient"
+                            >
+                              Remove Ingredient
+                            </button>
                           </div>
                         )}
                       </div>
@@ -3920,19 +4107,19 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               {/* Ingredients SQL Box */}
               {showIngredientSqlBox && (
                 <div className="code-box-container">
-                <div className="code-box">
-                  <div className="code-box-header">
-                    <span className="code-box-label">sql</span>
-                    <div className="code-box-actions">
-                      <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
-                        Copy
-                      </button>
-                      <button className="edit-button">
-                        Edit
-                      </button>
+                  <div className="code-box">
+                    <div className="code-box-header">
+                      <span className="code-box-label">sql</span>
+                      <div className="code-box-actions">
+                        <button className="copy-button" onClick={() => navigator.clipboard.writeText(generateIngredientSql())}>
+                          Copy
+                        </button>
+                        <button className="edit-button">
+                          Edit
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
+                    <pre className="sql-query language-sql" dangerouslySetInnerHTML={{ __html: highlightedIngredientSql }} />
                   </div>
                   <div className="code-box">
                     <div className="code-box-header">
@@ -3968,7 +4155,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           </div>
         </div>
       </div>
-      
+
       {/* TODO List */}
       <div className={`todo-list-container ${showTodoList ? 'open' : ''}`}>
         <div className="todo-list-header">
@@ -3982,15 +4169,15 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
             <li className="todo-item">No items in todo list</li>
           ) : (
             todoItems.map((item, index) => (
-              <li 
-                key={item.id} 
+              <li
+                key={item.id}
                 className={`todo-item ${index === currentTodoIndex ? 'active' : ''}`}
                 onClick={() => navigateToTodoItem(index)}
               >
                 <div className={`todo-item-icon ${item.type}`}></div>
                 {item.label}
-                <button 
-                  className="todo-item-remove" 
+                <button
+                  className="todo-item-remove"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeTodoItem(index);
@@ -4003,11 +4190,11 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
           )}
         </ul>
       </div>
-      
+
       <button className="todo-list-toggle" onClick={() => setShowTodoList(!showTodoList)}>
         {todoItems.length > 0 ? todoItems.length : '☰'}
       </button>
-      
+
       {/* CC Modal */}
       {showCCModal && (
         <div className="modal-overlay">
@@ -4125,6 +4312,54 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="modal-overlay" onClick={closeShareModal}>
+          <div className="modal share-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content">
+              {shareModalData && isItem(shareModalData) ? (
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    value={shareTitle}
+                    onChange={(e) => setShareTitle(e.target.value)}
+                    placeholder="Enter a title for this item"
+                    autoFocus
+                  />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label>Title (optional)</label>
+                  <input
+                    type="text"
+                    value={shareTitle}
+                    onChange={(e) => setShareTitle(e.target.value)}
+                    placeholder={shareModalData?.description || "Secondary Ingredient"}
+                    autoFocus
+                  />
+                  <div className="field-info">
+                    If left empty, the description will be used as the title.
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button className="cancel-button" onClick={closeShareModal}>
+                Cancel
+              </button>
+              <button
+                className="action-button"
+                onClick={handleShareItem}
+                disabled={shareModalData && isItem(shareModalData) && !shareTitle}
+              >
+                Share
+              </button>
             </div>
           </div>
         </div>
