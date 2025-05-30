@@ -71,6 +71,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     dishes: {},
     ingredients: {},
     todo_list: [],
+    notes: [],
     status: false
   });
 
@@ -209,6 +210,11 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       if (initialScreening.json.todo_list && Array.isArray(initialScreening.json.todo_list)) {
         setTodoItems(initialScreening.json.todo_list);
       }
+
+      // Load notes if they exist
+      if (initialScreening.json.notes && Array.isArray(initialScreening.json.notes)) {
+        setNotes(initialScreening.json.notes);
+      }
     } else {
       // If no screening is passed in, set originalScreening to an empty object
       setOriginalScreening({
@@ -221,6 +227,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         dishes: {},
         ingredients: {},
         todo_list: [],
+        notes: [],
         status: false
       });
     }
@@ -865,7 +872,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       const ingredient = screening.ingredients[ingredientId];
 
       // Skip items (ingredient_id = 400000) and also ingredients with ID 40000
-      if (isItem(ingredient) || ingredient.ingredient_id == 40000) {
+      if (ingredient.ingredient_id == 40000) {
         return;
       }
 
@@ -2445,6 +2452,10 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const [currentTodoIndex, setCurrentTodoIndex] = useState(0);
   const [showTodoList, setShowTodoList] = useState(false);
 
+  // Add notes functionality state
+  const [notes, setNotes] = useState([]);
+  const [currentNote, setCurrentNote] = useState('');
+
   // Create refs for elements that need to be scrolled to
   const restaurantInfoRef = useRef(null);
   const menuNameRefs = useRef({});
@@ -2632,7 +2643,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareModalData, setShareModalData] = useState(null);
   const [shareTitle, setShareTitle] = useState('');
-  
+
   // Add state for shared items dropdown in items
   const [showSharedDropdown, setShowSharedDropdown] = useState({});
   const dropdownRef = useRef({});
@@ -2838,7 +2849,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
     }));
 
     setIsScreeningDirty(true);
-    
+
     // Close the dropdown
     setShowSharedDropdown(prev => ({
       ...prev,
@@ -2850,8 +2861,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
   useEffect(() => {
     const handleClickOutside = (event) => {
       Object.keys(showSharedDropdown).forEach(itemId => {
-        if (showSharedDropdown[itemId] && dropdownRef.current[itemId] && 
-            !dropdownRef.current[itemId].contains(event.target)) {
+        if (showSharedDropdown[itemId] && dropdownRef.current[itemId] &&
+          !dropdownRef.current[itemId].contains(event.target)) {
           setShowSharedDropdown(prev => ({
             ...prev,
             [itemId]: false
@@ -2865,6 +2876,49 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showSharedDropdown]);
+
+  // Functions to handle notes
+  const addNote = () => {
+    if (!currentNote.trim()) return;
+
+    const newNote = {
+      id: Date.now(),
+      text: currentNote.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    const newNotes = [...notes, newNote];
+    setNotes(newNotes);
+    setCurrentNote('');
+
+    // Update screening data
+    setScreening(prev => ({
+      ...prev,
+      notes: newNotes
+    }));
+
+    setIsScreeningDirty(true);
+  };
+
+  const removeNote = (noteId) => {
+    const newNotes = notes.filter(note => note.id !== noteId);
+    setNotes(newNotes);
+
+    // Update screening data
+    setScreening(prev => ({
+      ...prev,
+      notes: newNotes
+    }));
+
+    setIsScreeningDirty(true);
+  };
+
+  const handleNoteKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addNote();
+    }
+  };
 
   return (
     <div className="screening-page">
@@ -2883,28 +2937,6 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
               }}>
                 ←&nbsp;&nbsp;&nbsp;Dashboard
               </button>
-
-              {/* Always render the separator and navigator but with conditional class for animation */}
-              <div className={`header-separator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}></div>
-              <div className={`todo-navigator ${todoItems.length > 0 ? 'visible' : 'hidden'}`}>
-                <button
-                  className="todo-nav-arrow"
-                  onClick={() => navigateToTodoItem(currentTodoIndex - 1)}
-                  disabled={currentTodoIndex <= 0}
-                >
-                  <img src={Left} alt="Left" className="todo-nav-arrow-icon" />
-                </button>
-                <span className="todo-count">
-                  {todoItems.length > 0 ? `${currentTodoIndex + 1}` : '0/0'}
-                </span>
-                <button
-                  className="todo-nav-arrow"
-                  onClick={() => navigateToTodoItem(currentTodoIndex + 1)}
-                  disabled={currentTodoIndex >= todoItems.length - 1}
-                >
-                  <img src={Right} alt="Right" className="todo-nav-arrow-icon" />
-                </button>
-              </div>
             </div>
             <div className="right-actions">
               <div className="status-indicator" title={screeningStatus ? "Ready to submit" : "Missing required fields or todo items"}>
@@ -3025,6 +3057,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
       )}
 
       <div className={`screening-page-content${showAllSql ? ' blur' : ''}`}>
+        {sharedItems.length > 0 && (<div style={{ height: '50px' }}></div>)}
         <div className="section-header">
           <h2 ref={restaurantInfoRef}>
             <ClickableLabel
@@ -4114,8 +4147,8 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                         {isItem(ingredient) ? (
                           <>
                             {/* Shared Items Dropdown for Items */}
-                            <div 
-                              className="shared-items-dropdown-container" 
+                            <div
+                              className="shared-items-dropdown-container"
                               ref={el => dropdownRef.current[ingredient.id] = el}
                               data-open={showSharedDropdown[ingredient.id] || false}
                             >
@@ -4128,7 +4161,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                               >
                                 <img src={SharedItemsIcon} alt="Shared Items" />
                                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                               </button>
                               {showSharedDropdown[ingredient.id] && (
@@ -4152,7 +4185,7 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
                                 </div>
                               )}
                             </div>
-                            
+
                             <button
                               type="button"
                               className="cc-button"
@@ -4309,44 +4342,90 @@ const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, se
         </div>
       </div>
 
-      {/* TODO List */}
-      <div className={`todo-list-container ${showTodoList ? 'open' : ''}`}>
-        <div className="todo-list-header">
-          <h3>Todo List ({todoItems.length})</h3>
-          <button className="todo-list-close" onClick={() => setShowTodoList(false)}>
-            &times;
-          </button>
-        </div>
-        <ul className="todo-list">
-          {todoItems.length === 0 ? (
-            <li className="todo-item">No items in todo list</li>
-          ) : (
-            todoItems.map((item, index) => (
-              <li
-                key={item.id}
-                className={`todo-item ${index === currentTodoIndex ? 'active' : ''}`}
-                onClick={() => navigateToTodoItem(index)}
-              >
-                <div className={`todo-item-icon ${item.type}`}></div>
-                {item.label}
-                <button
-                  className="todo-item-remove"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeTodoItem(index);
-                  }}
-                >
-                  &times;
-                </button>
-              </li>
-            ))
+      <div className={`notes-todo-list-container ${showTodoList ? 'open' : ''}`}>
+
+        {/* Notes Section */}
+        <div className={`notes-section`}>
+          {/* Display existing notes */}
+          {notes.length > 0 && (
+            <div className="notes-display">
+              {notes.map((note) => (
+                <div key={note.id} className="note-item">
+                  <span className="note-text">{note.text}</span>
+                  <button
+                    className="note-remove"
+                    onClick={() => removeNote(note.id)}
+                    title="Remove note"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
-        </ul>
+        </div>
+
+        {/* TODO List */}
+        <div className={`todo-list-container`}>
+          <div className="todo-list-header">
+            <h3>Todo List ({todoItems.length})</h3>
+            <button className="todo-list-close" onClick={() => setShowTodoList(false)}>
+              &times;
+            </button>
+          </div>
+          <ul className="todo-list">
+            {todoItems.length === 0 ? (
+              <li className="todo-item">No items in todo list</li>
+            ) : (
+              todoItems.map((item, index) => (
+                <li
+                  key={item.id}
+                  className={`todo-item ${index === currentTodoIndex ? 'active' : ''}`}
+                  onClick={() => navigateToTodoItem(index)}
+                >
+                  <div className={`todo-item-icon ${item.type}`}></div>
+                  {item.label}
+                  <button
+                    className="todo-item-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeTodoItem(index);
+                    }}
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+
       </div>
 
-      <button className="todo-list-toggle" onClick={() => setShowTodoList(!showTodoList)}>
-        {todoItems.length > 0 ? todoItems.length : '☰'}
-      </button>
+      <div className='todo-list-toggle-container'>
+        <div className="notes-input-container">
+          <input
+            type="text"
+            className="notes-input"
+            placeholder="Add a note..."
+            value={currentNote}
+            onChange={(e) => setCurrentNote(e.target.value)}
+            onKeyPress={handleNoteKeyPress}
+            maxLength={150}
+          />
+          <button
+            className="notes-add-button"
+            onClick={addNote}
+            disabled={!currentNote.trim()}
+            title="Add note"
+          >
+            ↵
+          </button>
+        </div>
+        <button className="todo-list-toggle" onClick={() => setShowTodoList(!showTodoList)}>
+          ☰
+        </button>
+      </div>
 
       {/* CC Modal */}
       {showCCModal && (
