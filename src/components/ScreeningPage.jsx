@@ -49,7 +49,8 @@ const allergens = [
   { id: 500010, name: 'Sesame' },
   { id: 500011, name: 'Coeliac' },
   { id: 500012, name: 'Sulphite' },
-  { id: 500013, name: 'Mustard' }
+  { id: 500013, name: 'Mustard' },
+  { id: 500014, name: 'Allium' }
 ];
 
 const ScreeningPage = ({ user, userAttributes, ingredients, isScreeningDirty, setIsScreeningDirty }) => {
