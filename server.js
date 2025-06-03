@@ -151,11 +151,11 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
 
     // Get user ID if available (optional)
     const userId = req.body.userId || 'anonymous';
-    
+
     // Generate unique filename to prevent overwriting
     const fileExtension = req.file.originalname.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExtension}`;
-    
+
     // Upload to S3
     const params = {
       Bucket: BUCKET_NAME,
@@ -163,9 +163,9 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       Body: req.file.buffer,
       ContentType: req.file.mimetype,
     };
-    
+
     const uploadResult = await s3.upload(params).promise();
-    
+
     // Return success response with the URL
     res.status(201).json({
       url: uploadResult.Location,
@@ -178,6 +178,30 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     console.error('Error uploading image:', error);
     res.status(500).json({ error: 'Failed to upload image' });
   }
+});
+
+// Get all ingredients and matching allergens and diets
+app.get('/api/ingredients-allergens-diets', (req, res) => {
+  const query = `
+    SELECT 
+    i.name AS ingredient_name,
+    GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS allergens,
+    GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') AS diets
+    FROM ingredient i
+    LEFT JOIN ingredient_allergen ia ON i.id = ia.ingredient_id
+    LEFT JOIN allergen a ON ia.allergen_id = a.id
+    LEFT JOIN ingredient_diet id ON i.id = id.ingredient_id
+    LEFT JOIN diet d ON id.diet_id = d.id
+    GROUP BY i.name
+    ORDER BY i.name;
+  `;
+  ingredientsPool.query(query, (err, results) => {
+    if (err) {
+      console.error('Failed to fetch ingredients with allergens and diets:', err.message);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(results);
+  });
 });
 
 app.listen(PORT, () => {
