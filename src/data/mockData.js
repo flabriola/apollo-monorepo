@@ -270,3 +270,16 @@ export const ingredients = [
   }
 
 ];
+
+export const ingredients_relationships = [
+  {
+    "ingredient_name": "Shrimp",
+    "allergens": ["Shellfish", "Seafood"],
+    "diets": ["Vegan", "Vegetarian"]
+  },
+  {
+    "ingredient_name": "Egg",
+    "allergens": ["Egg"],
+    "diets": ["Vegan", "Dairy Free"]
+  }
+]

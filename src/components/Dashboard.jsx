@@ -21,6 +21,10 @@ const Dashboard = ({ screeningData }) => {
     navigate('/screening');
   };
 
+  const handleIngredientsClick = () => {
+    navigate('/ingredients');
+  };
+
   // make list of screening data which is an object 0 = first screening, 1 = second screening, etc.
   const screenings = screeningData ? Object.values(screeningData) : [];
 
@@ -28,7 +32,16 @@ const Dashboard = ({ screeningData }) => {
     <div style={{ height: '100vh' }}>
       <div className="dashboard">
         <div className="dashboard-header">
-          <h1 id='screenings-title'>Screenings</h1>
+          <div className="dashboard-titles">
+            <h1 id='screenings-title'>Screenings</h1>
+            <span className="slash">/</span>
+            <button
+              className="ingredients-nav-button"
+              onClick={handleIngredientsClick}
+            >
+              Ingredients
+            </button>
+          </div>
           <button
             className="new-screening-button"
             onClick={handleNewScreening}

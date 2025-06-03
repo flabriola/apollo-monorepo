@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ScreeningPage from './components/ScreeningPage';
+import Ingredients from './components/Ingredients';
 import './App.css';
 import './styles/Auth.css';
 import awsExports from './aws-exports';
@@ -98,6 +99,7 @@ function App() {
                 <Route path="/" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/dashboard" element={<Dashboard screeningData={screeningData} />} />
                 <Route path="/screening" element={<ScreeningPage user={authUser} userAttributes={userAttributes} ingredients={ingredients} isScreeningDirty={isScreeningDirty} setIsScreeningDirty={setIsScreeningDirty} />} />
+                <Route path="/ingredients" element={<Ingredients />} />
               </Routes>
             </div>
           </Router>
