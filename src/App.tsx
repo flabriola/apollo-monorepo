@@ -8,19 +8,27 @@ import RestaurantHome from './pages/Restaurant/RestaurantHome';
 import Home from './pages/Home';
 import RestaurantMenu from './pages/Restaurant/RestaurantMenu';
 import Restaurant from './pages/Restaurant';
-
+import NotFound from './pages/NotFound';
+import MainLayout from './pages/MainLayout';
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <Routes>  
 
-        <Route path="/" element={<Home />} />
+        <Route path="" element={<MainLayout />}>
+
+          <Route path="/" element={<Home />} />
+          <Route path="/404" element={<NotFound />} />
+
+        </Route>
 
         <Route path="/:restaurantName" element={<Restaurant />}>
+
           <Route path="" element={<RestaurantHome />} />
           <Route path="menu" element={<RestaurantMenu />} />
           <Route path="menu/:menuId" element={<RestaurantMenu />} />
+
         </Route>
         
       </Routes>

@@ -1,5 +1,4 @@
-import { Outlet, useParams } from "react-router-dom";
-import NotFound from "../../components/Restaurant/NotFound";
+import { Navigate, Outlet, useParams } from "react-router-dom";
 import { checkRestaurantExist } from "../../hooks/checkRestaurantExist";
 import { RestaurantContext } from "./ResturantContext";
 
@@ -11,7 +10,7 @@ function Restaurant() {
 
     // Return 404 component if restaurant is not found
     if (!restaurant) {
-        return <NotFound />;
+        return <Navigate to="/404" />;
     }
     
     return (

@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { checkRestaurantExist } from '../../../hooks/checkRestaurantExist';
-import NotFound from '../../../components/Restaurant/NotFound';
+import NotFound from '../../NotFound';
 import { useRestaurant } from '../ResturantContext';
 
 function RestaurantHome() {
