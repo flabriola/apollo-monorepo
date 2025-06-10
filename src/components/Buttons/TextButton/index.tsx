@@ -1,4 +1,6 @@
 import { useAppTranslation } from "../../../i18n/hooks";
+import { Text } from "./styles";
+
 // String prop
 interface TextButtonProps {
     text: string;
@@ -9,7 +11,7 @@ function TextButton({ text, onClick }: TextButtonProps) {
     const { t } = useAppTranslation();
 
     return (
-        <p onClick={onClick}>{t(text)}</p>
+        <Text onClick={onClick}>{t(text)}</Text>
     )
 }
 

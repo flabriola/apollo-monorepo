@@ -1,4 +1,4 @@
-import { NotFoundContainer, TextButtonContainer } from "./styles";
+import { NotFoundContainer, TextButtonContainer, Title, Subtitle, TextContainer } from "./styles";
 import { useAppTranslation } from "../../i18n/hooks";
 import TextButton from "../../components/Buttons/TextButton";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +8,10 @@ function NotFound() {
 
     return (
         <NotFoundContainer>
-            <h1>{t("notFound.title")}</h1>
-            <p>{t("notFound.subtitle")}</p>
+            <TextContainer>
+                <Title>{t("notFound.title")}</Title>
+                <Subtitle>{t("notFound.subtitle")}</Subtitle>
+            </TextContainer>
 
             <TextButtonContainer>
                 <TextButton text="notFound.button" onClick={() => navigate("/")}/>

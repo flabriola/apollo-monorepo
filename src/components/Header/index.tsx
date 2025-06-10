@@ -1,4 +1,4 @@
-import * as S from "./styles";
+import { HeaderContainer, LogoContainer } from "./styles";
 import { LogoIcon } from "../../assets/icons";
 import { useNavigate } from "react-router-dom";
 
@@ -7,11 +7,11 @@ function Header() {
     const navigate = useNavigate();
 
   return (
-    <S.HeaderContainer>
-        <S.LogoContainer onClick={() => navigate("/")}>
+    <HeaderContainer>
+        <LogoContainer onClick={() => navigate("/")}>
             <LogoIcon size={35}/>
-        </S.LogoContainer>
-    </S.HeaderContainer>
+        </LogoContainer>
+    </HeaderContainer>
   );
 }
 

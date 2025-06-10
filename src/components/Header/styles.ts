@@ -13,6 +13,10 @@ export const HeaderContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media screen and (orientation: landscape) and (max-height: 450px) {
+    background-color: transparent;
+  }
 `;
 
 export const LogoContainer = styled.div`
@@ -20,6 +24,19 @@ export const LogoContainer = styled.div`
     align-items: center;
     justify-content: center;
     cursor: pointer;
+
+    &:hover {
+        opacity: 0.85;
+        transition: opacity var(--transition-normal);
+    }
+        
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        opacity: 0.8;
+        transition: opacity var(--transition-fast);
+        background-color: none;
+    }
 `;
 
 
