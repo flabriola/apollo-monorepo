@@ -28,8 +28,12 @@ const upload = multer({
 });
 
 const allowedOrigins = [
-  'http://127.0.0.1:5173',
+  // Local Main App
   'http://localhost:5173',
+  'http://192.168.1.212:5173',
+  // Local Screening app
+  'http://127.0.0.1:5173',
+  // Screening app
   'https://dev.dqkt1qfc5m7sa.amplifyapp.com',
 ];
 
