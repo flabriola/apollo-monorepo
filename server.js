@@ -212,12 +212,17 @@ app.get('/api/ingredients-allergens-diets', (req, res) => {
 // Get full restaurant data
 app.get('/api/restaurant-data/:id', (req, res) => {
   const restaurantId = req.params.id;
-  const query = restaurantData;
-
-  pool.query(query, [restaurantId], (err, results) => {
+  const query = restaurantData.replace('?', mysql.escape(restaurantId));
+  pool.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    const json = JSON.parse(results[0].restaurant_data);
-    res.json(json);
+  
+    try {
+      const json = JSON.parse(results[0].restaurant_data);
+      res.json(json);
+    } catch (e) {
+      console.error('JSON parse error:', e.message, results[0]);
+      res.status(500).json({ error: 'Invalid JSON from DB' });
+    }
   });
 });
 
