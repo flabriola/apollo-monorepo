@@ -5,7 +5,7 @@ const cors = require('cors');
 const multer = require('multer');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-
+const { restaurantData } = require('./queries');
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -208,6 +208,19 @@ app.get('/api/ingredients-allergens-diets', (req, res) => {
     res.json(results);
   });
 });
+
+// Get full restaurant data
+app.get('/api/restaurant-data/:id', (req, res) => {
+  const restaurantId = req.params.id;
+  const query = restaurantData;
+
+  pool.query(query, [restaurantId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    const json = JSON.parse(results[0].restaurant_data);
+    res.json(json);
+  });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
