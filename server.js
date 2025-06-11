@@ -6,6 +6,7 @@ const cors = require('cors');
 const multer = require('multer');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { getRestaurantId } = require('./restaurants');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
