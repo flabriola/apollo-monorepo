@@ -1,5 +1,4 @@
 require('dotenv').config();
-const { restaurantData, ingredientsAllergensDiets, updateScreening, insertScreening, getScreenings } = require('./queries');
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -7,6 +6,7 @@ const multer = require('multer');
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const { getRestaurantId } = require('./restaurants');
+const { restaurantData, ingredientsAllergensDiets, updateScreening, insertScreening, getScreenings } = require('./queries');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
