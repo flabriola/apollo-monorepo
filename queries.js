@@ -1,3 +1,44 @@
+export const getScreenings = `
+    SELECT 
+      s.id,
+      s.user_id,
+      s.title,
+      s.last_modified AS lastModified,
+      CONCAT(s.first_name, ' ', s.last_name) AS owner,
+      s.json_data AS json
+    FROM screenings s
+    WHERE s.user_id = ?
+    ORDER BY s.last_modified DESC
+`;
+
+export const insertScreening = `
+    INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
+    VALUES (?, ?, CAST(? AS JSON), ?, ?)
+`;
+  
+export const updateScreening = `
+    UPDATE screenings
+    SET 
+      title = ?,
+      json_data = CAST(? AS JSON),
+      last_modified = CURRENT_TIMESTAMP
+    WHERE id = ?
+`;
+
+export const ingredientsAllergensDiets = `
+    SELECT 
+    i.name AS ingredient_name,
+    GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS allergens,
+    GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') AS diets
+    FROM ingredient i
+    LEFT JOIN ingredient_allergen ia ON i.id = ia.ingredient_id
+    LEFT JOIN allergen a ON ia.allergen_id = a.id
+    LEFT JOIN ingredient_diet id ON i.id = id.ingredient_id
+    LEFT JOIN diet d ON id.diet_id = d.id
+    GROUP BY i.name
+    ORDER BY i.name;
+`;
+
 export const restaurantData = `
     SELECT JSON_OBJECT(
     'name',           r.name,

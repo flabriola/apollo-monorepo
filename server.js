@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { restaurantData } = require('./queries');
+const { restaurantData, ingredientsAllergensDiets, updateScreening, insertScreening, getScreenings } = require('./queries');
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -89,18 +89,8 @@ app.get('/', (req, res) => {
 // Get all screenings for a user
 app.get('/api/screenings/:userId', (req, res) => {
   const userId = req.params.userId;
-  const query = `
-    SELECT 
-      s.id,
-      s.user_id,
-      s.title,
-      s.last_modified AS lastModified,
-      CONCAT(s.first_name, ' ', s.last_name) AS owner,
-      s.json_data AS json
-    FROM screenings s
-    WHERE s.user_id = ?
-    ORDER BY s.last_modified DESC
-  `;
+  const query = getScreenings;
+
   screeningsPool.query(query, [userId], (err, results) => {
     if (err) {
       console.error('Failed to fetch screenings:', err.message);
@@ -113,10 +103,8 @@ app.get('/api/screenings/:userId', (req, res) => {
 // Insert a new screening
 app.post('/api/screenings', (req, res) => {
   const { user_id, title, json_data, first_name, last_name } = req.body;
-  const query = `
-    INSERT INTO screenings (user_id, title, json_data, first_name, last_name)
-    VALUES (?, ?, CAST(? AS JSON), ?, ?)
-  `;
+  const query = insertScreening;
+  
   screeningsPool.query(query, [user_id, title, JSON.stringify(json_data), first_name, last_name], (err, result) => {
     if (err) {
       console.error('Failed to insert screening:', err.message);
@@ -130,14 +118,8 @@ app.post('/api/screenings', (req, res) => {
 app.put('/api/screenings/:id', (req, res) => {
   const screeningId = req.params.id;
   const { title, json_data } = req.body;
-  const query = `
-    UPDATE screenings
-    SET 
-      title = ?,
-      json_data = CAST(? AS JSON),
-      last_modified = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `;
+  const query = updateScreening;
+
   screeningsPool.query(query, [title, JSON.stringify(json_data), screeningId], (err) => {
     if (err) {
       console.error('Failed to update screening:', err.message);
@@ -199,19 +181,7 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
 
 // Get all ingredients and matching allergens and diets
 app.get('/api/ingredients-allergens-diets', (req, res) => {
-  const query = `
-    SELECT 
-    i.name AS ingredient_name,
-    GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS allergens,
-    GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') AS diets
-    FROM ingredient i
-    LEFT JOIN ingredient_allergen ia ON i.id = ia.ingredient_id
-    LEFT JOIN allergen a ON ia.allergen_id = a.id
-    LEFT JOIN ingredient_diet id ON i.id = id.ingredient_id
-    LEFT JOIN diet d ON id.diet_id = d.id
-    GROUP BY i.name
-    ORDER BY i.name;
-  `;
+  const query = ingredientsAllergensDiets;
   ingredientsPool.query(query, (err, results) => {
     if (err) {
       console.error('Failed to fetch ingredients with allergens and diets:', err.message);
@@ -222,8 +192,9 @@ app.get('/api/ingredients-allergens-diets', (req, res) => {
 });
 
 // Get full restaurant data
-app.get('/api/restaurant-data/:id', (req, res) => {
-  const restaurantId = req.params.id;
+app.get('/api/restaurant-data/:route', (req, res) => {
+  const route = req.params.route;
+  const restaurantId = getRestaurantId(route);
   const query = restaurantData;
 
   restaurantPool.query(query, [restaurantId], (err, results) => {
@@ -231,136 +202,6 @@ app.get('/api/restaurant-data/:id', (req, res) => {
     res.json(results);
   });
 });
-
-// app.get('/api/restaurant-data/:id', (req, res) => {
-//   const restaurantId = req.params.id;
-//   const query = `
-//     SELECT JSON_OBJECT(
-//     'name',           r.name,
-//     'address',        r.address,
-//     'phone',          r.phone,
-//     'logo_url',       r.logo_url,
-//     'website',        r.website_url,
-//     'menu_list',      (
-//         SELECT JSON_ARRAYAGG(
-//         JSON_OBJECT(
-//             'id',          m.id,
-//             'name',        m.name,
-//             'description', m.description,
-//             'active',      m.active
-//         )
-//         )
-//         FROM menu AS m
-//         WHERE m.restaurant_id = r.id
-//     ),
-//     'menus',          (
-//         SELECT JSON_ARRAYAGG(
-//         JSON_OBJECT(
-//             'name',        m.name,
-//             'description', m.description,
-//             'active',      m.active,
-//             'pdf_url',     m.pdf_url,
-//             'dishes',      (
-//             SELECT JSON_OBJECTAGG(
-//                 d.id,
-//                 JSON_OBJECT(
-//                 'name',        d.name,
-//                 'description', d.description,
-//                 'category',    d.category,
-//                 'active',      d.active,
-                
-//                 -- de-duplicated allergens
-//                 'allergens', (
-//                     SELECT JSON_ARRAYAGG(
-//                     JSON_OBJECT(
-//                         'id',          aa.allergen_id,
-//                         'ingredients', aa.ingredients
-//                     )
-//                     )
-//                     FROM (
-//                     SELECT
-//                         ia.allergen_id,
-//                         JSON_ARRAYAGG(
-//                         JSON_OBJECT('id', i.id, 'name', i.name)
-//                         ) AS ingredients
-//                     FROM dish_ingredient AS di
-//                     JOIN ingredient            AS i  ON i.id = di.ingredient_id
-//                     JOIN ingredient_allergen   AS ia ON ia.ingredient_id = i.id
-//                     WHERE di.dish_id = d.id
-//                     GROUP BY ia.allergen_id
-//                     ) AS aa
-//                 ),
-                
-//                 -- de-duplicated diets
-//                 'diets', (
-//                     SELECT JSON_ARRAYAGG(
-//                     JSON_OBJECT(
-//                         'id',          dd.diet_id,
-//                         'ingredients', dd.ingredients
-//                     )
-//                     )
-//                     FROM (
-//                     SELECT
-//                         idr.diet_id,
-//                         JSON_ARRAYAGG(
-//                         JSON_OBJECT('id', i.id, 'name', i.name)
-//                         ) AS ingredients
-//                     FROM dish_ingredient AS di
-//                     JOIN ingredient         AS i   ON i.id = di.ingredient_id
-//                     JOIN ingredient_diet    AS idr ON idr.ingredient_id = i.id
-//                     WHERE di.dish_id = d.id
-//                     GROUP BY idr.diet_id
-//                     ) AS dd
-//                 ),
-                
-//                 -- de-duplicated cross-contaminations
-//                 'cross_contaminations', (
-//                     SELECT JSON_ARRAYAGG(
-//                     JSON_OBJECT(
-//                         'allergen',        cc.allergen_id,
-//                         'reason',          cc.reason,
-//                         'ingredient',      cc.ingredient_id,
-//                         'ingredient_name', cc.ingredient_name,
-//                         'description',     cc.description
-//                     )
-//                     )
-//                     FROM (
-//                     SELECT DISTINCT
-//                         dca.allergen_id,
-//                         dca.reason,
-//                         dca.ingredient_id,
-//                         i3.name           AS ingredient_name,
-//                         dca.description
-//                     FROM dish_cc_allergen AS dca
-//                     LEFT JOIN ingredient AS i3 ON i3.id = dca.ingredient_id
-//                     WHERE dca.dish_id = d.id
-//                     ) AS cc
-//                 )
-//                 )
-//             )
-//             FROM dish AS d
-//             WHERE d.menu_id = m.id
-//                 AND d.active = TRUE
-//             )
-//         )
-//         )
-//         FROM menu AS m
-//         WHERE m.restaurant_id = r.id
-//         AND m.active = TRUE
-//     )
-//     ) AS restaurant_data
-//     FROM restaurant AS r
-//     WHERE r.id = ?;
-//   `;
-//   ingredientsPool.query(query, (err, results) => {
-//     if (err) {
-//       console.error('Failed to fetch ingredients with allergens and diets:', err.message);
-//       return res.status(500).json({ error: 'Database error' });
-//     }
-//     res.json(results);
-//   });
-// });
-
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
