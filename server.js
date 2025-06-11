@@ -159,7 +159,7 @@ app.get('/api/ingredients', (req, res) => {
   });
 });
 
-// NEW API: Upload image to S3
+// Upload image to S3
 app.post('/api/upload-image', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -228,8 +228,7 @@ app.get('/api/restaurant-data/:id', (req, res) => {
 
   restaurantPool.query(query, [restaurantId], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    const json = JSON.parse(results[0].restaurant_data);
-    res.json(json);
+    res.json(results);
   });
 });
 
