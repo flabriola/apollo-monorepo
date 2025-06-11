@@ -1,4 +1,7 @@
 {
+  "error": {
+    "fetchingRestaurantData": "Error fetching restaurant data"
+  },
   "notFound": {
     "title": "NOT FOUND",
     "subtitle": "You seem to be at the wrong address",

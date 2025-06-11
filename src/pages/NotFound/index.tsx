@@ -2,6 +2,7 @@ import { NotFoundContainer, TextButtonContainer, Title, Subtitle, TextContainer 
 import { useAppTranslation } from "../../i18n/hooks";
 import TextButton from "../../components/Buttons/TextButton";
 import { useNavigate } from "react-router-dom";
+
 function NotFound() {
     const navigate = useNavigate();
     const { t } = useAppTranslation();

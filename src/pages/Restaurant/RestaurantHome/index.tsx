@@ -1,16 +1,14 @@
-import { Link, useParams } from 'react-router-dom';
-import { checkRestaurantExist } from '../../../hooks/checkRestaurantExist';
-import NotFound from '../../NotFound';
-import { useRestaurant } from '../ResturantContext';
+import { Link } from 'react-router-dom';
+import { useRestaurant } from '../RestaurantContext';
 
 function RestaurantHome() {
     const restaurant = useRestaurant();
+    const restaurantRoute = useRestaurant();
 
     // Use restaurantName to fetch data from your API
     return (
         <>
-            <div>2 Restaurant: {restaurant.name}</div>
-            <Link to={`/${restaurant.route}/menu`}>Menu</Link>
+            <div>Restaurant: {restaurant.name}</div>
         </>
     );
 }

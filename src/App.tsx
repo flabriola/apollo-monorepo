@@ -17,18 +17,14 @@ function App() {
       <Routes>  
 
         <Route path="" element={<MainLayout />}>
-
           <Route path="/" element={<Home />} />
           <Route path="/404" element={<NotFound />} />
-
         </Route>
 
         <Route path="/:restaurantName" element={<Restaurant />}>
-
           <Route path="" element={<RestaurantHome />} />
           <Route path="menu" element={<RestaurantMenu />} />
           <Route path="menu/:menuId" element={<RestaurantMenu />} />
-
         </Route>
         
       </Routes>
