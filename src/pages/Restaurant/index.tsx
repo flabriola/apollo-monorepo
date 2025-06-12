@@ -8,7 +8,7 @@ import type { RestaurantData } from "../../shared/restaurant/types";
 import { useTranslation } from "react-i18next";
 
 function Restaurant() {
-    
+
     const { t } = useTranslation();
 
     // Context
@@ -67,7 +67,7 @@ function Restaurant() {
         return <Loading restaurantRoute={restaurantRoute} />;
     } else {
         return (
-            <RestaurantContext.Provider value={restaurant}>
+            <RestaurantContext.Provider value={{ restaurant }}>
                 <Outlet />
             </RestaurantContext.Provider>
         );

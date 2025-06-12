@@ -8,8 +8,8 @@
   /* Primary Colors */
   --color-primary: #000000;
   --color-primary-hover: #323232;
-  --color-primary-secondary: #ffffff;
-  --color-primary-tertiary: #999999;
+  --color-secondary: #ffffff;
+  --color-tertiary: #999999;
   
   /* Neutral Colors */
   --color-white: #ffffff;
@@ -18,8 +18,9 @@
   /* Background Colors */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #FEFDFC;
-  --color-bg-dark: #242424;
-  
+  --color-bg-dark: #F6F6F6;
+  --color-bg-tertiary: #ffffff;
+
   /* Text Colors */
   --color-text-primary: #213547;
   --color-text-secondary: #6b7280;
@@ -43,7 +44,7 @@
   
   /* === TYPOGRAPHY === */
   /* Font Families */
-  --font-family-primary: 'New York', 'Times New Roman', Georgia, serif;
+  --font-family-primary: 'Times New Roman', Georgia, serif;
   --font-family-secondary: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
   --font-family-tertiary: 'SFProText', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   
@@ -54,7 +55,7 @@
   --font-size-lg: 1.125rem;  /* 18px */
   --font-size-xl: 1.25rem;   /* 20px */
   --font-size-2xl: 1.5rem;   /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-3xl: 1.775rem; /* 30px */
   --font-size-4xl: 2.25rem;  /* 36px */
   --font-size-5xl: 3rem;     /* 48px */
   --font-size-6xl: 3.75rem;  /* 60px */

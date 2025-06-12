@@ -305,6 +305,17 @@ export const LogoSlogan = ({ size = 970 }: { size?: number }) => (
     </svg>
 )
 
+//
+
+export const LineButtonIcon = ({ size = 16, color = "black" }: { size?: number, color?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 16 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0.975586 0.767578H14.5547" stroke={color} stroke-linecap="round" />
+        <path d="M0.975586 8.00293H14.5547" stroke={color} stroke-linecap="round" />
+
+
+    </svg>
+)
+
 // Allergen and diet icons
 
 export const AlliumIcon = ({ size = 140, fill = 'black' }: { size?: number, fill?: string }) => (
@@ -433,7 +444,7 @@ export const MilkIcon = ({ size = 140, fill = 'black' }: { size?: number, fill?:
     <svg
         width={size ? `${size}px` : '100%'}
         height={size ? `${size}px` : '100%'}
-        viewBox="0 0 123 122" 
+        viewBox="0 0 123 122"
         preserveAspectRatio="xMidYMid meet"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -503,7 +514,7 @@ export const PeanutsIcon = ({ size = 140, fill = 'black' }: { size?: number, fil
     <svg
         width={size ? `${size}px` : '100%'}
         height={size ? `${size}px` : '100%'}
-        viewBox="0 0 72 84" 
+        viewBox="0 0 72 84"
         preserveAspectRatio="xMidYMid meet"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

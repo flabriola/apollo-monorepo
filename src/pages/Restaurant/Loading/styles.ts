@@ -26,6 +26,7 @@ export const LoadingContainer = styled.div`
     justify-content: center;
     height: 100vh;
     animation: ${fadeIn} 0.2s ease-in forwards;
+    background-color: var(--color-bg-primary);
 
     &.fade-out {
         animation: ${fadeOut} 0.2s ease-out forwards;
