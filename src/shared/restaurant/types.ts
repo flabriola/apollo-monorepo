@@ -57,3 +57,30 @@ export type RestaurantRoute = {
 export type RestaurantRoutes = {
     [key: string]: RestaurantRoute;
 }
+
+// TODO: Maybe make value their IDs
+export enum PreferenceIcon {
+    ALLIUM = "Allium",
+    COELIAC = "Coeliac", 
+    DAIRY_FREE = "Dairy Free",
+    EGG = "Egg",
+    GLUTEN_FREE = "Gluten Free",
+    LACTOSE_FREE = "Lactose Free",
+    FISH = "Fish",
+    FRUCTOSE_FREE = "Fructose Free", 
+    MILK = "Milk",
+    MUSTARD = "Mustard",
+    NUTS = "Nuts",
+    PEANUTS = "Peanuts",
+    PESCATARIAN = "Pescatarian",
+    SEAFOOD = "Seafood",
+    SESAME = "Sesame",
+    SHELLFISH = "Shellfish",
+    SOYA = "Soya",
+    SULPHITE = "Sulphite",
+    TREE_NUTS = "Tree Nuts",
+    VEGAN = "Vegan",
+    VEGETARIAN = "Vegetarian",
+    WHEAT = "Wheat",
+    ALL = "All"
+}

@@ -39,7 +39,7 @@ function Restaurant() {
     }, []);
 
     // Loading Screen else Restaurant Context
-    if (isLoading) {
+    if (true) {
         return <Loading restaurantRoute={restaurantRoute} />;
     } else {
         return (

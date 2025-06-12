@@ -2,7 +2,7 @@ import type { RestaurantRoutes } from "./types";
 
 export const restaurantRoutes: RestaurantRoutes = {
     "themainetest": {
-        name: "The Maine Test",
+        name: "The MAINE Land Brasserie",
         route: "themainetest"
     }
 }

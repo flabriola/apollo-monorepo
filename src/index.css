@@ -6,9 +6,10 @@
 :root {
   /* === COLORS === */
   /* Primary Colors */
-  --color-primary: #323232;
-  --color-primary-hover: #000000;
-  --color-primary-light: #747bff;
+  --color-primary: #000000;
+  --color-primary-hover: #323232;
+  --color-primary-secondary: #ffffff;
+  --color-primary-tertiary: #999999;
   
   /* Neutral Colors */
   --color-white: #ffffff;
