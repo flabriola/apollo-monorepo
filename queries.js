@@ -61,6 +61,7 @@ export const restaurantData = `
     'menus',          (
         SELECT JSON_ARRAYAGG(
         JSON_OBJECT(
+            'id',          m.id,
             'name',        m.name,
             'description', m.description,
             'active',      m.active,
