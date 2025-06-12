@@ -8,6 +8,7 @@ import type { RestaurantData } from "../../shared/restaurant/types";
 import { useTranslation } from "react-i18next";
 
 function Restaurant() {
+    
     const { t } = useTranslation();
 
     // Context
@@ -16,11 +17,22 @@ function Restaurant() {
     const [restaurant, setRestaurant] = useState<RestaurantData | null>(null);
     
     const [isLoading, setIsLoading] = useState(true);
+    const [dataLoaded, setDataLoaded] = useState(false);
+    const [minLoadingTimePassed, setMinLoadingTimePassed] = useState(false);
 
     // Return 404 component if restaurant is not found
     if (!restaurantRoute) {
         return <Navigate to="/404" />;
     }
+
+    // Set minimum loading time of 2 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setMinLoadingTimePassed(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+    }, []);
 
     // Fetch data from API
     useEffect(() => {
@@ -28,18 +40,30 @@ function Restaurant() {
             try {
                 const data = await fetchRestaurantData(restaurantRoute?.route ?? "");
                 setRestaurant(data);
-                setIsLoading(false);
+                setDataLoaded(true);
             } catch (error) {
                 console.error(t("error.fetchingRestaurantData"), error);
                 // TODO: Add error handling to display error message to users
-                setIsLoading(false);
+                setDataLoaded(true);
             }
         }
         fetchData();
     }, []);
 
+    // Only stop loading when both conditions are met
+    useEffect(() => {
+        if (minLoadingTimePassed && dataLoaded) {
+            // Dispatch event to trigger fade-out animation
+            window.dispatchEvent(new Event('restaurantDataLoaded'));
+            // Wait for animation to complete before unmounting
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 200);
+        }
+    }, [minLoadingTimePassed, dataLoaded]);
+
     // Loading Screen else Restaurant Context
-    if (true) {
+    if (isLoading) {
         return <Loading restaurantRoute={restaurantRoute} />;
     } else {
         return (

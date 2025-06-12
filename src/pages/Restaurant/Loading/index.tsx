@@ -5,13 +5,31 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { TextContainer } from "../../NotFound/styles";
 import LoadingBar from "../../../components/LoadingBar";
+import { useEffect, useState } from "react";
 
 function Loading({ restaurantRoute }: { restaurantRoute: RestaurantRoute }) {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const [isExiting, setIsExiting] = useState(false);
 
+    useEffect(() => {
+        // Listen for the restaurant data being loaded
+        const handleBeforeUnmount = () => {
+            setIsExiting(true);
+            // Wait for animation to complete before unmounting
+            return new Promise(resolve => setTimeout(resolve, 200));
+        };
+
+        // Add the event listener
+        window.addEventListener('restaurantDataLoaded', handleBeforeUnmount);
+
+        return () => {
+            window.removeEventListener('restaurantDataLoaded', handleBeforeUnmount);
+        };
+    }, []);
+    
     return (
-        <LoadingContainer>
+        <LoadingContainer className={isExiting ? 'fade-out' : ''}>
             <TextContainer>
                 <Text>
                     {t("loading.title")} {restaurantRoute.name}...
