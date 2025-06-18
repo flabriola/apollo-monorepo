@@ -22,5 +22,11 @@
     "preferences_with_selection_subtitle": "Menus filtered for: ",
     "menu_title": "Tap to edit",
     "menu_subtitle": "Menus filtered for: "
+  },
+  "preferencesSelector": {
+    "title": "Preferences",
+    "allergens": "Allergens",
+    "diets": "Diets",
+    "ingredients": "Ingredients"
   }
 } 

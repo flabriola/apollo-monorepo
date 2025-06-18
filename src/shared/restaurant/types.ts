@@ -83,6 +83,56 @@ export enum Preferences {
     FRUCTOSE_FREE = 600006 
 }
 
+export const PreferencesNames: { [key in Preferences]: string } = {
+    [Preferences.EGG]: "Egg",
+    [Preferences.MILK]: "Milk",
+    [Preferences.SOYA]: "Soya",
+    [Preferences.WHEAT]: "Wheat",
+    [Preferences.TREE_NUTS]: "Tree Nuts",
+    [Preferences.PEANUTS]: "Peanuts",
+    [Preferences.NUTS]: "Nuts",
+    [Preferences.SHELLFISH]: "Shellfish",
+    [Preferences.FISH]: "Fish",
+    [Preferences.SEAFOOD]: "Seafood",
+    [Preferences.SESAME]: "Sesame",
+    [Preferences.COELIAC]: "Coeliac",
+    [Preferences.SULPHITE]: "Sulphite",
+    [Preferences.MUSTARD]: "Mustard",
+    [Preferences.ALLIUM]: "Allium",
+    [Preferences.VEGETARIAN]: "Vegetarian",
+    [Preferences.VEGAN]: "Vegan",
+    [Preferences.PESCATARIAN]: "Pescatarian",
+    [Preferences.GLUTEN_FREE]: "Gluten Free",
+    [Preferences.LACTOSE_FREE]: "Lactose Free",
+    [Preferences.DAIRY_FREE]: "Dairy Free",
+    [Preferences.FRUCTOSE_FREE]: "Fructose Free"
+}
+
+export const PreferencesDescriptions: { [key in Preferences]: string } = {
+    [Preferences.EGG]: "",
+    [Preferences.MILK]: "",
+    [Preferences.SOYA]: "",
+    [Preferences.WHEAT]: "",
+    [Preferences.TREE_NUTS]: "",
+    [Preferences.PEANUTS]: "",
+    [Preferences.NUTS]: "",
+    [Preferences.SHELLFISH]: "Molluscs",
+    [Preferences.FISH]: "",
+    [Preferences.SEAFOOD]: "",
+    [Preferences.SESAME]: "",
+    [Preferences.COELIAC]: "",
+    [Preferences.SULPHITE]: "",
+    [Preferences.MUSTARD]: "",
+    [Preferences.ALLIUM]: "",
+    [Preferences.VEGETARIAN]: "",
+    [Preferences.VEGAN]: "",
+    [Preferences.PESCATARIAN]: "",
+    [Preferences.GLUTEN_FREE]: "",
+    [Preferences.LACTOSE_FREE]: "",
+    [Preferences.DAIRY_FREE]: "",
+    [Preferences.FRUCTOSE_FREE]: ""
+}
+
 export type UserPreferences = {
     preferences: Preferences[];
 }

@@ -67,6 +67,7 @@ export const Text = styled.div`
 
 export const MenuListBackground = styled.div`
     position: absolute;
+    z-index: 3;
     top: 0;
     left: 0;
     width: 100vw;
@@ -102,6 +103,7 @@ export const MenuListContainer = styled.div`
     position: absolute;
     top: 0;
     left: 0;
+    z-index: 3;
     width: 100vw;
     height: 100vh;
     display: flex;

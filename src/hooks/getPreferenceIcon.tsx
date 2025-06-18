@@ -2,7 +2,7 @@ import { Preferences } from "../shared/restaurant/types";
 import { EggIcon, MilkIcon, SoyaIcon, WheatIcon, TreeNutsIcon, PeanutsIcon, NutsIcon, ShellfishIcon, FishIcon, SeafoodIcon, SesameIcon, CoeliacIcon, SulphiteIcon, MustardIcon, AlliumIcon, VegetarianIcon, VeganIcon, PescatarianIcon, GlutenFreeIcon, LactoseFreeIcon, DairyFreeIcon, FructoseFreeIcon } from "../assets/icons";
 import type { JSX } from "react";
 
-export const getPreferenceIcon = (preference: Preferences, size: number = 20, fill: string = "var(--color-negative)"): JSX.Element => {
+export const getPreferenceIcon = (preference: Preferences, size: number = 20, fill: string = "var(--color-black)"): JSX.Element => {
     switch (preference) {
         case Preferences.EGG:
             return <EggIcon size={size} fill={fill} />;

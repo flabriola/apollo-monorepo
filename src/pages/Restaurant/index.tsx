@@ -7,6 +7,8 @@ import { fetchRestaurantData } from "../../hooks/restaurantData";
 import type { RestaurantData, UserPreferences } from "../../shared/restaurant/types";
 import { useTranslation } from "react-i18next";
 import PreferencesFooterButton from "../../components/PreferencesFooterButton";
+import { useSearchParams } from "react-router-dom";
+
 
 type PreferencesStates = "default" | "preferences" | "preferences_with_selection" | "menu";
 
@@ -27,11 +29,35 @@ function Restaurant() {
     // Preferences
     const [preferencesState, setPreferencesState] = useState<PreferencesStates>("default");
     const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Return 404 component if restaurant is not found
     if (!restaurantRoute) {
         return <Navigate to="/404" />;
     }
+
+    // Set user preferences from search params
+    useEffect(() => {
+        const preferences = searchParams.get("preferences");
+
+        const initialPreferences: UserPreferences = {
+            preferences: preferences ? preferences.split(",").map(pref => parseInt(pref)) : []
+        };
+
+        setUserPreferences(initialPreferences);
+    }, []);
+
+    // Update search params when user preferences change
+    useEffect(() => {
+        if (!userPreferences) return;
+
+        const current = searchParams.get("preferences");
+        const joined = userPreferences.preferences?.join(",");
+
+        if (current !== joined) {
+            setSearchParams({ preferences: joined });
+        }
+    }, [userPreferences]);
 
     // Set minimum loading time of 2 seconds
     useEffect(() => {
