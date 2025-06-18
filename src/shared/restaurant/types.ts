@@ -58,29 +58,31 @@ export type RestaurantRoutes = {
     [key: string]: RestaurantRoute;
 }
 
-// TODO: Maybe make value their IDs
-export enum PreferenceIcon {
-    ALLIUM = "Allium",
-    COELIAC = "Coeliac", 
-    DAIRY_FREE = "Dairy Free",
-    EGG = "Egg",
-    GLUTEN_FREE = "Gluten Free",
-    LACTOSE_FREE = "Lactose Free",
-    FISH = "Fish",
-    FRUCTOSE_FREE = "Fructose Free", 
-    MILK = "Milk",
-    MUSTARD = "Mustard",
-    NUTS = "Nuts",
-    PEANUTS = "Peanuts",
-    PESCATARIAN = "Pescatarian",
-    SEAFOOD = "Seafood",
-    SESAME = "Sesame",
-    SHELLFISH = "Shellfish",
-    SOYA = "Soya",
-    SULPHITE = "Sulphite",
-    TREE_NUTS = "Tree Nuts",
-    VEGAN = "Vegan",
-    VEGETARIAN = "Vegetarian",
-    WHEAT = "Wheat",
-    ALL = "All"
+export enum Preferences {
+    EGG = 500000,
+    MILK = 500001,
+    SOYA = 500002,
+    WHEAT = 500003,
+    TREE_NUTS = 500004,
+    PEANUTS = 500005,
+    NUTS = 500006,
+    SHELLFISH = 500007,
+    FISH = 500008,
+    SEAFOOD = 500009,
+    SESAME = 500010,
+    COELIAC = 500011, 
+    SULPHITE = 500012,
+    MUSTARD = 500013,
+    ALLIUM = 500014,
+    VEGETARIAN = 600000,
+    VEGAN = 600001,
+    PESCATARIAN = 600002,
+    GLUTEN_FREE = 600003,
+    LACTOSE_FREE = 600004,
+    DAIRY_FREE = 600005,
+    FRUCTOSE_FREE = 600006 
+}
+
+export type UserPreferences = {
+    preferences: Preferences[];
 }

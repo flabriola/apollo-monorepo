@@ -32,6 +32,7 @@
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
+  --color-negative: #B4292A;
   
   /* === SPACING === */
   --spacing-xs: 0.25rem;    /* 4px */
@@ -63,7 +64,7 @@
   
   /* Font Weights - matching SFProText available weights */
   --font-weight-thin: 100;        /* SFProText-Thin */
-  --font-weight-ultralight: 100;  /* SFProText-Ultralight */
+  --font-weight-ultralight: 200;  /* SFProText-Ultralight */
   --font-weight-light: 300;       /* SFProText-Light */
   --font-weight-normal: 400;      /* SFProText-Regular */
   --font-weight-medium: 500;      /* SFProText-Medium */
@@ -128,6 +129,11 @@
   text-rendering: optimizeLegibility; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* === Materials === */
+  --material-light-background: rgba(255, 255, 255, 0.6);
+  --material-light-background-blur: blur(10px);
+  --material-light-background-webkit-blur: blur(10px);
 }
 
 a {

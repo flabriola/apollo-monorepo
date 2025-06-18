@@ -17,7 +17,7 @@ export const Container = styled.div`
     height: 100%;
     display: grid;
     grid-template-columns: 1fr auto;
-    padding-right: 2.5rem;
+    padding-right: 2.2rem;
     align-items: center;
 
     @media (min-width: 768px) and (max-width: 1024px) {
@@ -146,4 +146,5 @@ export const Menu = styled.div`
     font-size: var(--font-size-xl);
     font-family: var(--font-family-secondary);
     font-weight: var(--font-weight-normal);
+    cursor: pointer;
 `;

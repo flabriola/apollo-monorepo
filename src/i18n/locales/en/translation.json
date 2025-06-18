@@ -12,5 +12,15 @@
   },
   "restaurantHome": {
     "title": "MENUS"
+  },
+  "preferencesFooterButton": {
+    "default_title": "Set your food preferences",
+    "default_subtitle": "Filter our menus by allergens and dietary needs",
+    "preferences_title": "Set your food preferences",
+    "preferences_subtitle": "Tap to filter what you would like to avoid",
+    "preferences_with_selection_title": "Press to Apply",
+    "preferences_with_selection_subtitle": "Menus filtered for: ",
+    "menu_title": "Tap to edit",
+    "menu_subtitle": "Menus filtered for: "
   }
 } 

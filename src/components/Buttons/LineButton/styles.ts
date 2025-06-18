@@ -37,7 +37,4 @@ export const Line = styled.div<{ isOpen: boolean }>`
     &:last-child {
         transform: ${({ isOpen }) => isOpen ? 'translateY(-3.8px) rotate(-45deg)' : 'none'};
     }
-    &:hover {
-        
-    }
 `;

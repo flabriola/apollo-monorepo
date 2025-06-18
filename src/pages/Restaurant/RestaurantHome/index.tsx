@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LineButton from '../../../components/Buttons/LineButton';
 import { useRestaurant } from '../RestaurantContext';
 import { Container, MainContainer, RestaurantLogo, RightContainer, Text, LeftContainer, MenuList, Menu, MenuListContainer, MenuListBackground } from './styles';
 import { useTranslation } from 'react-i18next';
-
+import { useNavigate } from 'react-router-dom';
+import flamingoImage from '../../../assets/icons/flamingoroom10-1100x1540.jpg';
+import menuImg from '../../../assets/icons/menu_test.png';
 
 function RestaurantHome() {
     const { t } = useTranslation();
-    const { restaurant } = useRestaurant();
-
+    const { restaurant, restaurantRoute, setPreferencesState } = useRestaurant();
+    const navigate = useNavigate();
     const [menuListOpen, setMenuListOpen] = useState(false);
     const [menuListOpenX, setMenuListOpenX] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -27,8 +29,19 @@ function RestaurantHome() {
         }
     };
 
+    const handleMenuClick = (menuId: string) => {
+        const menu = restaurant.menus.find((menu: any) => menu.id === menuId);
+        navigate(`/${restaurantRoute?.route}/menu/${menu.name.toLowerCase().replace(/ /g, '-')}/${menu.id}`);
+    };
+
+    useEffect(() => {
+        setPreferencesState("default");
+    }, []);
+
     return (
         <>
+            {/* <MainContainer style={{ backgroundImage: `url(${flamingoImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}> */}
+            {/* <MainContainer style={{ backgroundImage: `url(${menuImg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}> */}
             <MainContainer>
                 <Container>
                     <LeftContainer>
@@ -41,6 +54,8 @@ function RestaurantHome() {
                 </Container>
             </MainContainer>
 
+
+
             {menuListOpen && (
                 <>
                     <MenuListBackground className={isClosing ? 'closing' : ''} />
@@ -48,7 +63,7 @@ function RestaurantHome() {
                         <MenuList className={isClosing ? 'closing' : ''}>
                             {restaurant.menu_list.map((menu: any) => {
                                 return (
-                                    <Menu key={menu.id}>{menu.name}</Menu>
+                                    <Menu key={menu.id} onClick={() => handleMenuClick(menu.id)} style={{ zIndex: 1000 }}>{menu.name}</Menu>
                                 )
                             })}
                         </MenuList>

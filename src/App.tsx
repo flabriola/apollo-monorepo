@@ -10,6 +10,7 @@ import RestaurantMenu from './pages/Restaurant/RestaurantMenu';
 import Restaurant from './pages/Restaurant';
 import NotFound from './pages/NotFound';
 import MainLayout from './pages/MainLayout';
+import PreferencesSelector from './pages/Restaurant/Preferences';
 
 function App() {
   return (
@@ -22,9 +23,10 @@ function App() {
         </Route>
 
         <Route path="/:restaurantName" element={<Restaurant />}>
+          <Route path="preferences" element={<PreferencesSelector />} />
           <Route path="" element={<RestaurantHome />} />
           <Route path="menu" element={<RestaurantMenu />} />
-          <Route path="menu/:menuId" element={<RestaurantMenu />} />
+          <Route path="menu/:menuName/:menuId" element={<RestaurantMenu />} />
         </Route>
         
       </Routes>

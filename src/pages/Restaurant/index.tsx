@@ -4,8 +4,11 @@ import { RestaurantContext } from "./RestaurantContext";
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import { fetchRestaurantData } from "../../hooks/restaurantData";
-import type { RestaurantData } from "../../shared/restaurant/types";
+import type { RestaurantData, UserPreferences } from "../../shared/restaurant/types";
 import { useTranslation } from "react-i18next";
+import PreferencesFooterButton from "../../components/PreferencesFooterButton";
+
+type PreferencesStates = "default" | "preferences" | "preferences_with_selection" | "menu";
 
 function Restaurant() {
 
@@ -15,10 +18,15 @@ function Restaurant() {
     const { restaurantName } = useParams();
     const restaurantRoute = checkRestaurantExist(restaurantName?.toString() ?? "");
     const [restaurant, setRestaurant] = useState<RestaurantData | null>(null);
-    
+
+    // UI
     const [isLoading, setIsLoading] = useState(true);
     const [dataLoaded, setDataLoaded] = useState(false);
     const [minLoadingTimePassed, setMinLoadingTimePassed] = useState(false);
+
+    // Preferences
+    const [preferencesState, setPreferencesState] = useState<PreferencesStates>("default");
+    const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
     // Return 404 component if restaurant is not found
     if (!restaurantRoute) {
@@ -30,7 +38,7 @@ function Restaurant() {
         const timer = setTimeout(() => {
             setMinLoadingTimePassed(true);
         }, 2000);
-        
+
         return () => clearTimeout(timer);
     }, []);
 
@@ -67,7 +75,16 @@ function Restaurant() {
         return <Loading restaurantRoute={restaurantRoute} />;
     } else {
         return (
-            <RestaurantContext.Provider value={{ restaurant }}>
+            <RestaurantContext.Provider
+                value={{
+                    restaurant,
+                    restaurantRoute,
+                    preferencesState,
+                    setPreferencesState,
+                    userPreferences,
+                    setUserPreferences
+                }}>
+                <PreferencesFooterButton />
                 <Outlet />
             </RestaurantContext.Provider>
         );
