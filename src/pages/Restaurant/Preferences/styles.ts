@@ -1,40 +1,41 @@
 import styled from "styled-components";
 
-export const MainContainer = styled.div<{ isSearching: boolean, searchQuery: string }>`
+export const MainContainer = styled.div`
     font-family: var(--font-family-secondary);
     font-weight: var(--font-weight-medium);
-    display: grid;
-    grid-template-columns: 0.95fr 1.05fr;
-    align-items: ${props => props.isSearching ? "top" : "center"};
-    justify-content: right;
-    padding-top: 1rem;
-    padding-right: 1rem;
-    min-height: 90vh;
-    max-height: fit-content;
-    margin-top: ${props => props.isSearching ? "20rem" : ""};
+    display: flex;
+    align-items: end;
+    position: fixed;
+    bottom: 8.5rem;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+        width: 50%;
+        margin: 0 25%;
+        bottom: 15rem;
+    }
+
+    @media (min-width: 1024px) {
+        width: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 15rem;
+    }
 `;
 
-export const Container = styled.div<{ isSearching: boolean }>`
+export const Container = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: left;
-    position: fixed;
-    top: ${props => props.isSearching ? "17rem" : "17.5rem"};
-    padding-left: 1rem;
+    width: 50%;
     gap: 0.7rem;
-`;
-
-export const Left = styled.div`
-    content: "";
-    height: 96%;
-    width: 50vw;
 `;
 
 export const Title = styled.div`
     font-size: var(--font-size-3xl);
-`;
-
-export const Header = styled.div`
+    padding-left: 1rem;
 `;
 
 export const PreferenceGroup = styled.div`
@@ -42,27 +43,32 @@ export const PreferenceGroup = styled.div`
     flex-direction: column;
     justify-content: left;
     gap: 10px;
+    padding-left: 1rem;
 `;
 
 export const SearchBar = styled.div`
     display: flex;
     align-items: center;
+    text-align: center;
     position: fixed;
-    bottom: 6rem;
+    bottom: 5rem;
     left: 50%;
     transform: translateX(-50%);
-    width: 5rem;
-    background-color: var(--material-light-background);
-    backdrop-filter: var(--material-light-background-blur);
-    -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
-    border-radius: 5rem;
-    padding: 0.3rem;
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+        bottom: 11.2rem;
+    }
+
+    @media (min-width: 1024px) {
+        bottom: -4.3rem;
+    }
 `;
 
 export const SearchInput = styled.input`
     background-color: transparent;
-    width: 4rem;
+    text-align: center;
     border: none;
+    padding: 0.3rem;
     font-size: var(--font-size-xl);
     font-family: var(--font-family-secondary);
     -webkit-tap-highlight-color: transparent;
@@ -81,18 +87,36 @@ export const Text = styled.div<{ selected: boolean }>`
     color: ${props => props.selected ? "var(--color-text-primary)" : "var(--color-text-secondary)"};
 `;
 
-export const PreferencesContainer = styled.div<{ preferenceGroup: string }>`
-    margin-bottom: ${props => props.preferenceGroup === 'allergens' ? "9rem" : "3rem"};
+export const PreferencesContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: left;
     justify-content: left;
-    padding-left: 1.5rem;
     margin-top: 1rem;
-    border-left: 1px solid lightgray;
+    border-left: 1px dashed lightgray;
+    width: 50%;
+    max-height: 70%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+    display: none;
+    }
+
+    @media (orientation: landscape) {
+        max-height: 47%;
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+        max-height: 46.4%;
+    }
+
+    @media (min-width: 1024px) {
+        max-height: 50%;
+    }
 `;
 
 export const PreferencesList = styled.div`
+    padding-left: 1.2rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;

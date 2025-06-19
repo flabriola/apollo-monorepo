@@ -15,7 +15,7 @@ export const MainContainer = styled.div`
 
     
     @media (min-width: 768px) {
-        margin-bottom: 5rem;
+        margin-bottom: 4.4rem;
         width: 26rem;
         left: 50%;
         transform: translateX(-50%);
@@ -37,7 +37,8 @@ export const Container = styled.div<{ animate: boolean }>`
     overflow: hidden;
 
     @media (min-width: 768px) {
-        border-radius: 8px;
+        /* TODO decide border radius for app */
+        border-radius: 12px;
         padding: 1.3rem 0;
     }
 
