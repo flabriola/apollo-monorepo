@@ -2,6 +2,54 @@
   "error": {
     "fetchingRestaurantData": "Error fetching restaurant data"
   },
+  "preferences": {
+    "egg": "Egg",
+    "milk": "Milk",
+    "soya": "Soya",
+    "wheat": "Wheat",
+    "treeNuts": "Tree Nuts",
+    "peanuts": "Peanuts",
+    "nuts": "Nuts",
+    "shellfish": "Shellfish",
+    "fish": "Fish",
+    "seafood": "Seafood",
+    "sesame": "Sesame",
+    "coeliac": "Coeliac",
+    "sulphite": "Sulphite",
+    "mustard": "Mustard",
+    "allium": "Allium",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "pescatarian": "Pescatarian",
+    "glutenFree": "Gluten Free",
+    "lactoseFree": "Lactose Free",
+    "dairyFree": "Dairy Free",
+    "fructoseFree": "Fructose Free",
+    "description": {
+      "egg": "",
+      "milk": "",
+      "soya": "",
+      "wheat": "",
+      "treeNuts": "",
+      "peanuts": "",
+      "nuts": "",
+      "shellfish": "",
+      "fish": "",
+      "seafood": "",
+      "sesame": "",
+      "coeliac": "",
+      "sulphite": "",
+      "mustard": "",
+      "allium": "",
+      "vegetarian": "",
+      "vegan": "",
+      "pescatarian": "",
+      "glutenFree": "",
+      "lactoseFree": "",
+      "dairyFree": "",
+      "fructoseFree": ""
+    }
+  },
   "notFound": {
     "title": "NOT FOUND",
     "subtitle": "You seem to be at the wrong address",
@@ -27,6 +75,9 @@
     "title": "Preferences",
     "allergens": "Allergens",
     "diets": "Diets",
-    "ingredients": "Ingredients"
+    "ingredients": "Ingredients",
+    "noResults": "No results found",
+    "searchPlaceholder": "Search",
+    "clear": "Clear"
   }
 } 

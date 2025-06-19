@@ -1,3 +1,5 @@
+import { t } from "i18next";
+
 export interface RestaurantData {
     name: string;
     address: string;
@@ -84,53 +86,53 @@ export enum Preferences {
 }
 
 export const PreferencesNames: { [key in Preferences]: string } = {
-    [Preferences.EGG]: "Egg",
-    [Preferences.MILK]: "Milk",
-    [Preferences.SOYA]: "Soya",
-    [Preferences.WHEAT]: "Wheat",
-    [Preferences.TREE_NUTS]: "Tree Nuts",
-    [Preferences.PEANUTS]: "Peanuts",
-    [Preferences.NUTS]: "Nuts",
-    [Preferences.SHELLFISH]: "Shellfish",
-    [Preferences.FISH]: "Fish",
-    [Preferences.SEAFOOD]: "Seafood",
-    [Preferences.SESAME]: "Sesame",
-    [Preferences.COELIAC]: "Coeliac",
-    [Preferences.SULPHITE]: "Sulphite",
-    [Preferences.MUSTARD]: "Mustard",
-    [Preferences.ALLIUM]: "Allium",
-    [Preferences.VEGETARIAN]: "Vegetarian",
-    [Preferences.VEGAN]: "Vegan",
-    [Preferences.PESCATARIAN]: "Pescatarian",
-    [Preferences.GLUTEN_FREE]: "Gluten Free",
-    [Preferences.LACTOSE_FREE]: "Lactose Free",
-    [Preferences.DAIRY_FREE]: "Dairy Free",
-    [Preferences.FRUCTOSE_FREE]: "Fructose Free"
+    [Preferences.EGG]: t("preferences.egg"),
+    [Preferences.MILK]: t("preferences.milk"),
+    [Preferences.SOYA]: t("preferences.soya"),
+    [Preferences.WHEAT]: t("preferences.wheat"),
+    [Preferences.TREE_NUTS]: t("preferences.treeNuts"),
+    [Preferences.PEANUTS]: t("preferences.peanuts"),
+    [Preferences.NUTS]: t("preferences.nuts"),
+    [Preferences.SHELLFISH]: t("preferences.shellfish"),
+    [Preferences.FISH]: t("preferences.fish"),
+    [Preferences.SEAFOOD]: t("preferences.seafood"),
+    [Preferences.SESAME]: t("preferences.sesame"),
+    [Preferences.COELIAC]: t("preferences.coeliac"),
+    [Preferences.SULPHITE]: t("preferences.sulphite"),
+    [Preferences.MUSTARD]: t("preferences.mustard"),
+    [Preferences.ALLIUM]: t("preferences.allium"),
+    [Preferences.VEGETARIAN]: t("preferences.vegetarian"),
+    [Preferences.VEGAN]: t("preferences.vegan"),
+    [Preferences.PESCATARIAN]: t("preferences.pescatarian"),
+    [Preferences.GLUTEN_FREE]: t("preferences.glutenFree"),
+    [Preferences.LACTOSE_FREE]: t("preferences.lactoseFree"),
+    [Preferences.DAIRY_FREE]: t("preferences.dairyFree"),
+    [Preferences.FRUCTOSE_FREE]: t("preferences.fructoseFree")
 }
 
 export const PreferencesDescriptions: { [key in Preferences]: string } = {
-    [Preferences.EGG]: "",
-    [Preferences.MILK]: "",
-    [Preferences.SOYA]: "",
-    [Preferences.WHEAT]: "",
-    [Preferences.TREE_NUTS]: "",
-    [Preferences.PEANUTS]: "",
-    [Preferences.NUTS]: "",
-    [Preferences.SHELLFISH]: "Molluscs",
-    [Preferences.FISH]: "",
-    [Preferences.SEAFOOD]: "",
-    [Preferences.SESAME]: "",
-    [Preferences.COELIAC]: "",
-    [Preferences.SULPHITE]: "",
-    [Preferences.MUSTARD]: "",
-    [Preferences.ALLIUM]: "",
-    [Preferences.VEGETARIAN]: "",
-    [Preferences.VEGAN]: "",
-    [Preferences.PESCATARIAN]: "",
-    [Preferences.GLUTEN_FREE]: "",
-    [Preferences.LACTOSE_FREE]: "",
-    [Preferences.DAIRY_FREE]: "",
-    [Preferences.FRUCTOSE_FREE]: ""
+    [Preferences.EGG]: t("preferences.description.egg"),
+    [Preferences.MILK]: t("preferences.description.milk"),
+    [Preferences.SOYA]: t("preferences.description.soya"),
+    [Preferences.WHEAT]: t("preferences.description.wheat"),
+    [Preferences.TREE_NUTS]: t("preferences.description.treeNuts"),
+    [Preferences.PEANUTS]: t("preferences.description.peanuts"),
+    [Preferences.NUTS]: t("preferences.description.nuts"),
+    [Preferences.SHELLFISH]: t("preferences.description.shellfish"),
+    [Preferences.FISH]: t("preferences.description.fish"),
+    [Preferences.SEAFOOD]: t("preferences.description.seafood"),
+    [Preferences.SESAME]: t("preferences.description.sesame"),
+    [Preferences.COELIAC]: t("preferences.description.coeliac"),
+    [Preferences.SULPHITE]: t("preferences.description.sulphite"),
+    [Preferences.MUSTARD]: t("preferences.description.mustard"),
+    [Preferences.ALLIUM]: t("preferences.description.allium"),
+    [Preferences.VEGETARIAN]: t("preferences.description.vegetarian"),
+    [Preferences.VEGAN]: t("preferences.description.vegan"),
+    [Preferences.PESCATARIAN]: t("preferences.description.pescatarian"),
+    [Preferences.GLUTEN_FREE]: t("preferences.description.glutenFree"),
+    [Preferences.LACTOSE_FREE]: t("preferences.description.lactoseFree"),
+    [Preferences.DAIRY_FREE]: t("preferences.description.dairyFree"),
+    [Preferences.FRUCTOSE_FREE]: t("preferences.description.fructoseFree")
 }
 
 export type UserPreferences = {

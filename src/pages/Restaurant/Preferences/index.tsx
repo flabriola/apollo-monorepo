@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRestaurant } from "../RestaurantContext";
-import { MainContainer, Title, PreferenceGroup, SearchBar, Text, PreferenceItem, PreferencesList, SearchInput, PreferencesContainer, Header } from "./styles";
+import { MainContainer, Title, PreferenceGroup, SearchBar, Text, PreferenceItem, PreferencesList, SearchInput, PreferencesContainer, Left, Container } from "./styles";
 import { useTranslation } from "react-i18next";
 import { allergies, diets } from "../../../shared/restaurant/data";
 import { getPreferenceIcon } from "../../../hooks/getPreferenceIcon";
@@ -18,6 +18,7 @@ function PreferencesSelector() {
     const [preferenceGroup, setPreferenceGroup] = useState<"allergens" | "diets" | "ingredients">("allergens");
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [searchResults, setSearchResults] = useState<Preferences[]>(allergies.concat(diets));
+    const [isSearching, setIsSearching] = useState<boolean>(false);
 
     useEffect(() => {
         if (userPreferences && userPreferences.preferences && userPreferences.preferences.length > 0) {
@@ -94,11 +95,12 @@ function PreferencesSelector() {
     }, [searchQuery]);
 
     return (
-        <MainContainer>
-            <Title>{t("preferencesSelector.title")}</Title>
+        <MainContainer isSearching={isSearching} searchQuery={searchQuery}>
+            <Container isSearching={isSearching}>
+                <Title>{t("preferencesSelector.title")}</Title>
                 <PreferenceGroup>
                     <Text onClick={() => setPreferenceGroup("allergens")} selected={preferenceGroup === "allergens"}>{t("preferencesSelector.allergens")}</Text>
-                    |
+
                     <Text onClick={() => setPreferenceGroup("diets")} selected={preferenceGroup === "diets"}>{t("preferencesSelector.diets")}</Text>
                     {false && (
                         <>
@@ -107,39 +109,32 @@ function PreferencesSelector() {
                         </>
                     )}
                 </PreferenceGroup>
-                {/* TODO: fix clear button styling */}
-                <SearchBar>
-                    {searchQuery && (
-                        <Text
-                            selected={false}
-                            onClick={() => setSearchQuery("")}
-                            style={{
-                                opacity: 0
-                            }}
-                        >
-                            clear
-                        </Text>
-                    )}
-                    <SearchInput
-                        placeholder="Search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                        <Text
-                            selected={false}
-                            onClick={() => setSearchQuery("")}
-                            style={{
-                                fontFamily: "var(--font-family-tertiary)",
-                                fontSize: "var(--font-size-sm)",
-                                fontWeight: "var(--font-weight-light)"
-                            }}
-                        >
-                            clear
-                        </Text>
-                    )}
-                </SearchBar>
-            <PreferencesContainer>
+            </Container>
+            <SearchBar>
+                <SearchInput
+                    placeholder={t("preferencesSelector.searchPlaceholder")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsSearching(true)}
+                    onBlur={() => setIsSearching(false)}
+                />
+                {searchQuery && (
+                    <Text
+                        selected={false}
+                        onClick={() => setSearchQuery("")}
+                        style={{
+                            fontFamily: "var(--font-family-tertiary)",
+                            fontSize: "var(--font-size-sm)",
+                            fontWeight: "var(--font-weight-light)",
+                            marginLeft: "10px"
+                        }}
+                    >
+                        {t("preferencesSelector.clear")}
+                    </Text>
+                )}
+            </SearchBar>
+            <Left></Left>
+            <PreferencesContainer preferenceGroup={preferenceGroup}>
                 <PreferencesList>
                     {preferenceGroup === 'allergens' && !searchQuery && (
                         allergies.map((allergen) => {
@@ -174,7 +169,7 @@ function PreferencesSelector() {
                         <div></div>
                     )}
 
-                    {searchQuery && (
+                    {searchQuery && searchResults.length > 0 ? (
                         searchResults.map((item) => {
                             const isSelected = userPreferences && userPreferences.preferences && userPreferences.preferences.includes(item);
                             return (
@@ -186,6 +181,8 @@ function PreferencesSelector() {
                                 </PreferenceItem>
                             )
                         })
+                    ) : searchQuery &&(
+                        <Text selected={false}>{t("preferencesSelector.noResults")}</Text>
                     )}
                 </PreferencesList>
             </PreferencesContainer>
