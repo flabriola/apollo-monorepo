@@ -65,7 +65,7 @@ export const restaurantData = `
             'name',        m.name,
             'description', m.description,
             'active',      m.active,
-            'pdf_url',     m.pdf_url,
+            'menu_overlay',     m.menu_overlay,
             'dishes',      (
             SELECT JSON_OBJECTAGG(
                 d.id,
