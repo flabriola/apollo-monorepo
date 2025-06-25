@@ -32,7 +32,8 @@ const upload = multer({
 const allowedOrigins = [
   // Local Main App
   'http://localhost:5173',
-  'http://192.168.1.212:5173',
+  'http://192.168.1.212:5173',    // Home
+  'http://172.16.100.195:5173',   // Studio
   // Local Screening app
   'http://127.0.0.1:5173',
   // Screening app
