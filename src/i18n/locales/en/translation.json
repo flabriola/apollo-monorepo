@@ -79,5 +79,8 @@
     "noResults": "No results found",
     "searchPlaceholder": "Search",
     "clear": "Clear"
+  },
+  "menu": {
+    "home": "Home"
   }
 } 

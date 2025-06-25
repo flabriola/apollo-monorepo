@@ -26,7 +26,6 @@ function App() {
           <Route path="preferences" element={<PreferencesSelector />} />
           <Route path="" element={<RestaurantHome />} />
           <Route path="menu" element={<RestaurantMenu />} />
-          <Route path="menu/:menuName/:menuId" element={<RestaurantMenu />} />
         </Route>
         
       </Routes>

@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import LineButton from '../../../components/Buttons/LineButton';
 import { useRestaurant } from '../RestaurantContext';
-import { Container, MainContainer, RestaurantLogo, RightContainer, Text, LeftContainer, MenuList, Menu, MenuListContainer, MenuListBackground } from './styles';
+import { Container, MainContainer, RestaurantLogo, RightContainer, Text, LeftContainer, Menu, MenuListContainerHome, MenuListBackgroundHome, MenuListHome } from './styles';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import flamingoImage from '../../../assets/icons/flamingoroom10-1100x1540.jpg';
 import menuImg from '../../../assets/icons/menu_test.png';
+// TODO: Remove above 
 
 function RestaurantHome() {
     const { t } = useTranslation();
-    const { restaurant, restaurantRoute, setPreferencesState } = useRestaurant();
+    const { restaurant, restaurantRoute, setPreferencesState, setMenu } = useRestaurant();
     const navigate = useNavigate();
     const [menuListOpen, setMenuListOpen] = useState(false);
     const [menuListOpenX, setMenuListOpenX] = useState(false);
@@ -30,8 +31,8 @@ function RestaurantHome() {
     };
 
     const handleMenuClick = (menuId: string) => {
-        const menu = restaurant.menus.find((menu: any) => menu.id === menuId);
-        navigate(`/${restaurantRoute?.route}/menu/${menu.name.toLowerCase().replace(/ /g, '-')}/${menu.id}`);
+        setMenu(restaurant.menus[parseInt(menuId)]);
+        navigate(`/${restaurantRoute?.route}/menu`);
     };
 
     useEffect(() => {
@@ -58,16 +59,16 @@ function RestaurantHome() {
 
             {menuListOpen && (
                 <>
-                    <MenuListBackground className={isClosing ? 'closing' : ''} />
-                    <MenuListContainer>
-                        <MenuList className={isClosing ? 'closing' : ''}>
+                    <MenuListBackgroundHome className={isClosing ? 'closing' : ''} />
+                    <MenuListContainerHome>
+                        <MenuListHome className={isClosing ? 'closing' : ''}>
                             {restaurant.menu_list.map((menu: any) => {
                                 return (
                                     <Menu key={menu.id} onClick={() => handleMenuClick(menu.id)} style={{ zIndex: 1000 }}>{menu.name}</Menu>
                                 )
                             })}
-                        </MenuList>
-                    </MenuListContainer>
+                        </MenuListHome>
+                    </MenuListContainerHome>
                 </>
             )}
         </>

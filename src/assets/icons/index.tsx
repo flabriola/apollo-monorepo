@@ -1,3 +1,5 @@
+import TestMenuImg from './BB+A+la+carte+05.2025.png';
+
 export const LogoIcon = ({ size = 419 }: { size?: number }) => (
     <svg
         width={size ? `${size}px` : '100%'}
@@ -314,6 +316,79 @@ export const LineButtonIcon = ({ size = 16, color = "black" }: { size?: number, 
 
 
     </svg>
+)
+
+
+export const TestMenu = () => (
+    <svg width="2501" height="3290" viewBox="0 0 2501 3290" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id="testMenuPattern" patternUnits="userSpaceOnUse" width="100%" height="100%">
+                <image href={TestMenuImg} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#testMenuPattern)" />
+        <rect x="174.265" y="491.948" width="723.113" height="54.3955" fill="white" />
+        <rect x="174.265" y="583.885" width="723.113" height="54.3955" fill="white" />
+        <rect x="174.265" y="674.335" width="723.113" height="54.8447" fill="white" />
+        <rect x="174.265" y="766.161" width="723.113" height="50.6387" fill="white" />
+        <rect x="174.265" y="766.161" width="723.113" height="84.6279" fill="white" />
+        <rect x="173.795" y="886.844" width="724.053" height="51.7227" fill="white" />
+        <rect x="173.795" y="974.621" width="724.053" height="51.7227" fill="white" />
+        <rect x="173.795" y="1062.4" width="724.053" height="28.458" fill="white" />
+        <rect x="173.795" y="1122.59" width="724.053" height="55.8047" fill="white" />
+        <rect x="173.795" y="1298.33" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="1389.08" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="1479.82" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="1570.57" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="1661.31" width="724.053" height="61.0723" fill="white" />
+        <rect x="173.795" y="1752.05" width="724.053" height="62.4297" fill="white" />
+        <rect x="173.795" y="1846.21" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="1936.96" width="724.053" height="61.0723" fill="white" />
+        <rect x="173.795" y="2014.1" width="724.053" height="76.0332" fill="white" />
+        <rect x="173.795" y="2233.59" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="2324.34" width="724.053" height="61.0723" fill="white" />
+        <rect x="173.795" y="2415.08" width="724.053" height="62.4297" fill="white" />
+        <rect x="173.795" y="2509.24" width="724.053" height="59.0156" fill="white" />
+        <rect x="173.795" y="2599.98" width="724.053" height="61.0723" fill="white" />
+        <rect x="173.795" y="2690.73" width="724.053" height="62.4297" fill="white" />
+        <rect x="944.449" y="2470.89" width="612.036" height="59.0156" fill="white" />
+        <rect x="944.449" y="2360.82" width="612.036" height="59.0156" fill="white" />
+        <rect x="944.449" y="2254.49" width="612.036" height="59.0156" fill="white" />
+        <rect x="944.449" y="2148.16" width="612.036" height="59.0156" fill="white" />
+        <rect x="1074.42" y="1805.3" width="353.267" height="100.701" fill="white" />
+        <rect x="1074.42" y="1603.06" width="353.267" height="76.8691" fill="white" />
+        <rect x="1005.31" y="1485.49" width="491.487" height="76.8691" fill="white" />
+        <rect x="1038.81" y="1372.26" width="424.482" height="76.8691" fill="white" />
+        <rect x="1037.58" y="1233.27" width="426.928" height="99.3359" fill="white" />
+        <rect x="972.061" y="1000.48" width="557.976" height="103.3" fill="white" />
+        <rect x="1002.19" y="857.756" width="497.71" height="102.144" fill="white" />
+        <rect x="1013.04" y="714.02" width="476.023" height="102.144" fill="white" />
+        <rect x="1017.79" y="568.452" width="466.526" height="103.104" fill="white" />
+        <rect x="944.449" y="2580.95" width="612.036" height="52.4453" fill="white" />
+        <rect x="944.449" y="2690.73" width="612.036" height="62.4297" fill="white" />
+        <rect x="1604.22" y="2724.16" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2656.97" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2589.79" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2522.6" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2457.51" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2390.33" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2323.14" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2255.96" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2071.46" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="2005.01" width="727.823" height="23.6309" fill="white" />
+        <rect x="1604.22" y="1937.78" width="727.823" height="24.418" fill="white" />
+        <rect x="1604.22" y="1666.12" width="727.823" height="82.8711" fill="white" />
+        <rect x="1604.22" y="1569.21" width="727.823" height="58.1465" fill="white" />
+        <rect x="1604.22" y="1472.3" width="727.823" height="58.1465" fill="white" />
+        <rect x="1604.22" y="1378.36" width="727.823" height="58.1465" fill="white" />
+        <rect x="1604.22" y="492.317" width="727.823" height="50.6191" fill="white" />
+        <rect x="1604.22" y="586.743" width="727.823" height="56.4717" fill="white" />
+        <rect x="1604.22" y="826.954" width="727.823" height="56.4717" fill="white" />
+        <rect x="1604.22" y="924.493" width="727.823" height="56.4717" fill="white" />
+        <rect x="1604.22" y="1020.38" width="727.823" height="56.4717" fill="white" />
+        <rect x="1604.22" y="1116.27" width="727.823" height="56.4717" fill="white" />
+    </svg>
+
 )
 
 // Allergen and diet icons

@@ -10,7 +10,7 @@ import { useState } from "react";
 
 function PreferencesFooterButton() {
 
-    const { preferencesState, userPreferences, restaurantRoute } = useRestaurant();
+    const { preferencesState, userPreferences, restaurantRoute, lastMenuId } = useRestaurant();
     const { t } = useTranslation();
     const navigate = useNavigate();
 

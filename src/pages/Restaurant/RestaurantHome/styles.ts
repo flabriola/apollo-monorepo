@@ -65,7 +65,7 @@ export const Text = styled.div`
     }
 `;
 
-export const MenuListBackground = styled.div`
+export const MenuListBackgroundHome = styled.div`
     position: absolute;
     z-index: 3;
     top: 0;
@@ -74,9 +74,9 @@ export const MenuListBackground = styled.div`
     height: 100vh;
     background-color: var(--color-bg-dark);
     transform: translateX(-100%);
-    animation: slideIn 0.5s forwards;
+    animation: slideInHome 0.5s forwards;
 
-    @keyframes slideIn {
+    @keyframes slideInHome {
         from {
             transform: translateX(-100%);
         }
@@ -86,10 +86,10 @@ export const MenuListBackground = styled.div`
     }
 
     &.closing {
-        animation: slideOut 0.5s forwards;
+        animation: slideOutHome 0.5s forwards;
     }
 
-    @keyframes slideOut {
+    @keyframes slideOutHome {
         from {
             transform: translateX(0);
         }
@@ -99,7 +99,7 @@ export const MenuListBackground = styled.div`
     }
 `;
 
-export const MenuListContainer = styled.div`
+export const MenuListContainerHome = styled.div`
     position: absolute;
     top: 0;
     left: 0;
@@ -114,7 +114,7 @@ export const MenuListContainer = styled.div`
     }
 `;
 
-export const MenuList = styled.div`
+export const MenuListHome = styled.div`
     margin-left: 2.2rem;
     display: flex;
     gap: 1.3rem;

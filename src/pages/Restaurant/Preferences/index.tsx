@@ -93,6 +93,7 @@ function PreferencesSelector() {
         setSearchResults(filteredResults);
     }, [searchQuery]);
 
+    // TODO: Add clear all button and limit number of filters
     return (
         <MainContainer>
             <Container>

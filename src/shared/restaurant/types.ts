@@ -15,10 +15,23 @@ export interface RestaurantData {
     }[];
 
     menus: {
-        name: string;
-        description: string;
-        active: boolean;
-        pdf_url: string;
+        [key: number]: {
+            name: string;
+            description: string;
+            active: boolean;
+            menu_overlay: {
+            image: string;
+            width: number;
+            height: number;
+            rectangles: {
+                id: string;
+                width: number;
+                height: number;
+                left: number;
+                top: number;
+            }[];
+            color: string;
+        };
         dishes: {
             [key: number]: {
                 name: string;
@@ -47,8 +60,9 @@ export interface RestaurantData {
                     description: string;
                 }[];
             };
+            };
         };
-    }[];
+    };
 }
 
 export type RestaurantRoute = {
@@ -72,7 +86,7 @@ export enum Preferences {
     FISH = 500008,
     SEAFOOD = 500009,
     SESAME = 500010,
-    COELIAC = 500011, 
+    COELIAC = 500011,
     SULPHITE = 500012,
     MUSTARD = 500013,
     ALLIUM = 500014,
@@ -82,7 +96,7 @@ export enum Preferences {
     GLUTEN_FREE = 600003,
     LACTOSE_FREE = 600004,
     DAIRY_FREE = 600005,
-    FRUCTOSE_FREE = 600006 
+    FRUCTOSE_FREE = 600006
 }
 
 export const PreferencesNames: { [key in Preferences]: string } = {
@@ -138,3 +152,17 @@ export const PreferencesDescriptions: { [key in Preferences]: string } = {
 export type UserPreferences = {
     preferences: Preferences[];
 }
+
+export type MenuOverlay = {
+    image: string;
+    width: number;
+    color: string;
+    height: number;
+    rectangles: {
+        id: string;
+        width: number;
+        height: number;
+        left: number;
+        top: number;
+    }[];
+};

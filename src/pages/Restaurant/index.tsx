@@ -31,6 +31,9 @@ function Restaurant() {
     const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 
+    // Menu
+    const [menu, setMenu] = useState<RestaurantData["menus"] | null>(null);
+
     // Return 404 component if restaurant is not found
     if (!restaurantRoute) {
         return <Navigate to="/404" />;
@@ -74,6 +77,13 @@ function Restaurant() {
             try {
                 const data = await fetchRestaurantData(restaurantRoute?.route ?? "");
                 setRestaurant(data);
+                
+                // Get first active menu from menu list
+                const firstActiveMenu = Object.values(data.menus).find((menu: any) => menu.active);
+                if (firstActiveMenu) {
+                    setMenu(firstActiveMenu);
+                }
+                
                 setDataLoaded(true);
             } catch (error) {
                 console.error(t("error.fetchingRestaurantData"), error);
@@ -108,7 +118,9 @@ function Restaurant() {
                     preferencesState,
                     setPreferencesState,
                     userPreferences,
-                    setUserPreferences
+                    setUserPreferences,
+                    menu,
+                    setMenu
                 }}>
                 <PreferencesFooterButton />
                 <Outlet />
