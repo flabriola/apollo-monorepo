@@ -82,5 +82,14 @@
   },
   "menu": {
     "home": "Home"
+  },
+  "preferences_disclaimer": {
+    "main_one": "The menus have been filtered for items that",
+    "main_allergen": "contain",
+    "main_diet_start": "are suitable for a ",
+    "main_diet_end": "diet",
+    "advice": "Please inform your waiter of your dietary requirements.",
+    "disclaimer": "The kitchen cannot guarantee no cross contamination.",
+    "and": "and"
   }
 } 

@@ -33,6 +33,7 @@ function Restaurant() {
 
     // Menu
     const [menu, setMenu] = useState<RestaurantData["menus"] | null>(null);
+    const [disclaimer, setDisclaimer] = useState<boolean>(false);
 
     // Return 404 component if restaurant is not found
     if (!restaurantRoute) {
@@ -120,7 +121,9 @@ function Restaurant() {
                     userPreferences,
                     setUserPreferences,
                     menu,
-                    setMenu
+                    setMenu,
+                    disclaimer,
+                    setDisclaimer
                 }}>
                 <PreferencesFooterButton />
                 <Outlet />

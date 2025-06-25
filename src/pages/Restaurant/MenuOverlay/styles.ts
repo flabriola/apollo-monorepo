@@ -53,3 +53,7 @@ export const Icons = styled.div<{
     justify-content: center;
     gap: 0.2rem;
 `;
+
+export const Icon = styled.div`
+
+`;

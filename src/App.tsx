@@ -34,3 +34,7 @@ function App() {
 }
 
 export default App;
+
+
+// TODO: Animate, propbably opacity, Home page
+// TODO: Review preferences_disclaimer text

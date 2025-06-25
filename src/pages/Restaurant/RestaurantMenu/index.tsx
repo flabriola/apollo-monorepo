@@ -1,15 +1,14 @@
 import { useRestaurant } from "../RestaurantContext";
 import { useEffect, useState } from "react";
-import { MainContainer, HeaderContainer, MenuListBackground, MenuListContainer, MenuList, Menu, HeaderTitle, MenuContainer, Container } from "./styles";
+import { MainContainer, HeaderContainer, MenuListBackground, MenuListContainer, MenuList, Menu, HeaderTitle, MenuContainer, Container, HeaderContent } from "./styles";
 import { LineButton } from "../../../components/Buttons/LineButton";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import MenuOverlay from "../MenuOverlay";
+import PreferencesDisclaimer from "../../../components/PreferencesDisclaimer";
 
 function RestaurantMenu() {
 
-    const { t } = useTranslation();
-    const { restaurant, setPreferencesState, userPreferences, setMenu, menu, restaurantRoute } = useRestaurant();
+    const { restaurant, setPreferencesState, userPreferences, setMenu, menu, restaurantRoute, disclaimer, setDisclaimer } = useRestaurant();
     const navigate = useNavigate();
 
     const [filteredIds, setFilteredIds] = useState<{ dishId: string, preferenceIds: string[] }[]>([]);
@@ -116,16 +115,18 @@ function RestaurantMenu() {
         <MainContainer>
             <Container>
                 <HeaderContainer>
-                    <HeaderTitle onClick={() => navigate(`/${restaurantRoute?.route}`)} style={{ zIndex: -1 }}>← {t("menu.home")}</HeaderTitle>
-                    <LineButton onClick={handleMenuListOpen} style={{ zIndex: menuListOpen ? 100 : 0 }} isOpen={menuListOpenX} />
+                    <HeaderContent>
+                        <HeaderTitle onClick={() => navigate(`/${restaurantRoute?.route}`)}>←</HeaderTitle>
+                        <LineButton onClick={handleMenuListOpen} style={{ zIndex: menuListOpen ? 100 : 0 }} isOpen={menuListOpenX} />
+                    </HeaderContent>
                 </HeaderContainer>
 
                 <MenuContainer>
-                    {menu && menu.menu_overlay && (
-                        <MenuOverlay menu_overlay={menu.menu_overlay} filteredIds={filteredIds} />
-                    )}
+                    <MenuOverlay menu_overlay={menu.menu_overlay} filteredIds={filteredIds} />
                 </MenuContainer>
             </Container>
+
+            {disclaimer && <PreferencesDisclaimer />}
 
             {menuListOpen && (
                 <>

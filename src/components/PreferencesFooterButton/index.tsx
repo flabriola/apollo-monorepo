@@ -10,7 +10,7 @@ import { useState } from "react";
 
 function PreferencesFooterButton() {
 
-    const { preferencesState, userPreferences, restaurantRoute, lastMenuId } = useRestaurant();
+    const { preferencesState, userPreferences, restaurantRoute, setDisclaimer } = useRestaurant();
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -46,7 +46,8 @@ function PreferencesFooterButton() {
         if (preferencesState === "default" || preferencesState === "menu") {
             navigate(`/${restaurantRoute.route}/preferences`);
         } else if (preferencesState === "preferences" || preferencesState === "preferences_with_selection") {
-            // TODO: keep local storage stack or last menu visited and always travel to it
+
+            if (preferencesState === "preferences_with_selection") setDisclaimer(true);
             navigate(`/${restaurantRoute.route}/menu`);
         }
     }
@@ -55,7 +56,7 @@ function PreferencesFooterButton() {
     if (preferencesState === "default") {
         return (
             <MainContainer onClick={handleClick}>
-                <LogoIcon size={46} />
+                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate} >
                     <Title key={states.default.title}>
                         {states.default.title}
@@ -102,7 +103,7 @@ function PreferencesFooterButton() {
     } else if (preferencesState === "menu") {
         return (
             <MainContainer onClick={handleClick}>
-                <LogoIcon size={46} />
+                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate}>
                     <Title key={states.menu.title}>
                         {states.menu.title}

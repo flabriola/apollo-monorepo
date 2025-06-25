@@ -5,13 +5,14 @@ import { Text } from "./styles";
 interface TextButtonProps {
     text: string;
     onClick?: () => void;
+    style?: React.CSSProperties;
 }
 
-function TextButton({ text, onClick }: TextButtonProps) {
+function TextButton({ text, onClick, style }: TextButtonProps) {
     const { t } = useAppTranslation();
 
     return (
-        <Text onClick={onClick}>{t(text)}</Text>
+        <Text onClick={onClick} style={style}>{t(text)}</Text>
     )
 }
 

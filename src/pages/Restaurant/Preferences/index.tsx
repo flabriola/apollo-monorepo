@@ -15,7 +15,7 @@ function PreferencesSelector() {
 
     const { t } = useTranslation();
     const { setPreferencesState, userPreferences, setUserPreferences } = useRestaurant();
-    const [preferenceGroup, setPreferenceGroup] = useState<"allergens" | "diets" | "ingredients">("diets");
+    const [preferenceGroup, setPreferenceGroup] = useState<"allergens" | "diets" | "ingredients">("allergens");
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [searchResults, setSearchResults] = useState<Preferences[]>(allergies.concat(diets));
 
@@ -29,11 +29,17 @@ function PreferencesSelector() {
 
     const handlePreferenceClick = (preference: Preferences) => {
         if (userPreferences && userPreferences.preferences && userPreferences.preferences.includes(preference)) {
+            // Remove preference if already selected
             setUserPreferences({
                 ...userPreferences,
                 preferences: userPreferences.preferences.filter((p: Preferences) => p !== preference)
             });
         } else {
+            // Add preference only if under the limit of 6
+            if (userPreferences && userPreferences.preferences && userPreferences.preferences.length >= 6) {
+                // Don't add more preferences if limit reached
+                return;
+            }
             setUserPreferences({
                 ...userPreferences,
                 preferences: [...userPreferences.preferences, preference]
@@ -138,12 +144,15 @@ function PreferencesSelector() {
                     {preferenceGroup === 'allergens' && !searchQuery && (
                         allergies.map((allergen) => {
                             const isSelected = userPreferences && userPreferences.preferences && userPreferences.preferences.includes(allergen);
+                            const isLimitReached = userPreferences && userPreferences.preferences && userPreferences.preferences.length >= 6;
+                            const isDisabled = !isSelected && isLimitReached;
                             return (
                                 <PreferenceItem
                                     selected={isSelected}
-                                    onClick={() => handlePreferenceClick(allergen)}
+                                    disabled={isDisabled}
+                                    onClick={() => !isDisabled && handlePreferenceClick(allergen)}
                                 >
-                                    {getPreferenceIcon(allergen, 25, isSelected ? "var(--color-negative)" : "var(--color-black)")} {PreferencesNames[allergen]}
+                                    {getPreferenceIcon(allergen, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[allergen]}
                                 </PreferenceItem>
                             )
                         })
@@ -152,12 +161,15 @@ function PreferencesSelector() {
                     {preferenceGroup === 'diets' && !searchQuery && (
                         diets.map((diet) => {
                             const isSelected = userPreferences && userPreferences.preferences && userPreferences.preferences.includes(diet);
+                            const isLimitReached = userPreferences && userPreferences.preferences && userPreferences.preferences.length >= 6;
+                            const isDisabled = !isSelected && isLimitReached;
                             return (
                                 <PreferenceItem
                                     selected={isSelected}
-                                    onClick={() => handlePreferenceClick(diet)}
+                                    disabled={isDisabled}
+                                    onClick={() => !isDisabled && handlePreferenceClick(diet)}
                                 >
-                                    {getPreferenceIcon(diet, 25, isSelected ? "var(--color-negative)" : "var(--color-black)")} {PreferencesNames[diet]}
+                                    {getPreferenceIcon(diet, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[diet]}
                                 </PreferenceItem>
                             )
                         })
@@ -171,12 +183,15 @@ function PreferencesSelector() {
                     {searchQuery && searchResults.length > 0 ? (
                         searchResults.map((item) => {
                             const isSelected = userPreferences && userPreferences.preferences && userPreferences.preferences.includes(item);
+                            const isLimitReached = userPreferences && userPreferences.preferences && userPreferences.preferences.length >= 6;
+                            const isDisabled = !isSelected && isLimitReached;
                             return (
                                 <PreferenceItem
                                     selected={isSelected}
-                                    onClick={() => handlePreferenceClick(item)}
+                                    disabled={isDisabled}
+                                    onClick={() => !isDisabled && handlePreferenceClick(item)}
                                 >
-                                    {getPreferenceIcon(item, 25, isSelected ? "var(--color-negative)" : "var(--color-black)")} {PreferencesNames[item]}
+                                    {getPreferenceIcon(item, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[item]}
                                 </PreferenceItem>
                             )
                         })

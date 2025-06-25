@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 export const MainContainer = styled.div`
+    width: 100%;
 `;
 
 export const Container = styled.div`
@@ -8,7 +9,7 @@ export const Container = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: top;
-    min-height: 100vh;
+    margin-bottom: 9rem;
 `;
 
 export const HeaderContainer = styled.div`
@@ -16,24 +17,36 @@ export const HeaderContainer = styled.div`
     top: 0;
     z-index: 100;
     width: 100%;
-    padding: 1rem;
+`;
+
+// TODO: Consider background of menu list to be white or not so grey
+
+export const HeaderContent = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--color-bg-dark);
+    padding: 0.8rem 2.2rem;
 `;
 
 export const HeaderTitle = styled.div`
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-2xl);
     font-family: var(--font-family-secondary);
     font-weight: var(--font-weight-normal);
+    width: 5rem;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;    
+    cursor: pointer;
+
+    &:active {
+        opacity: 0.5;
+    }
 `;
 
 export const MenuContainer = styled.div`
-    width: 100%;
+    width: 92%;
     height: 100%;
     display: flex;
-    margin: auto 0;
+    margin: 0 0;
 `;
 
 export const MenuListBackground = styled.div`

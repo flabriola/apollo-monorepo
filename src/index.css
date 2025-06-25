@@ -134,6 +134,9 @@
   --material-light-background: rgba(255, 255, 255, 0.6);
   --material-light-background-blur: blur(10px);
   --material-light-background-webkit-blur: blur(10px);
+  --material-light-overlay: rgba(255, 255, 255, 0.3);
+  --material-light-overlay-blur: blur(2px);
+  --material-light-overlay-webkit-blur: blur(2px);
 }
 
 a {

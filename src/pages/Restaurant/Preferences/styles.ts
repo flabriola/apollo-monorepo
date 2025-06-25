@@ -123,14 +123,18 @@ export const PreferencesList = styled.div`
     justify-content: left;
 `;
 
-export const PreferenceItem = styled.div<{ selected: boolean }>`
+export const PreferenceItem = styled.div<{ selected: boolean; disabled?: boolean }>`
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: left;
     gap: 1rem;
     font-size: var(--font-size-xl);
-    color: ${props => props.selected ? "var(--color-negative)" : "var(--color-black)"};
+    color: ${props => {
+        if (props.selected) return "var(--color-negative)";
+        if (props.disabled) return "var(--color-text-secondary)";
+        return "var(--color-black)";
+    }};
 
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -139,7 +143,8 @@ export const PreferenceItem = styled.div<{ selected: boolean }>`
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+    opacity: ${props => props.disabled ? 0.5 : 1};
     
     animation: slideDown 0.3s ease-out;
     

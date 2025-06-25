@@ -1,4 +1,5 @@
-import { Wrapper, MenuImage, Rectangle, Icons } from './styles';
+import React, { useEffect, useState } from 'react';
+import { Wrapper, MenuImage, Rectangle, Icons, Icon } from './styles';
 import { getPreferenceIcon } from '../../../hooks/getPreferenceIcon';
 import type { Preferences } from '../../../shared/restaurant/types';
 
@@ -16,14 +17,19 @@ function MenuOverlay({
     filteredIds: { dishId: string, preferenceIds: string[] }[];
 }) {
     const { image, width, height, rectangles, color } = menu_overlay;
+    const [key, setKey] = useState(0);
+    
+    // Force re-render when menu_overlay changes
+    useEffect(() => {
+        setKey(prev => prev + 1);
+    }, [menu_overlay]);
     
     return (
-        <Wrapper baseWidth={width} baseHeight={height}>
+        <Wrapper key={key} baseWidth={width} baseHeight={height}>
             <MenuImage src={image}/>
             {rectangles.map(({ id, ...rect }) => (
-                <>
+                <React.Fragment key={id}>
                     <Rectangle
-                        key={id}
                         {...rect}
                         blocked={filteredIds.some((item) => item.dishId === id)}
                         style={{
@@ -31,11 +37,10 @@ function MenuOverlay({
                             top: `${(rect.top / height) * 100}%`,
                             width: `${(rect.width / width) * 100}%`,
                             height: `${(rect.height / height) * 100}%`,
-                            backgroundColor: 'red',
+                            backgroundColor: color,
                         }}
                     />
                     <Icons
-                        key={id}
                         {...rect}
                         blocked={filteredIds.some((item) => item.dishId === id)}
                         style={{
@@ -49,11 +54,11 @@ function MenuOverlay({
                             filteredIds.find(item => item.dishId === id)?.preferenceIds.map((preferenceId: string) => {
                                 // Cast to unknown first to avoid type error
                                 const preference = parseInt(preferenceId) as Preferences;
-                                return (getPreferenceIcon(preference, 7, "var(--color-negative)"))
+                                return (<Icon>{getPreferenceIcon(preference, 7, "var(--color-negative)")}</Icon>)
                             })
                         )}
                     </Icons>
-                </>
+                </React.Fragment>
             ))}
         </Wrapper>
     );
