@@ -6,7 +6,7 @@ export const MainContainer = styled.div`
     display: flex;
     align-items: end;
     position: fixed;
-    bottom: 8.5rem;
+    bottom: 9.5rem;
     left: 0;
     width: 100%;
     height: 100%;
@@ -51,16 +51,16 @@ export const SearchBar = styled.div`
     align-items: center;
     text-align: center;
     position: fixed;
-    bottom: 5rem;
+    bottom: 6.7rem;
     left: 50%;
     transform: translateX(-50%);
 
     @media (min-width: 768px) and (max-width: 1023px) {
-        bottom: 11.2rem;
+        bottom: 11.7rem;
     }
 
     @media (min-width: 1024px) {
-        bottom: -4.3rem;
+        bottom: -4rem;
     }
 `;
 
@@ -95,7 +95,7 @@ export const PreferencesContainer = styled.div`
     margin-top: 1rem;
     border-left: 1px dashed lightgray;
     width: 50%;
-    max-height: 70%;
+    max-height: 69%;
     overflow-y: scroll;
     scrollbar-width: none;
     &::-webkit-scrollbar {
@@ -107,7 +107,7 @@ export const PreferencesContainer = styled.div`
     }
 
     @media (min-width: 768px) and (max-width: 1023px) {
-        max-height: 46.4%;
+        max-height: 60%;
     }
 
     @media (min-width: 1024px) {
@@ -129,7 +129,7 @@ export const PreferenceItem = styled.div<{ selected: boolean; disabled?: boolean
     align-items: center;
     justify-content: left;
     gap: 1rem;
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
     color: ${props => {
         if (props.selected) return "var(--color-negative)";
         if (props.disabled) return "var(--color-text-secondary)";
@@ -161,5 +161,9 @@ export const PreferenceItem = styled.div<{ selected: boolean; disabled?: boolean
             opacity: 1;
             transform: translateY(0);
         }
+    }
+
+    @media (min-width: 768px) {
+        font-size: var(--font-size-xl);
     }
 `;

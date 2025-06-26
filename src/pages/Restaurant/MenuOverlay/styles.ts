@@ -55,5 +55,10 @@ export const Icons = styled.div<{
 `;
 
 export const Icon = styled.div`
+    width: 0.45rem;
 
+    @media (min-width: 768px) {
+        width: 0.7rem;
+        margin: 0 0.1rem;
+    }
 `;

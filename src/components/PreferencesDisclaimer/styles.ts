@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const MainContainer = styled.div`
     position: fixed;    
-    bottom: 6rem;
+    bottom: 7.5rem;
     left: 0;
     right: 0;
     display: flex;
@@ -33,6 +33,10 @@ export const MainContainer = styled.div`
         to {
             transform: translateY(140%);
         }
+    }
+
+    @media (min-width: 768px) {
+        bottom: 12rem;
     }
 `;
 
@@ -83,18 +87,26 @@ export const TextContainer = styled.div`
     backdrop-filter: var(--material-light-background-blur);
     -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
     padding: 1.3rem;
-    width: 70%;
+    width: 75%;
     border-radius: 8px;
     gap: 1.3rem;
     display: flex;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
+    
+    @media (min-width: 768px) and (max-width: 1024px) {
+        width: 50%;
+    }
+
+    @media (min-width: 1024px) {
+        width: 20%;
+    }
 `;
 
 export const Text = styled.div`
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-normal);
-    font-family: var(--font-family-secondary);\
+    font-family: var(--font-family-secondary);
 
     -webkit-tap-highlight-color: transparent;
 

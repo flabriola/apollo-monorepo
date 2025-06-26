@@ -26,7 +26,7 @@ function MenuOverlay({
     
     return (
         <Wrapper key={key} baseWidth={width} baseHeight={height}>
-            <MenuImage src={image}/>
+            <MenuImage src={image} />
             {rectangles.map(({ id, ...rect }) => (
                 <React.Fragment key={id}>
                     <Rectangle
@@ -54,7 +54,7 @@ function MenuOverlay({
                             filteredIds.find(item => item.dishId === id)?.preferenceIds.map((preferenceId: string) => {
                                 // Cast to unknown first to avoid type error
                                 const preference = parseInt(preferenceId) as Preferences;
-                                return (<Icon>{getPreferenceIcon(preference, 7, "var(--color-negative)")}</Icon>)
+                                return (<Icon>{getPreferenceIcon(preference, 50, "var(--color-negative)")}</Icon>)
                             })
                         )}
                     </Icons>

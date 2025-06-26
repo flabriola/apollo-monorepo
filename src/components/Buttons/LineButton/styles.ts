@@ -23,8 +23,8 @@ export const ButtonContainer = styled.button<{ isOpen: boolean }>`
 `;
 
 export const Line = styled.div<{ isOpen: boolean }>`
-    width: 16px;
-    height: 1.5px;
+    width: 14px;
+    height: 1.2px;
     background-color: #000;
     transition: all 0.3s ease-in-out;
     transform-origin: center;
@@ -35,6 +35,6 @@ export const Line = styled.div<{ isOpen: boolean }>`
     }
 
     &:last-child {
-        transform: ${({ isOpen }) => isOpen ? 'translateY(-3.8px) rotate(-45deg)' : 'none'};
+        transform: ${({ isOpen }) => isOpen ? 'translateY(-3px) rotate(-45deg)' : 'none'};
     }
 `;

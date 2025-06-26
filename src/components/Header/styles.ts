@@ -4,7 +4,9 @@ import styled from 'styled-components';
 export const HeaderContainer = styled.div`
   width: 100%;
   height: 4rem;
-  background-color: #f6f6f6;
+  background-color: var(--material-light-background);
+  backdrop-filter: var(--material-light-background-blur);
+  -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
   position: fixed;
   top: 0;
   left: 0;

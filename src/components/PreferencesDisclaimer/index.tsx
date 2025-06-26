@@ -61,7 +61,7 @@ function PreferencesDisclaimer() {
                     <Text style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}>
                         {t('preferences_disclaimer.advice')}
                     </Text>
-                    <Text style={{ fontSize: 'var(--font-size-xs)' }}>
+                    <Text style={{ fontSize: '0.65rem' }}>
                         {t('preferences_disclaimer.disclaimer')}
                     </Text>
                 </TextContainer>

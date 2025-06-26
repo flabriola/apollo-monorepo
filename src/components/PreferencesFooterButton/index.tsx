@@ -47,7 +47,12 @@ function PreferencesFooterButton() {
             navigate(`/${restaurantRoute.route}/preferences`);
         } else if (preferencesState === "preferences" || preferencesState === "preferences_with_selection") {
 
-            if (preferencesState === "preferences_with_selection") setDisclaimer(true);
+            if (userPreferences?.preferences?.length > 0 && preferencesState === "preferences_with_selection") {
+                setDisclaimer(true);
+            } else {
+                setDisclaimer(false);
+            }
+            
             navigate(`/${restaurantRoute.route}/menu`);
         }
     }

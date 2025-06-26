@@ -152,7 +152,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(allergen)}
                                 >
-                                    {getPreferenceIcon(allergen, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[allergen]}
+                                    {getPreferenceIcon(allergen, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[allergen]}
                                 </PreferenceItem>
                             )
                         })
@@ -169,7 +169,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(diet)}
                                 >
-                                    {getPreferenceIcon(diet, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[diet]}
+                                    {getPreferenceIcon(diet, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[diet]}
                                 </PreferenceItem>
                             )
                         })
@@ -191,7 +191,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(item)}
                                 >
-                                    {getPreferenceIcon(item, 25, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[item]}
+                                    {getPreferenceIcon(item, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[item]}
                                 </PreferenceItem>
                             )
                         })

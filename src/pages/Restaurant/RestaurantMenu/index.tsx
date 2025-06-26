@@ -8,7 +8,7 @@ import PreferencesDisclaimer from "../../../components/PreferencesDisclaimer";
 
 function RestaurantMenu() {
 
-    const { restaurant, setPreferencesState, userPreferences, setMenu, menu, restaurantRoute, disclaimer, setDisclaimer } = useRestaurant();
+    const { restaurant, setPreferencesState, userPreferences, setMenu, menu, restaurantRoute, disclaimer } = useRestaurant();
     const navigate = useNavigate();
 
     const [filteredIds, setFilteredIds] = useState<{ dishId: string, preferenceIds: string[] }[]>([]);

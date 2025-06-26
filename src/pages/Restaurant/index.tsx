@@ -40,6 +40,13 @@ function Restaurant() {
         return <Navigate to="/404" />;
     }
 
+    const preloadImages = (urls: string[]) => {
+        urls.forEach((url) => {
+          const img = new Image();
+          img.src = url;
+        });
+      };
+
     // Set user preferences from search params
     useEffect(() => {
         const preferences = searchParams.get("preferences");
@@ -78,6 +85,12 @@ function Restaurant() {
             try {
                 const data = await fetchRestaurantData(restaurantRoute?.route ?? "");
                 setRestaurant(data);
+
+                // Preload images used in app to make them faster because fuck mediocricy and just letting things be slow
+                const imageUrls = Object.values(data.menus).map((menu: any) => menu.menu_overlay?.image).filter(Boolean);
+                imageUrls.push(data.logo_url);
+
+                preloadImages(imageUrls);
                 
                 // Get first active menu from menu list
                 const firstActiveMenu = Object.values(data.menus).find((menu: any) => menu.active);
