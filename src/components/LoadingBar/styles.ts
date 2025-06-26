@@ -9,7 +9,6 @@ const scroll = keyframes`
   }
 `;
 
-// TODO: Border or not?
 export const LoadingContainer = styled.div`
   width: 100px;
   overflow: hidden;

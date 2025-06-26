@@ -139,6 +139,7 @@ function Restaurant() {
                     setDisclaimer
                 }}>
                 <PreferencesFooterButton />
+                <title>{`Apollo Guide | ${restaurantRoute.name.toString()}`}</title>
                 <Outlet />
             </RestaurantContext.Provider>
         );

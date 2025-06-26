@@ -25,16 +25,12 @@ function PreferencesDisclaimer() {
         return `${items.slice(0, -1).join(", ")} ${t('preferences_disclaimer.and')} ${items[items.length - 1]}`;
     }
 
-    // The menus have been filtered for items that 
-    // do not contain
-    // are suitable for a
-    // diet.
     const getDescription = () => {
         let text = t('preferences_disclaimer.main_one');
         let allergens: Preferences[] = [];
         let diets: Preferences[] = [];
 
-        userPreferences.preferences.forEach((preference: Preferences, index: number) => {
+        userPreferences.preferences.forEach((preference: Preferences) => {
             if (preference >= 500000 && preference < 600000) {
                 allergens.push(preference);
             } else {

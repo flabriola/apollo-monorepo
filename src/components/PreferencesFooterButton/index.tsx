@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Container, Title, Subtitle } from "./styles";
 import { MainContainer } from "./styles";
-import { LogoIcon } from "../../assets/icons";
 import { useRestaurant } from "../../pages/Restaurant/RestaurantContext";
 import { Preferences } from "../../shared/restaurant/types";
 import { getPreferenceIcon } from "../../hooks/getPreferenceIcon";
@@ -52,7 +51,7 @@ function PreferencesFooterButton() {
             } else {
                 setDisclaimer(false);
             }
-            
+
             navigate(`/${restaurantRoute.route}/menu`);
         }
     }
@@ -61,7 +60,6 @@ function PreferencesFooterButton() {
     if (preferencesState === "default") {
         return (
             <MainContainer onClick={handleClick}>
-                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate} >
                     <Title key={states.default.title}>
                         {states.default.title}
@@ -75,7 +73,6 @@ function PreferencesFooterButton() {
     } else if (preferencesState === "preferences") {
         return (
             <MainContainer onClick={handleClick}>
-                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate}>
                     <Title key={states.preferences.title}>
                         {states.preferences.title}
@@ -89,7 +86,6 @@ function PreferencesFooterButton() {
     } else if (preferencesState === "preferences_with_selection") {
         return (
             <MainContainer onClick={handleClick}>
-                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate}>
                     <Title key={states.preferences_with_selection.title}>
                         {states.preferences_with_selection.title}
@@ -108,7 +104,6 @@ function PreferencesFooterButton() {
     } else if (preferencesState === "menu") {
         return (
             <MainContainer onClick={handleClick}>
-                {/* <LogoIcon size={46} /> */}
                 <Container animate={animate}>
                     <Title key={states.menu.title}>
                         {states.menu.title}

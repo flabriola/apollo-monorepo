@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-// TODO: Change for tablet and destop
 export const MainContainer = styled.div`
     position: fixed;
     bottom: 0;
@@ -37,8 +36,7 @@ export const MainContainer = styled.div`
 //     overflow: hidden;
 
 //     @media (min-width: 768px) {
-//         /* TODO decide border radius for app */
-//         border-radius: 12px;
+//         border-radius: 8px;
 //         padding: 1.3rem 0;
 //     }
 
@@ -126,12 +124,11 @@ export const Container = styled.div<{ animate: boolean }>`
     flex-direction: column;
     gap: 0.3rem;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 1.3rem;
 
     @media (min-width: 768px) {
-        /* TODO decide border radius for app */
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 1.3rem 0;
     }
 

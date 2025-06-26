@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 
-// change background color to the light material variable 
 export const HeaderContainer = styled.div`
   width: 100%;
   height: 4rem;

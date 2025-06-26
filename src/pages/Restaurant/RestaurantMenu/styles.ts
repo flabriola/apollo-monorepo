@@ -19,8 +19,6 @@ export const HeaderContainer = styled.div`
     width: 100%;
 `;
 
-// TODO: Consider background of menu list to be white or not so grey
-
 export const HeaderContent = styled.div`
     display: flex;
     align-items: center;
