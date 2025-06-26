@@ -52,6 +52,17 @@ export const Icons = styled.div<{
     align-items: center;
     justify-content: center;
     gap: 0.2rem;
+    background-color: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+
+    &:hover {
+        opacity: 0.6;
+    }
+
+    &:active {
+        opacity: 0.3;
+    }
 `;
 
 export const Icon = styled.div`

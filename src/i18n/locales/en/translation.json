@@ -91,5 +91,8 @@
     "advice": "Please inform your waiter of your dietary requirements.",
     "disclaimer": "The kitchen cannot guarantee no cross contamination.",
     "and": "and"
+  },
+  "dish_details": {
+    "disclaimer": "This item may contain traces of"
   }
 } 

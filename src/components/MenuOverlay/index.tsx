@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Wrapper, MenuImage, Rectangle, Icons, Icon } from './styles';
-import { getPreferenceIcon } from '../../../hooks/getPreferenceIcon';
-import type { Preferences } from '../../../shared/restaurant/types';
+import { getPreferenceIcon } from '../../hooks/getPreferenceIcon';
+import type { Preferences, RestaurantData } from '../../shared/restaurant/types';
+import DishDetails from '../DishDetails';
 
 function MenuOverlay({
     menu_overlay,
-    filteredIds
+    filteredIds,
+    menu,
 }: {
     menu_overlay: {
         image: string;
@@ -15,10 +17,12 @@ function MenuOverlay({
         color: string;
     }
     filteredIds: { dishId: string, preferenceIds: string[] }[];
+    menu: RestaurantData["menus"];
 }) {
     const { image, width, height, rectangles, color } = menu_overlay;
     const [key, setKey] = useState(0);
-    
+    const [dishDetails, setDishDetails] = useState<string | null>(null);
+
     // Force re-render when menu_overlay changes
     useEffect(() => {
         setKey(prev => prev + 1);
@@ -49,6 +53,9 @@ function MenuOverlay({
                             width: `${(rect.width / width) * 100}%`,
                             height: `${(rect.height / height) * 100}%`,
                         }}
+                        onClick={() => {
+                            setDishDetails(id);
+                        }}
                     >
                         {filteredIds.some((item) => item.dishId === id) && (
                             filteredIds.find(item => item.dishId === id)?.preferenceIds.map((preferenceId: string) => {
@@ -60,6 +67,7 @@ function MenuOverlay({
                     </Icons>
                 </React.Fragment>
             ))}
+            {dishDetails && <DishDetails dishDetails={dishDetails} setDishDetails={setDishDetails} menu={menu}/>}
         </Wrapper>
     );
 }

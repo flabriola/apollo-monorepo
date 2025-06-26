@@ -20,46 +20,46 @@ export interface RestaurantData {
             description: string;
             active: boolean;
             menu_overlay: {
-            image: string;
-            width: number;
-            height: number;
-            rectangles: {
-                id: string;
+                image: string;
                 width: number;
                 height: number;
-                left: number;
-                top: number;
-            }[];
-            color: string;
-        };
-        dishes: {
-            [key: number]: {
-                name: string;
-                description: string;
-                category: string;
-                active: boolean;
-                allergens: {
-                    id: number;
-                    ingredients: {
-                        id: number;
-                        name: string;
-                    }[];
+                rectangles: {
+                    id: string;
+                    width: number;
+                    height: number;
+                    left: number;
+                    top: number;
                 }[];
-                diets: {
-                    id: number;
-                    ingredients: {
-                        id: number;
-                        name: string;
-                    }[];
-                }[];
-                cross_contaminations: {
-                    allergen: number;
-                    reason: string;
-                    ingredient: number;
-                    ingredient_name: string;
-                    description: string;
-                }[];
+                color: string;
             };
+            dishes: {
+                [key: number]: {
+                    name: string;
+                    description: string;
+                    category: string;
+                    active: boolean;
+                    allergens: {
+                        id: number;
+                        ingredients: {
+                            id: number;
+                            name: string;
+                        }[];
+                    }[];
+                    diets: {
+                        id: number;
+                        ingredients: {
+                            id: number;
+                            name: string;
+                        }[];
+                    }[];
+                    cross_contaminations: {
+                        allergen: number;
+                        reason: string;
+                        ingredient: number;
+                        ingredient_name: string;
+                        description: string;
+                    }[];
+                };
             };
         };
     };

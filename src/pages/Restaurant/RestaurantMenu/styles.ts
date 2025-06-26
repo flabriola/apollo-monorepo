@@ -2,6 +2,9 @@ import styled from "styled-components";
 
 export const MainContainer = styled.div`
     width: 100%;
+    // TODO ??
+    // background-color: var(--color-bg-secondary);
+    min-height: 100vh;
 `;
 
 export const Container = styled.div`
@@ -9,7 +12,7 @@ export const Container = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: top;
-    margin-bottom: 9rem;
+    padding-bottom: 9rem;
 `;
 
 export const HeaderContainer = styled.div`
@@ -79,6 +82,12 @@ export const MenuListBackground = styled.div`
             transform: translateY(-100%);
         }
     }
+        
+    @media (min-width: 1024px) {
+        width: 40%;
+        left: 30%;
+        right: 30%;
+    }
 `;
 
 export const MenuListContainer = styled.div`
@@ -94,6 +103,12 @@ export const MenuListContainer = styled.div`
     @media (orientation: landscape) and (max-width: 768px) {
         height: 70vh;
     }
+
+    @media (min-width: 1024px) {
+        width: 40%;
+        left: 30%;
+        right: 30%;
+    }
 `;
 
 export const MenuList = styled.div`
@@ -102,6 +117,10 @@ export const MenuList = styled.div`
     gap: 1.3rem;
     flex-direction: column;
     animation: slideDown 0.6s ease-out;
+
+    @media (min-width: 1024px) {
+        margin-left: 4rem;
+    }
     
     @keyframes slideDown {
         0% {

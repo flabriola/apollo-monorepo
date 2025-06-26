@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { MainContainer, HeaderContainer, MenuListBackground, MenuListContainer, MenuList, Menu, HeaderTitle, MenuContainer, Container, HeaderContent } from "./styles";
 import { LineButton } from "../../../components/Buttons/LineButton";
 import { useNavigate } from "react-router-dom";
-import MenuOverlay from "../MenuOverlay";
+import MenuOverlay from "../../../components/MenuOverlay";
 import PreferencesDisclaimer from "../../../components/PreferencesDisclaimer";
 
 function RestaurantMenu() {
@@ -122,7 +122,7 @@ function RestaurantMenu() {
                 </HeaderContainer>
 
                 <MenuContainer>
-                    <MenuOverlay menu_overlay={menu.menu_overlay} filteredIds={filteredIds} />
+                    <MenuOverlay menu_overlay={menu.menu_overlay} filteredIds={filteredIds} menu={menu}/>
                 </MenuContainer>
             </Container>
 
