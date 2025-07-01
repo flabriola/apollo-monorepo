@@ -12,6 +12,9 @@ export const MainContainer = styled.div`
     cursor: pointer;
     z-index: 2;
 
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+
     
     @media (min-width: 768px) {
         margin-bottom: 4.2rem;
@@ -200,6 +203,9 @@ export const Container = styled.div<{ animate: boolean }>`
         transform: scale(1);
     }
     }
+
+        -webkit-tap-highlight-color: transparent;
+    user-select: none;
 `;
 
 export const Title = styled.div`
@@ -208,6 +214,10 @@ export const Title = styled.div`
     font-weight: var(--font-weight-medium);
     z-index: 1;
     animation: pulseFade 300ms ease-in-out;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
 `;
 
 export const Subtitle = styled.div`
@@ -217,7 +227,138 @@ export const Subtitle = styled.div`
     font-weight: var(--font-weight-ultralight);
     display: flex;
     flex-direction: row;
-    gap: 0.5rem;
     align-items: center;
+    text-align: center;
     animation: pulseFade 300ms ease-in-out;
+`;
+
+export const MenuList = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 1.3rem;
+    flex-direction: column;
+    animation: fadeIn 0.6s forwards;
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    &.closing {
+        animation: fadeOut 0.3s forwards;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @media (min-width: 768px) {
+        gap: 1.9rem;
+    }
+`;
+
+export const MenuListContainer = styled.div`
+    z-index: 4;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.3rem;
+
+    @media (orientation: landscape) and (max-width: 768px) {
+        height: 70vh;
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+`;
+
+export const MenuListBackground = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--material-light-background);
+    backdrop-filter: var(--material-light-background-blur);
+    -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
+    animation: slideInHome 0.5s forwards;
+
+    @keyframes slideInHome {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    &.closing {
+        animation: slideOutHome 0.5s forwards;
+    }
+
+    @keyframes slideOutHome {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        opacity: 0;
+    }
+`;
+
+export const Text = styled.div`
+    font-size: var(--font-size-lg);
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-normal);
+
+    background-color: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        font-size: var(--font-size-4xl);
+    }
+`;
+
+export const Menu = styled.div`
+    font-size: var(--font-size-xl);
+    font-family: var(--font-family-secondary);
+    font-weight: var(--font-weight-normal);
+    cursor: pointer;
+    background-color: transparent;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    &:active {
+        color: var(--color-text-secondary);
+    }
 `;

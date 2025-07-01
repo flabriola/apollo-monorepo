@@ -48,7 +48,7 @@ export const BackgroundBlur = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--material-light-overlay);
+    background-color: rgba(0, 0, 0, 0.01);
     backdrop-filter: var(--material-light-overlay-blur);
     -webkit-backdrop-filter: var(--material-light-overlay-webkit-blur);
 

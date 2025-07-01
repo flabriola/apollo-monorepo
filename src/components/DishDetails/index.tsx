@@ -6,7 +6,7 @@ import { useRestaurant } from "../../pages/Restaurant/RestaurantContext";
 import type { RestaurantData, Preferences } from "../../shared/restaurant/types";
 import { getPreferenceIcon } from "../../hooks/getPreferenceIcon";
 
-function DishDetails({ dishDetails, setDishDetails, menu }: { dishDetails: string | null, setDishDetails: (dishDetails: string | null) => void, menu: RestaurantData["menus"][number] }) {
+function DishDetails({ dishDetails, setDishDetails, menu }: { dishDetails: string | null, setDishDetails: (dishDetails: string | null) => void, menu: RestaurantData["menus"] }) {
     const { t } = useTranslation();
     const [isClosing, setIsClosing] = useState(false);
     const dish = menu.dishes[parseInt(dishDetails as string)];
