@@ -51,13 +51,13 @@ function PreferencesDisclaimer() {
             <MainContainer className={isClosing ? 'closing' : ''}onClick={handleClose}>
                 <LogoIcon size={46} />
                 <TextContainer>
-                    <Text>
+                    <Text style={{ fontWeight: 'var(--font-weight-semibold)' }}>
                         {getDescription()}
                     </Text>
-                    <Text style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}>
+                    <Text style={{ fontSize: 'var(--font-size-sm)', marginTop: '1.8rem' }}>
                         {t('preferences_disclaimer.advice')}
                     </Text>
-                    <Text style={{ fontSize: '0.65rem' }}>
+                    <Text style={{ fontSize: 'var(--font-size-xs)'}}>
                         {t('preferences_disclaimer.disclaimer')}
                     </Text>
                 </TextContainer>

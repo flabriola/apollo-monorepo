@@ -16,9 +16,16 @@ export const MainContainer = styled.div`
     user-select: none;
 
     
-    @media (min-width: 768px) {
+    @media (min-width: 768px) and (max-width: 1024px) {
         margin-bottom: 4.2rem;
-        width: 26rem;
+        width: 34rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @media (min-width: 1024px) {
+        margin-bottom: 4.2rem;
+        width: 27.8rem;
         left: 50%;
         transform: translateX(-50%);
     }
@@ -329,7 +336,7 @@ export const MenuListBackground = styled.div`
 `;
 
 export const Text = styled.div`
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-2xl);
     font-family: var(--font-family-primary);
     font-weight: var(--font-weight-normal);
 

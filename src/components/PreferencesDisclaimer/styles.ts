@@ -10,12 +10,12 @@ export const MainContainer = styled.div`
     align-items: center;
     flex-direction: column;
     width: 100%;
-    animation: showUp 1.2s cubic-bezier(0.34, 0, 0.17, 1);
+    animation: showUp 1.4s cubic-bezier(0.34, 0, 0.17, 1);
     -webkit-tap-highlight-color: transparent;
 
     @keyframes showUp {
         from {
-            transform: translateY(140%);
+            transform: translateY(200%);
         }
         to {
             transform: translateY(0);
@@ -23,7 +23,7 @@ export const MainContainer = styled.div`
     }
 
     &.closing {
-        animation: pd1 0.7s cubic-bezier(0.34, 0, 0.17, 1) forwards;
+        animation: pd1 1.5s cubic-bezier(0.34, 0, 0.17, 1) forwards;
     }
 
     @keyframes pd1 {
@@ -31,7 +31,7 @@ export const MainContainer = styled.div`
             transform: translateY(0);
         }
         to {
-            transform: translateY(140%);
+            transform: translateY(200%);
         }
     }
 
@@ -82,15 +82,15 @@ export const BackgroundBlur = styled.div`
 export const TextContainer = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: left;
+    align-items: center;
     justify-content: center;
+    text-align: center;
     background-color: var(--material-light-background);
     backdrop-filter: var(--material-light-background-blur);
     -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
     padding: 1.3rem;
     width: 75%;
     border-radius: 8px;
-    gap: 1.3rem;
     display: flex;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;

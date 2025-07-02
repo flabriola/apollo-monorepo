@@ -99,6 +99,7 @@ export const MenuListContainer = styled.div`
     height: 100vh;
     display: flex;
     align-items: center;
+    justify-content: center;
 
     @media (orientation: landscape) and (max-width: 768px) {
         height: 70vh;
@@ -112,15 +113,11 @@ export const MenuListContainer = styled.div`
 `;
 
 export const MenuList = styled.div`
-    margin-left: 2.2rem;
     display: flex;
     gap: 1.3rem;
     flex-direction: column;
     animation: slideDown 0.6s ease-out;
-
-    @media (min-width: 1024px) {
-        margin-left: 4rem;
-    }
+    align-items: center;
     
     @keyframes slideDown {
         0% {
@@ -162,6 +159,10 @@ export const MenuList = styled.div`
             opacity: 0;
             transform: translateY(-10px);
         }
+    }
+
+    @media (min-width: 768px) {
+        gap: 2rem;
     }
 `;
 

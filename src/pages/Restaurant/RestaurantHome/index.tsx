@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import LineButton from '../../../components/Buttons/LineButton';
 import { useRestaurant } from '../RestaurantContext';
-import { Container, MainContainer, RestaurantLogo, RightContainer, Text, LeftContainer, Menu, MenuListContainerHome, MenuListBackgroundHome, MenuListHome, MenuTitleContainer, Restaurant, ContainerN, MainContainerN, MenuListHomeN, MenuListContainerHomeN, MenuListBackgroundHomeN } from './styles';
+import { Text, Menu, MenuTitleContainer, Restaurant, ContainerN, MainContainerN, MenuListHomeN, MenuListContainerHomeN, MenuListBackgroundHomeN } from './styles';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import flamingoImg from '/src/assets/icons/flamingoroom10-1100x1540.jpg';
 
 function RestaurantHome() {
     const { t } = useTranslation();
@@ -36,41 +35,6 @@ function RestaurantHome() {
     useEffect(() => {
         setPreferencesState("default");
     }, []);
-
-    // return (
-    //     <>
-    //         {/* <MainContainer style={{ backgroundImage: `url(${flamingoImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}> */}
-    //         <MainContainer>
-    //             <Container>
-    //                 <LeftContainer>
-    //                     <RestaurantLogo src={restaurant.logo_url} alt={restaurant.name} />
-    //                     {/* <RestaurantLogo src={maineImg} alt={restaurant.name} style={{ backgroundSize: 'cover', backgroundPosition: 'center' }} /> */}
-    //                 </LeftContainer>
-    //                 <RightContainer>
-    //                     <Text style={{ fontSize: t('restaurantHome.title').length > 5 ? 'var(--font-size-2xl)' : '' }}>{t('restaurantHome.title')}</Text>
-    //                     <LineButton onClick={handleMenuListOpen} style={{ zIndex: menuListOpen ? 100 : 0 }} isOpen={menuListOpenX} />
-    //                 </RightContainer>
-    //             </Container>
-    //         </MainContainer>
-
-
-
-    //         {menuListOpen && (
-    //             <>
-    //                 <MenuListBackgroundHome className={isClosing ? 'closing' : ''} />
-    //                 <MenuListContainerHome>
-    //                     <MenuListHome className={isClosing ? 'closing' : ''}>
-    //                         {restaurant.menu_list.map((menu: any) => {
-    //                             return (
-    //                                 <Menu key={menu.id} onClick={() => handleMenuClick(menu.id)} style={{ zIndex: 1000 }}>{menu.name}</Menu>
-    //                             )
-    //                         })}
-    //                     </MenuListHome>
-    //                 </MenuListContainerHome>
-    //             </>
-    //         )}
-    //     </>
-    // );
 
     return (
         <>

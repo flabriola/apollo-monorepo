@@ -88,8 +88,8 @@
     "main_allergen": "contain",
     "main_diet_start": "are suitable for a ",
     "main_diet_end": "diet",
-    "advice": "Please inform your waiter of your dietary requirements.",
-    "disclaimer": "The kitchen cannot guarantee no cross contamination.",
+    "advice": "Tap on individual items for more details.",
+    "disclaimer": "Please inform your waiter of your dietary requirements.",
     "and": "and"
   },
   "dish_details": {

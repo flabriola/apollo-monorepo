@@ -1,23 +1,19 @@
 import { useTranslation } from "react-i18next";
-import { Container, Title, Subtitle, MenuListBackground, MenuListContainer, MenuList, Text, Menu } from "./styles";
+import { Container, Title, Subtitle } from "./styles";
 import { MainContainer } from "./styles";
 import { useRestaurant } from "../../pages/Restaurant/RestaurantContext";
 import { Preferences } from "../../shared/restaurant/types";
 import { getPreferenceIcon } from "../../hooks/getPreferenceIcon";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import LineButton from "../Buttons/LineButton";
 
 function PreferencesFooterButton() {
 
     const { preferencesState, userPreferences, restaurantRoute, setDisclaimer } = useRestaurant();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { restaurant, setMenu } = useRestaurant();
+
     const [animate, setAnimate] = useState(false);
-    const [menuListOpen, setMenuListOpen] = useState(false);
-    const [menuListOpenX, setMenuListOpenX] = useState(false);
-    const [isClosing, setIsClosing] = useState(false);
 
     const states = {
         default: {
@@ -44,7 +40,7 @@ function PreferencesFooterButton() {
             setAnimate(false);
             requestAnimationFrame(() => setAnimate(true));
             setTimeout(() => setAnimate(false), 1300);
-        }
+          }
 
         if (preferencesState === "default" || preferencesState === "menu") {
             navigate(`/${restaurantRoute.route}/preferences`);
@@ -60,49 +56,11 @@ function PreferencesFooterButton() {
         }
     }
 
-    const handleMenuListOpen = () => {
-        if (menuListOpen) {
-            setIsClosing(true);
-            setMenuListOpenX(false);
-            setTimeout(() => {
-                setMenuListOpen(false);
-                setIsClosing(false);
-            }, 500); // Match the animation duration
-        } else {
-            setMenuListOpen(true);
-            setMenuListOpenX(true);
-        }
-    };
-
-    const handleMenuClick = (menuId: string) => {
-        setMenu(restaurant.menus[parseInt(menuId)]);
-        navigate(`/${restaurantRoute?.route}/menu`);
-    };
-
 
     if (preferencesState === "default") {
         return (
-            <MainContainer>
-
-                {menuListOpen &&
-                    <>
-                        <MenuListBackground className={isClosing ? 'closing' : ''} />
-                        <MenuListContainer>
-                            <MenuList className={isClosing ? 'closing' : ''}>
-                                {restaurant.menu_list.map((menu: any) => {
-                                    return (
-                                        <Menu key={menu.id} onClick={() => handleMenuClick(menu.id)} style={{ zIndex: 1000 }}>{menu.name}</Menu>
-                                    )
-                                })}
-                            </MenuList>
-                        </MenuListContainer>
-                    </>
-                }
-
-                <Text onClick={handleMenuListOpen}>{t('restaurantHome.title')}</Text>
-                <LineButton onClick={handleMenuListOpen} style={{ zIndex: menuListOpen ? 100 : 0 }} isOpen={menuListOpenX} />
-
-                <Container animate={animate} onClick={handleClick}>
+            <MainContainer onClick={handleClick}>
+                <Container animate={animate} >
                     <Title key={states.default.title}>
                         {states.default.title}
                     </Title>
@@ -145,26 +103,8 @@ function PreferencesFooterButton() {
         );
     } else if (preferencesState === "menu") {
         return (
-            <MainContainer>
-                {menuListOpen &&
-                    <>
-                        <MenuListBackground className={isClosing ? 'closing' : ''} />
-                        <MenuListContainer>
-                            <MenuList className={isClosing ? 'closing' : ''}>
-                                {restaurant.menu_list.map((menu: any) => {
-                                    return (
-                                        <Menu key={menu.id} onClick={() => handleMenuClick(menu.id)} style={{ zIndex: 1000 }}>{menu.name}</Menu>
-                                    )
-                                })}
-                            </MenuList>
-                        </MenuListContainer>
-                    </>
-                }
-
-                <Text onClick={handleMenuListOpen}>{t('restaurantHome.title')}</Text>
-                <LineButton onClick={handleMenuListOpen} style={{ zIndex: menuListOpen ? 100 : 0 }} isOpen={menuListOpenX} />
-
-                <Container animate={animate} onClick={handleClick}>
+            <MainContainer onClick={handleClick}>
+                <Container animate={animate}>
                     <Title key={states.menu.subtitle}>
                         {states.menu.subtitle}
                         {userPreferences?.preferences?.map((preference: Preferences) => {

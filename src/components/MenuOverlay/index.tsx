@@ -17,7 +17,7 @@ function MenuOverlay({
         color: string;
     }
     filteredIds: { dishId: string, preferenceIds: string[] }[];
-    menu: RestaurantData["menus"];
+    menu: RestaurantData["menus"][number];
 }) {
     const { image, width, height, rectangles, color } = menu_overlay;
     const [key, setKey] = useState(0);
@@ -51,10 +51,13 @@ function MenuOverlay({
                             left: `${(rect.left / width) * 100}%`,
                             top: `${(rect.top / height) * 100}%`,
                             width: `${(rect.width / width) * 100}%`,
-                            height: `${(rect.height / height) * 100}%`,
+                            height: `${(rect.height / height) * 100}%`
                         }}
                         onClick={() => {
-                            setDishDetails(id);
+                            if(menu.dishes[parseInt(id)]) {
+                                setDishDetails(id);
+                            }
+
                         }}
                     >
                         {filteredIds.some((item) => item.dishId === id) && (
