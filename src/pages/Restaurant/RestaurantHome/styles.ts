@@ -227,7 +227,7 @@ export const ContainerN = styled.div`
 
     @media (min-width: 768px) and (max-width: 1024px) {
         gap: 2rem;   
-        height: 78%;
+        height: 74%;
         margin-top: 2rem;
     }
 
