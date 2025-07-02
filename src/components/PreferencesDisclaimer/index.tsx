@@ -2,7 +2,7 @@ import { LogoIcon } from "../../assets/icons";
 import { MainContainer, TextContainer, Text, BackgroundBlur } from "./styles";
 import { useTranslation } from "react-i18next";
 import { useRestaurant } from "../../pages/Restaurant/RestaurantContext";
-import { Preferences, PreferencesNames } from "../../shared/restaurant/types";
+import { Preferences, getPreferencesNames } from "../../shared/restaurant/types";
 import { useState } from "react";
 
 function PreferencesDisclaimer() {
@@ -38,8 +38,8 @@ function PreferencesDisclaimer() {
             }
         });
 
-        let allergensText = allergens.length > 0 ? ` ${t('preferences_disclaimer.main_allergen')} ${formatList(allergens.map((preference: Preferences) => PreferencesNames[preference])).toLowerCase()}` : '';
-        let dietsText = diets.length > 0 ? ` ${t('preferences_disclaimer.main_diet_start')} ${formatList(diets.map((preference: Preferences) => PreferencesNames[preference])).toLowerCase()} ${t('preferences_disclaimer.main_diet_end')}` : '';
+        let allergensText = allergens.length > 0 ? ` ${t('preferences_disclaimer.main_allergen')} ${formatList(allergens.map((preference: Preferences) => getPreferencesNames()[preference])).toLowerCase()}` : '';
+        let dietsText = diets.length > 0 ? ` ${t('preferences_disclaimer.main_diet_start')} ${formatList(diets.map((preference: Preferences) => getPreferencesNames()[preference])).toLowerCase()} ${t('preferences_disclaimer.main_diet_end')}` : '';
 
         text += allergensText && dietsText ? `${allergensText} ${t('preferences_disclaimer.and')} ${dietsText}` : allergensText || dietsText;
         return `${text}.`;

@@ -59,8 +59,8 @@ function PreferencesFooterButton() {
 
     if (preferencesState === "default") {
         return (
-            <MainContainer onClick={handleClick}>
-                <Container animate={animate} >
+            <MainContainer>
+                <Container animate={animate} onClick={handleClick}>
                     <Title key={states.default.title}>
                         {states.default.title}
                     </Title>
@@ -72,8 +72,8 @@ function PreferencesFooterButton() {
         );
     } else if (preferencesState === "preferences") {
         return (
-            <MainContainer onClick={handleClick}>
-                <Container animate={animate}>
+            <MainContainer>
+                <Container animate={animate} onClick={handleClick}>
                     <Title key={states.preferences.title}>
                         {states.preferences.title}
                     </Title>
@@ -85,8 +85,8 @@ function PreferencesFooterButton() {
         );
     } else if (preferencesState === "preferences_with_selection") {
         return (
-            <MainContainer onClick={handleClick}>
-                <Container animate={animate}>
+            <MainContainer>
+                <Container animate={animate} onClick={handleClick}>
                     <Title key={states.preferences_with_selection.subtitle}>
                         {states.preferences_with_selection.subtitle}
                         {userPreferences?.preferences?.map((preference: Preferences) => {
@@ -103,8 +103,8 @@ function PreferencesFooterButton() {
         );
     } else if (preferencesState === "menu") {
         return (
-            <MainContainer onClick={handleClick}>
-                <Container animate={animate}>
+            <MainContainer>
+                <Container animate={animate} onClick={handleClick}>
                     <Title key={states.menu.subtitle}>
                         {states.menu.subtitle}
                         {userPreferences?.preferences?.map((preference: Preferences) => {

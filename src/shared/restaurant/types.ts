@@ -99,7 +99,7 @@ export enum Preferences {
     FRUCTOSE_FREE = 600006
 }
 
-export const PreferencesNames: { [key in Preferences]: string } = {
+export const getPreferencesNames = (): { [key in Preferences]: string } => ({
     [Preferences.EGG]: t("preferences.egg"),
     [Preferences.MILK]: t("preferences.milk"),
     [Preferences.SOYA]: t("preferences.soya"),
@@ -122,9 +122,9 @@ export const PreferencesNames: { [key in Preferences]: string } = {
     [Preferences.LACTOSE_FREE]: t("preferences.lactoseFree"),
     [Preferences.DAIRY_FREE]: t("preferences.dairyFree"),
     [Preferences.FRUCTOSE_FREE]: t("preferences.fructoseFree")
-}
+})
 
-export const PreferencesDescriptions: { [key in Preferences]: string } = {
+export const getPreferencesDescriptions = (): { [key in Preferences]: string } => ({
     [Preferences.EGG]: t("preferences.description.egg"),
     [Preferences.MILK]: t("preferences.description.milk"),
     [Preferences.SOYA]: t("preferences.description.soya"),
@@ -147,7 +147,7 @@ export const PreferencesDescriptions: { [key in Preferences]: string } = {
     [Preferences.LACTOSE_FREE]: t("preferences.description.lactoseFree"),
     [Preferences.DAIRY_FREE]: t("preferences.description.dairyFree"),
     [Preferences.FRUCTOSE_FREE]: t("preferences.description.fructoseFree")
-}
+});
 
 export type UserPreferences = {
     preferences: Preferences[];
@@ -166,3 +166,5 @@ export type MenuOverlay = {
         top: number;
     }[];
 };
+
+// PreferencesDescriptions

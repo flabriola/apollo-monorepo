@@ -4,7 +4,7 @@ import { MainContainer, Title, PreferenceGroup, SearchBar, Text, PreferenceItem,
 import { useTranslation } from "react-i18next";
 import { allergies, diets } from "../../../shared/restaurant/data";
 import { getPreferenceIcon } from "../../../hooks/getPreferenceIcon";
-import { Preferences, PreferencesNames, PreferencesDescriptions } from "../../../shared/restaurant/types";
+import { Preferences, getPreferencesNames, getPreferencesDescriptions } from "../../../shared/restaurant/types";
 
 // Currently only supports allergies and diets, to support Ingredients:
 // Create a new field in db and db query that says whether restuarant allows ingredients filtering
@@ -61,8 +61,8 @@ function PreferencesSelector() {
         // Filter and sort preferences based on priority
         const filteredResults = allPreferences
             .filter((preference) => {
-                const name = PreferencesNames[preference].toLowerCase();
-                const description = PreferencesDescriptions[preference].toLowerCase();
+                const name = getPreferencesNames()[preference].toLowerCase();
+                const description = getPreferencesDescriptions()[preference].toLowerCase();
 
                 // Check if query matches the name first
                 if (name.includes(query)) {
@@ -77,8 +77,8 @@ function PreferencesSelector() {
                 return false;
             })
             .sort((a, b) => {
-                const nameA = PreferencesNames[a].toLowerCase();
-                const nameB = PreferencesNames[b].toLowerCase();
+                const nameA = getPreferencesNames()[a].toLowerCase();
+                const nameB = getPreferencesNames()[b].toLowerCase();
 
                 // Priority 1: Exact matches
                 const exactMatchA = nameA === query;
@@ -151,7 +151,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(allergen)}
                                 >
-                                    {getPreferenceIcon(allergen, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[allergen]}
+                                    {getPreferenceIcon(allergen, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {getPreferencesNames()[allergen]}
                                 </PreferenceItem>
                             )
                         })
@@ -168,7 +168,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(diet)}
                                 >
-                                    {getPreferenceIcon(diet, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[diet]}
+                                    {getPreferenceIcon(diet, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {getPreferencesNames()[diet]}
                                 </PreferenceItem>
                             )
                         })
@@ -190,7 +190,7 @@ function PreferencesSelector() {
                                     disabled={isDisabled}
                                     onClick={() => !isDisabled && handlePreferenceClick(item)}
                                 >
-                                    {getPreferenceIcon(item, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {PreferencesNames[item]}
+                                    {getPreferenceIcon(item, 22, isSelected ? "var(--color-negative)" : isDisabled ? "var(--color-text-secondary)" : "var(--color-black)")} {getPreferencesNames()[item]}
                                 </PreferenceItem>
                             )
                         })
