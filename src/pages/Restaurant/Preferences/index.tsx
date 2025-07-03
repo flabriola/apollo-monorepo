@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRestaurant } from "../RestaurantContext";
-import { MainContainer, Title, PreferenceGroup, SearchBar, Text, PreferenceItem, PreferencesList, SearchInput, PreferencesContainer, Container } from "./styles";
+import { MainContainer, Title, PreferenceGroup, SearchBar, Text, PreferenceItem, PreferencesList, SearchInput, PreferencesContainer, Container, HeaderTitle } from "./styles";
 import { useTranslation } from "react-i18next";
 import { allergies, diets } from "../../../shared/restaurant/data";
 import { getPreferenceIcon } from "../../../hooks/getPreferenceIcon";
 import { Preferences, getPreferencesNames, getPreferencesDescriptions } from "../../../shared/restaurant/types";
+import { useNavigate } from "react-router-dom";
 
 // Currently only supports allergies and diets, to support Ingredients:
 // Create a new field in db and db query that says whether restuarant allows ingredients filtering
@@ -18,7 +19,7 @@ function PreferencesSelector() {
     const [preferenceGroup, setPreferenceGroup] = useState<"allergens" | "diets" | "ingredients">("allergens");
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [searchResults, setSearchResults] = useState<Preferences[]>(allergies.concat(diets));
-
+    const navigate = useNavigate();
     useEffect(() => {
         if (userPreferences && userPreferences.preferences && userPreferences.preferences.length > 0) {
             setPreferencesState("preferences_with_selection");
@@ -102,6 +103,7 @@ function PreferencesSelector() {
     return (
         <MainContainer>
             <Container>
+            <HeaderTitle onClick={() => navigate(-1)}>←</HeaderTitle>
                 <Title>{t("preferencesSelector.title")}</Title>
                 <PreferenceGroup>
                     <Text

@@ -25,6 +25,22 @@ export const MainContainer = styled.div`
     }
 `;
 
+export const HeaderTitle = styled.div`
+    font-size: var(--font-size-2xl);
+    font-family: var(--font-family-secondary);
+    font-weight: var(--font-weight-normal);
+    width: 5rem;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;    
+    cursor: pointer;
+    padding-left: 1rem;
+    opacity: 0.6;
+
+    &:active {
+        opacity: 0.5;
+    }
+`;
+
 export const Container = styled.div`
     display: flex;
     flex-direction: column;
@@ -167,3 +183,4 @@ export const PreferenceItem = styled.div<{ selected: boolean; disabled?: boolean
         font-size: var(--font-size-xl);
     }
 `;
+
