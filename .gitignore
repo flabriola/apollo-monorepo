@@ -18,4 +18,8 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 .env*
+.next/
+out/
+dist/
+build/
 #amplify-do-not-edit-end.env*
