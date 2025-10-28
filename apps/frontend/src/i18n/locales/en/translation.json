@@ -1,0 +1,98 @@
+{
+  "error": {
+    "fetchingRestaurantData": "Error fetching restaurant data"
+  },
+  "preferences": {
+    "egg": "Egg",
+    "milk": "Milk",
+    "soya": "Soya",
+    "wheat": "Wheat",
+    "treeNuts": "Tree Nuts",
+    "peanuts": "Peanuts",
+    "nuts": "Nuts",
+    "shellfish": "Shellfish",
+    "fish": "Fish",
+    "seafood": "Seafood",
+    "sesame": "Sesame",
+    "coeliac": "Coeliac",
+    "sulphite": "Sulphite",
+    "mustard": "Mustard",
+    "allium": "Allium",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "pescatarian": "Pescatarian",
+    "glutenFree": "Gluten Free",
+    "lactoseFree": "Lactose Free",
+    "dairyFree": "Dairy Free",
+    "fructoseFree": "Fructose Free",
+    "description": {
+      "egg": "",
+      "milk": "",
+      "soya": "",
+      "wheat": "",
+      "treeNuts": "",
+      "peanuts": "",
+      "nuts": "",
+      "shellfish": "",
+      "fish": "",
+      "seafood": "",
+      "sesame": "",
+      "coeliac": "",
+      "sulphite": "",
+      "mustard": "",
+      "allium": "",
+      "vegetarian": "",
+      "vegan": "",
+      "pescatarian": "",
+      "glutenFree": "",
+      "lactoseFree": "",
+      "dairyFree": "",
+      "fructoseFree": ""
+    }
+  },
+  "notFound": {
+    "title": "NOT FOUND",
+    "subtitle": "You seem to be at the wrong address",
+    "button": "Press here for the full list of partners →"
+  },
+  "loading": {
+    "title": "Taking you to"
+  },
+  "restaurantHome": {
+    "title": "MENUS"
+  },
+  "preferencesFooterButton": {
+    "default_title": "Set your food preferences",
+    "default_subtitle": "Filter our menus by allergens and dietary needs",
+    "preferences_title": "Set your food preferences",
+    "preferences_subtitle": "Tap to filter what you would like to avoid",
+    "preferences_with_selection_title": "Press to Apply",
+    "preferences_with_selection_subtitle": "Menus filtered for: ",
+    "menu_title": "Tap to edit",
+    "menu_subtitle": "Menus filtered for: "
+  },
+  "preferencesSelector": {
+    "title": "Preferences",
+    "allergens": "Allergens",
+    "diets": "Diets",
+    "ingredients": "Ingredients",
+    "noResults": "No results found",
+    "searchPlaceholder": "Search",
+    "clear": "Clear"
+  },
+  "menu": {
+    "home": "Home"
+  },
+  "preferences_disclaimer": {
+    "main_one": "The menus have been filtered for items that",
+    "main_allergen": "contain",
+    "main_diet_start": "are suitable for a ",
+    "main_diet_end": "diet",
+    "advice": "Tap on individual items for more details.",
+    "disclaimer": "Please inform your waiter of your dietary requirements.",
+    "and": "and"
+  },
+  "dish_details": {
+    "disclaimer": "This item may contain traces of"
+  }
+} 

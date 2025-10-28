@@ -1,0 +1,371 @@
+import styled from "styled-components";
+
+export const MainContainer = styled.div`
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    cursor: pointer;
+    z-index: 2;
+
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+
+    
+    @media (min-width: 768px) and (max-width: 1024px) {
+        margin-bottom: 4.2rem;
+        width: 34rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @media (min-width: 1024px) {
+        margin-bottom: 4.2rem;
+        width: 27.8rem;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+`;
+
+// export const Container = styled.div<{ animate: boolean }>`
+//     position: relative;
+//     background-color: var(--material-light-background);
+//     backdrop-filter: var(--material-light-background-blur);
+//     -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
+//     padding: 1.3rem 0;
+//     width: 100%;
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     flex-direction: column;
+//     gap: 0.3rem;
+//     overflow: hidden;
+
+//     @media (min-width: 768px) {
+//         border-radius: 8px;
+//         padding: 1.3rem 0;
+//     }
+
+//     &::before {
+//         content: "";
+//         position: absolute;
+//         left: -200%;
+//         width: 150%;
+//         height: 100%;
+//         background: linear-gradient(
+//         120deg,
+//         rgba(242, 242, 242, 0) 0%,
+//         rgba(242, 242, 242, 0.5) 50%,
+//         rgba(242, 242, 242, 0) 100%
+//         );
+//         transform: skewX(-20deg);
+//         opacity: 0;
+//         pointer-events: none;
+//         animation: ${({ animate }) => animate ? 'glossySweep 1.2s ease-in-out' : 'none'};
+//     }
+
+//     @media (hover: hover) {
+//         &:hover::before {
+//         animation: glossySweep 1.2s ease-in-out;
+//         opacity: 1;
+//         }
+//     }
+
+//     @keyframes glossySweep {
+//         0% {
+//         left: -75%;
+//         opacity: 0;
+//         }
+//         30% {
+//         opacity: 1;
+//         }
+//         100% {
+//         left: 100%;
+//         opacity: 0;
+//         }
+//     }
+
+//     @keyframes fadeSlideUp {
+//     0% {
+//         opacity: 0;
+//         transform: translateY(6px);
+//     }
+//     100% {
+//         opacity: 1;
+//         transform: translateY(0);
+//     }
+//     }
+
+//     @keyframes pulseFade {
+//     0% {
+//         opacity: 0;
+//         transform: scale(0.99);
+//     }
+//     20% {
+//         opacity: 0.2;
+//         transform: scale(1.01);
+//     }
+//     60% {
+//         opacity: 0.4;
+//         transform: scale(1.005);
+//     }
+//     100% {
+//         opacity: 1;
+//         transform: scale(1);
+//     }
+//     }
+// `;
+
+// Floating (Would require changing ither things like pereference search and disclaimer height)
+export const Container = styled.div<{ animate: boolean }>`
+    position: relative;
+    background-color: var(--material-light-background);
+    backdrop-filter: var(--material-light-background-blur);
+    -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
+    padding: 1.3rem 0;
+    width: 85%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow: hidden;
+    border-radius: 8px;
+    margin: 1.3rem;
+
+    @media (min-width: 768px) {
+        border-radius: 8px;
+        padding: 1.3rem 0;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: -200%;
+        width: 150%;
+        height: 100%;
+        background: linear-gradient(
+        120deg,
+        rgba(242, 242, 242, 0) 0%,
+        rgba(242, 242, 242, 0.5) 50%,
+        rgba(242, 242, 242, 0) 100%
+        );
+        transform: skewX(-20deg);
+        opacity: 0;
+        pointer-events: none;
+        animation: ${({ animate }) => animate ? 'glossySweep 1.2s ease-in-out' : 'none'};
+    }
+
+    @media (hover: hover) {
+        &:hover::before {
+        animation: glossySweep 1.2s ease-in-out;
+        opacity: 1;
+        }
+    }
+
+    @keyframes glossySweep {
+        0% {
+        left: -75%;
+        opacity: 0;
+        }
+        30% {
+        opacity: 1;
+        }
+        100% {
+        left: 100%;
+        opacity: 0;
+        }
+    }
+
+    @keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    }
+
+    @keyframes pulseFade {
+    0% {
+        opacity: 0;
+        transform: scale(0.99);
+    }
+    20% {
+        opacity: 0.2;
+        transform: scale(1.01);
+    }
+    60% {
+        opacity: 0.4;
+        transform: scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    }
+
+        -webkit-tap-highlight-color: transparent;
+    user-select: none;
+`;
+
+export const Title = styled.div`
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    z-index: 1;
+    animation: pulseFade 300ms ease-in-out;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+`;
+
+export const Subtitle = styled.div`
+    z-index: 1;
+    font-family: var(--font-family-tertiary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-ultralight);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: center;
+    animation: pulseFade 300ms ease-in-out;
+`;
+
+export const MenuList = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 1.3rem;
+    flex-direction: column;
+    animation: fadeIn 0.6s forwards;
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    &.closing {
+        animation: fadeOut 0.3s forwards;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @media (min-width: 768px) {
+        gap: 1.9rem;
+    }
+`;
+
+export const MenuListContainer = styled.div`
+    z-index: 4;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.3rem;
+
+    @media (orientation: landscape) and (max-width: 768px) {
+        height: 70vh;
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+`;
+
+export const MenuListBackground = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--material-light-background);
+    backdrop-filter: var(--material-light-background-blur);
+    -webkit-backdrop-filter: var(--material-light-background-webkit-blur);
+    animation: slideInHome 0.5s forwards;
+
+    @keyframes slideInHome {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    &.closing {
+        animation: slideOutHome 0.5s forwards;
+    }
+
+    @keyframes slideOutHome {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        opacity: 0;
+    }
+`;
+
+export const Text = styled.div`
+    font-size: var(--font-size-2xl);
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-normal);
+
+    background-color: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        font-size: var(--font-size-4xl);
+    }
+`;
+
+export const Menu = styled.div`
+    font-size: var(--font-size-xl);
+    font-family: var(--font-family-secondary);
+    font-weight: var(--font-weight-normal);
+    cursor: pointer;
+    background-color: transparent;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    &:active {
+        color: var(--color-text-secondary);
+    }
+`;

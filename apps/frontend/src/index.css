@@ -1,0 +1,111 @@
+/* Import custom fonts */
+@import url('./assets/fonts/SFPro/stylesheet.css');
+@import url('./assets/fonts/NewYork/stylesheet.css');
+@import url('./assets/fonts/CormorantGaramond/stylesheet.css');
+
+:root {
+  /* === COLORS === */
+  /* Primary Colors */
+  --color-primary: #000000;
+  --color-primary-hover: #323232;
+  --color-secondary: #ffffff;
+  --color-tertiary: #999999;
+  
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #FEFDFC;
+  --color-bg-dark: #F6F6F6;
+  --color-bg-tertiary: #ffffff;
+
+  /* Text Colors */
+  --color-text-primary: #213547;
+  --color-text-secondary: #999999;
+  --color-text-light: rgba(255, 255, 255, 0.87);
+  --color-text-muted: #9ca3af;
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  --color-negative: #B4292A;
+  
+  /* === SPACING === */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-2xl: 3rem;      /* 48px */
+  --spacing-3xl: 4rem;      /* 64px */
+  
+  /* === TYPOGRAPHY === */
+  /* Font Families */
+  --font-family-primary: 'Times New Roman', Georgia, serif;
+  --font-family-secondary: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --font-family-tertiary: 'SFProText', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.775rem; /* 30px */
+  --font-size-4xl: 2.25rem;  /* 36px */
+  --font-size-5xl: 3rem;     /* 48px */
+  --font-size-6xl: 3.75rem;  /* 60px */
+  --font-size-7xl: 4.5rem;   /* 72px */
+  
+  /* Font Weights - matching SFProText available weights */
+  --font-weight-thin: 100;        /* SFProText-Thin */
+  --font-weight-ultralight: 200;  /* SFProText-Ultralight */
+  --font-weight-light: 300;       /* SFProText-Light */
+  --font-weight-normal: 400;      /* SFProText-Regular */
+  --font-weight-medium: 500;      /* SFProText-Medium */
+  --font-weight-semibold: 600;    /* SFProText-Semibold */
+  --font-weight-bold: 700;        /* SFProText-Bold */
+  --font-weight-heavy: 900;       /* SFProText-Heavy */
+  --font-weight-black: 900;       /* SFProText-Black */
+  
+  /* === TRANSITIONS === */
+  --transition-fast: 0.12s ease-in-out;
+  --transition-normal: 0.22s ease-in-out;
+  --transition-slow: 0.4s ease-in-out;
+  
+  /* === Z-INDEX === */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+  
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* === Materials === */
+  --material-light-background: rgba(255, 255, 255, 0.6);
+  --material-light-background-blur: blur(10px);
+  --material-light-background-webkit-blur: blur(10px);
+  --material-light-overlay: rgba(248, 248, 248, 0.3);
+  --material-light-overlay-blur: blur(2px);
+  --material-light-overlay-webkit-blur: blur(2px);
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-primary: var(--color-bg-dark);
+    --color-bg-secondary: var(--color-gray-800);
+    --color-bg-card: var(--color-gray-800);
+    --color-text-primary: var(--color-text-light);
+    --color-text-secondary: var(--color-gray-300);
+  }
+}
