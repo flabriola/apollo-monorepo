@@ -1,0 +1,201 @@
+/* Auth styles scoped to Amplify Authenticator */
+:root {
+  --amplify-colors-background-primary: #ffffff;
+  --amplify-colors-background-secondary: #f5f5f7;
+  --amplify-colors-border-primary: #d2d2d7;
+  --amplify-colors-border-focus: #000000;
+  --amplify-colors-font-primary: #1d1d1f;
+  --amplify-colors-font-secondary: #86868b;
+  --amplify-colors-brand-primary: #000000;
+  --amplify-colors-brand-primary-hover: #333336;
+  --amplify-radii-small: 6px;
+  --amplify-radii-medium: 8px;
+  --amplify-radii-large: 980px;
+  --amplify-space-small: 0.5rem;
+  --amplify-space-medium: 1rem;
+  --amplify-space-large: 1.5rem;
+  --amplify-font-sizes-small: 0.85rem;
+  --amplify-font-sizes-medium: 0.95rem;
+  --amplify-font-sizes-large: 1rem;
+  --amplify-font-weights-regular: 400;
+  --amplify-font-weights-medium: 500;
+  --amplify-font-weights-semibold: 600;
+}
+
+[data-amplify-authenticator] {
+  font-family: 'SF Pro Display', 'SF Pro Icons', 'Apple WebExp Icons', 'SF Pro', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', Arial, sans-serif !important;
+  background-color: var(--amplify-colors-background-primary) !important;
+
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  align-content: center !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+* {
+    box-shadow: none !important;
+}
+
+[data-amplify-authenticator] .auth-logo {
+  height: 40px;
+  display: block;
+  margin-bottom: 2.5rem;
+}
+
+[data-amplify-authenticator] {
+  width: 100%;
+  background: #fff;
+  padding: 2rem 2rem 1.5rem 2rem;
+}
+
+[data-amplify-authenticator] [data-amplify-form] {
+  width: 100%;
+  border-radius: 6px !important;
+  border: 1px solid #d2d2d7;
+  padding: 3rem 3rem 1.5rem 3rem !important;
+  font-family: inherit;
+}
+
+[data-amplify-authenticator] [data-amplify-button] button,
+[data-amplify-authenticator] button {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-radius: 980px !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1.1rem !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 6px !important;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+[data-amplify-authenticator] [data-amplify-button] button:hover,
+[data-amplify-authenticator] button:hover {
+  background-color: #333336 !important;
+}
+
+[data-amplify-authenticator] [data-amplify-router] {
+    background-color: var(--amplify-components-authenticator-router-background-color);
+    border: none !important;
+    border-width: var(--amplify-components-authenticator-router-border-width);
+    border-style: var(--amplify-components-authenticator-router-border-style);
+}
+
+[data-amplify-authenticator] [data-amplify-router] a,
+[data-amplify-authenticator] [data-amplify-link] a,
+[data-amplify-authenticator] a[data-amplify-link] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  display: inline-block;
+  text-align: center;
+  font-family: inherit;
+}
+[data-amplify-authenticator] [data-amplify-router] a:hover,
+[data-amplify-authenticator] [data-amplify-link] a:hover,
+[data-amplify-authenticator] a[data-amplify-link]:hover {
+  color: #333336 !important;
+  text-decoration: underline !important;
+}
+
+[data-amplify-authenticator] [data-amplify-label] label,
+[data-amplify-authenticator] label {
+  color: #1d1d1f !important;
+  font-size: 0.95rem !important;
+  font-weight: 400 !important;
+  font-family: inherit;
+}
+
+[data-amplify-authenticator] input[type="text"],
+[data-amplify-authenticator] input[type="password"],
+[data-amplify-authenticator] input[type="email"],
+[data-amplify-authenticator] input {
+  border: 1px solid #d2d2d7 !important;
+  border-radius: 6px !important;
+  padding: 0.8rem !important;
+  font-size: 0.95rem !important;
+  background: #fff !important;
+  color: #1d1d1f !important;
+  margin-bottom: 0.5rem !important;
+  font-family: inherit;
+}
+
+[data-amplify-authenticator] input[type="text"]:focus,
+[data-amplify-authenticator] input[type="password"]:focus,
+[data-amplify-authenticator] input[type="email"]:focus,
+[data-amplify-authenticator] input:focus {
+  border-color: #e0e0e0 !important;
+  box-shadow: none !important;
+}
+
+[data-amplify-authenticator] [data-amplify-heading] h1,
+[data-amplify-authenticator] [data-amplify-heading] h2,
+[data-amplify-authenticator] [data-amplify-heading] h3 {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  margin-bottom: 1.5rem !important;
+  font-family: inherit;
+}
+
+[data-amplify-authenticator] [data-amplify-button] button:focus,
+[data-amplify-authenticator] [data-amplify-button] button:active,
+[data-amplify-authenticator] button:focus,
+[data-amplify-authenticator] button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+  [data-amplify-authenticator] {
+    padding: 1rem 0.5rem 1rem 0.5rem;
+  }
+}
+
+[data-amplify-footer] button {
+  background-color: white !important;
+  font-weight: 500 !important;
+  color: #7e7a7a !important;
+  font-size: 0.95rem !important;
+  transition: color 0.2s;
+}
+
+.amplify-button.amplify-field-group__control.amplify-button--link.amplify-button--small {
+    background-color: white !important;
+    font-weight: 500 !important;
+    color: #7e7a7a !important;
+    font-size: 0.95rem !important;
+    transition: color 0.2s;
+}
+
+[data-amplify-footer] button:hover {
+    background-color: white !important;
+    color: hsl(240, 2%, 20%) !important;
+}
+
+.amplify-button.amplify-field-group__control.amplify-field__show-password {
+    background-color: white !important;
+    color: #bab7b7 !important;
+    font-weight: 300 !important;
+    width: 50px !important;
+    height: 50px !important;;
+    transition: color 0.2s;
+}
+
+.amplify-button.amplify-field-group__control.amplify-field__show-password:hover {
+    color: hsl(240, 2%, 53%) !important;
+}
+.amplify-flex.amplify-alert.amplify-alert--error {
+    background-color: #fff !important;
+}
+
+.amplify-flex.amplify-alert.amplify-alert--error button{
+    background-color: #fff !important;
+}
